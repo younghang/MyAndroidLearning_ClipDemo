@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:fitsSystemWindows="true" >
+    <android.support.design.widget.AppBarLayout android:layout_height="wrap_content"
+        android:layout_width="match_parent" android:theme="@style/AppTheme.AppBarOverlay">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/connect_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
+    </android.support.v7.widget.Toolbar>
+
+
+
+    </android.support.design.widget.AppBarLayout>
+
+
+
+    <RelativeLayout
+        android:layout_marginTop="?attr/actionBarSize"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include layout="@layout/connect_info"
+            ></include>
+    <LinearLayout
+     android:id="@+id/ll_ip"
+     android:gravity="center"
+     android:layout_marginTop="100dp"
+     android:layout_centerHorizontal="true"
+     android:layout_width="match_parent"
+     android:orientation="horizontal"
+     android:layout_height="wrap_content">
+     <TextView
+         android:textSize="24dp"
+         android:layout_width="60dp"
+         android:layout_height="60dp"
+         android:text="IP:"
+         android:gravity="center"
+         android:layout_gravity="center"
+         />
+     <EditText
+         android:id="@+id/ed_ip"
+         android:layout_width="200dp"
+         android:layout_height="60dp"
+         android:gravity="center"
+         android:layout_gravity="center"/>
+ </LinearLayout>
+    <LinearLayout
+        android:id="@+id/ll_port"
+        android:layout_below="@+id/ll_ip"
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_height="wrap_content">
+        <TextView
+            android:textSize="24dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:text="Port:"
+            android:gravity="center"
+            android:layout_gravity="center"
+            />
+        <EditText
+            android:id="@+id/ed_port"
+            android:layout_width="200dp"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:layout_gravity="center"/>
+    </LinearLayout>
+     <Button
+         android:layout_width="200dp"
+         android:layout_height="100dp"
+         android:id="@+id/btn_Connect"
+         android:gravity="center"
+         android:layout_centerHorizontal="true"
+         android:layout_below="@+id/ll_port"
+         android:text="连接"
+         />
+    <ImageView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/drag_handler"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:layout_below="@+id/btn_Connect"
+        />
+    </RelativeLayout>
+
+
+</android.support.design.widget.CoordinatorLayout>
