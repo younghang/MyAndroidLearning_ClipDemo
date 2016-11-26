@@ -115,6 +115,8 @@ public class MainFormActivity extends AppCompatActivity   {
         recyclerView.setAdapter(messageAdapter);
         new ItemTouchHelper(new MyItemTouchHelperCallBack(listDatas,recyclerView,messageAdapter))
                 .attachToRecyclerView(recyclerView);
+        IsDelete = false;
+        IsEdite = false;
     }
 
 
