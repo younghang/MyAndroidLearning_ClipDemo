@@ -3,9 +3,12 @@ package com.example.yanghang.myapplication;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -23,6 +26,10 @@ import android.widget.Toast;
 import com.example.yanghang.myapplication.ListPackage.ListData;
 import com.example.yanghang.myapplication.ListPackage.ListMessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.MyItemTouchHelperCallBack;
+import com.example.yanghang.myapplication.greendao.DaoMaster;
+import com.example.yanghang.myapplication.greendao.DaoSession;
+import com.example.yanghang.myapplication.greendao.ListDatas;
+import com.example.yanghang.myapplication.greendao.ListDatasDao;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +45,16 @@ public class MainFormActivity extends AppCompatActivity   {
     public static final int REQUEST_TEXT_EDITE_BACK=0;
     public static final String LIST_DATA="listdataToEdite";
     public static final String LIST_DATA_POS="listdataToEditePos";
-    private  List<ListData> listDatas=GetDatas();
+    private List<ListData> listDatas;
+
+    private SimpleCursorAdapter adapter;
+    private SQLiteDatabase db;
+    private Cursor cursor;
+
+    private DaoSession session;
+    private DaoMaster.DevOpenHelper helper;
+    private ListDatasDao userDao;
+    private DaoMaster master;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +64,13 @@ public class MainFormActivity extends AppCompatActivity   {
     }
 
     private void InitialView() {
+        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
+        db = helper.getWritableDatabase();
+        master = new DaoMaster(db);
+        session = master.newSession();
+        //得到StudentDAO对象，所以在这看来，对于这三个DAO文件，我们更能接触到的是StudentDao文件，进行CRUD操作也是通过StudentDao对象来操作
+        userDao = session.getListDatasDao();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("ClipBoard");
         setSupportActionBar(toolbar);
@@ -113,22 +136,26 @@ public class MainFormActivity extends AppCompatActivity   {
             }
         });
         recyclerView.setAdapter(messageAdapter);
-        new ItemTouchHelper(new MyItemTouchHelperCallBack(listDatas,recyclerView,messageAdapter))
+        new ItemTouchHelper(new MyItemTouchHelperCallBack(listDatas, recyclerView, messageAdapter, userDao))
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
         IsEdite = false;
+
+
     }
 
 
-    List<ListData> GetDatas()
-    {
+    List<ListData> GetDatas() {
         List<ListData> mDatas = new ArrayList<ListData>();
+        List<ListDatas> Datas = userDao.loadAll();
+        if (Datas != null) {
 
-        for (int i=0;i<20;i++)
-        {
-            mDatas.add(new ListData("hello","这是消息"+i));
-        }
-        mDatas.add(new ListData("ceshi","magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810"));
+            for (int i = Datas.size() - 1; i >= 0; i--) {
+                ListDatas ld = Datas.get(i);
+                mDatas.add(new ListData(ld.getRemark(), ld.getContent(), ld.getDate()));
+            }
+        } else
+            mDatas.add(new ListData("ceshi", "magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810"));
         return mDatas;
     }
 
@@ -144,7 +171,9 @@ public class MainFormActivity extends AppCompatActivity   {
 //                    listDatas.get(pos).setRemarks(listData.getRemarks());
                     Log.v("TEM", pos + listData.getInformation());
                     messageAdapter.deleteItem(pos);
-                    messageAdapter.addItem(listData,pos);
+                    messageAdapter.addItem(listData, pos);
+                    ListDatas item = new ListDatas(messageAdapter.getItemCount() - 1 - Long.valueOf(pos), listData.getInformation(), listData.getRemarks(), listData.getCreateDate());//由于主键id之前设置了自增长，所以传入null即可
+                    userDao.update(item);
 
                 }
                 if (resultCode== ActivityEditInfo.RESULT_ADD_NEW)
@@ -153,7 +182,9 @@ public class MainFormActivity extends AppCompatActivity   {
                     int pos =0;
                     Log.v("TEM", pos + listData.getInformation());
                     messageAdapter.addItem(listData);
-
+                    ListDatas item = new ListDatas((long) messageAdapter.getItemCount() - 1, listData.getInformation(), listData.getRemarks(), listData.getCreateDate());//由于主键id之前设置了自增长，所以传入null即可
+                    userDao.insert(item);
+                    Log.d("mysimpletag", "Inserted new note, ID: " + item.getId());
                 }
                 break;
 

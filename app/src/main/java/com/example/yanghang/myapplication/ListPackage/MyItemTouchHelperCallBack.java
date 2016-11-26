@@ -7,11 +7,14 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
 import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
+import com.example.yanghang.myapplication.greendao.ListDatas;
+import com.example.yanghang.myapplication.greendao.ListDatasDao;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,12 +25,14 @@ import java.util.List;
 public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
 
     private RecyclerView.ViewHolder vh;
+    private ListDatasDao userDao;
 
 
-    public MyItemTouchHelperCallBack(List<ListData> listDatas, RecyclerView recyclerView, ListMessageAdapter messageAdapter) {
+    public MyItemTouchHelperCallBack(List<ListData> listDatas, RecyclerView recyclerView, ListMessageAdapter messageAdapter, ListDatasDao userDao) {
         this.listDatas = listDatas;
         this.recyclerView = recyclerView;
         this.messageAdapter = messageAdapter;
+        this.userDao = userDao;
           FromEval= recyclerView.getContext().getResources().getDimension(R.dimen.from_eval);
           ToEval= recyclerView.getContext().getResources().getDimension(R.dimen.to_eval);
     }
@@ -78,9 +83,14 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
             fromPos, RecyclerView.ViewHolder target, int toPos, int x, int y) {
         super.onMoved(recyclerView, viewHolder, fromPos, target, toPos, x, y);
         // 移动完成后刷新列表
-        messageAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target
-                .getAdapterPosition());
-
+        int frompos = messageAdapter.getItemCount() - 1 - viewHolder.getAdapterPosition();
+        int topos = messageAdapter.getItemCount() - 1 - target.getAdapterPosition();
+        messageAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
+        Log.v("TAG", "from=" + frompos + "  to=" + topos);
+        ListDatas from = userDao.load(Long.valueOf(frompos));
+        ListDatas to = userDao.load(Long.valueOf(topos));
+        userDao.update(new ListDatas(from.getId(), to.getContent(), to.getRemark(), to.getDate()));
+        userDao.update(new ListDatas(to.getId(), from.getContent(), from.getRemark(), from.getDate()));
     }
 
     @Override
@@ -91,6 +101,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         listDatas.remove(pos);
         // 刷新列表
         messageAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+//        userDao.deleteByKey(Long.valueOf(pos));
+
         Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
             @Override
             public void onClick(View v) {

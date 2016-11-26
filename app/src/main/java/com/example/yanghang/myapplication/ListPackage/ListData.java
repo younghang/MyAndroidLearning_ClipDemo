@@ -24,6 +24,13 @@ public class ListData implements Serializable {
         Information = information;
         CreateDate=GetDate();
     }
+
+    public ListData(String remarks, String information, String createDate) {
+        Remarks = remarks;
+        Information = information;
+        CreateDate = createDate;
+    }
+
     static String GetDate()
     {
         SimpleDateFormat sDateFormat    =   new SimpleDateFormat("yyyy-MM-dd    hh:mm:ss");
