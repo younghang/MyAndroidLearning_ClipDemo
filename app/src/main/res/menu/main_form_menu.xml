@@ -4,11 +4,17 @@
     tools:context=".MainActivity" >
 
     <item
+        android:id="@+id/del_info"
+        android:orderInCategory="80"
+        android:title="删除"
+        android:icon="@drawable/ic_delete_inactive_24dp"
+        app:showAsAction="ifRoom"/>
+    <item
         android:id="@+id/add_info"
         android:orderInCategory="80"
         android:title="新建"
         android:icon="@mipmap/ic_add"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/edit_info"
         android:orderInCategory="90"

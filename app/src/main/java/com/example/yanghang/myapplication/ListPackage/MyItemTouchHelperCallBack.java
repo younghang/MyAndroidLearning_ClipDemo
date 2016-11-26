@@ -10,6 +10,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
+import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
 
 import java.util.Collections;
@@ -52,7 +53,9 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         // 拖拽的标记，这里允许上下左右四个方向
         int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
         // 滑动的标记，这里允许左右滑动
-        int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+        int swipeFlags = 0;
+        if (MainFormActivity.IsDelete)
+            swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
         return makeMovementFlags(dragFlags, swipeFlags);
 
     }

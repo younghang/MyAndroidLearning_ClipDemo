@@ -30,6 +30,7 @@ import java.util.List;
 public class MainFormActivity extends AppCompatActivity   {
 
     public static boolean IsEdite=false;
+    public static boolean IsDelete = false;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
     private ListMessageAdapter messageAdapter;
@@ -176,6 +177,14 @@ public class MainFormActivity extends AppCompatActivity   {
                 else
                     item.setIcon(R.drawable.ic_edit_white_24dp);
                 break;
+            case R.id.del_info:
+                IsDelete = !IsDelete;
+                if (IsDelete)
+                    item.setIcon(R.drawable.ic_delete_active_24dp);
+                else
+                    item.setIcon(R.drawable.ic_delete_inactive_24dp);
+                break;
+
         }
 
         return true;

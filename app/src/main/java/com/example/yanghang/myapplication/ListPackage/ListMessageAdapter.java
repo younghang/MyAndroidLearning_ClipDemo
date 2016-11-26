@@ -104,13 +104,13 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
 class MessageViewHolder extends RecyclerView.ViewHolder{
 
     AlwaysMarqueeTextView tvRemarks;
-    AlwaysMarqueeTextView tvMessage;
+    TextView tvMessage;
     CardView mCardView;
     TextView tvInfoDate;
     public MessageViewHolder(View itemView) {
         super(itemView);
         tvRemarks = (AlwaysMarqueeTextView) itemView.findViewById(R.id.tv_Remarks);
-        tvMessage = (AlwaysMarqueeTextView) itemView.findViewById(R.id.tv_Message);
+        tvMessage = (TextView) itemView.findViewById(R.id.tv_Message);
         tvInfoDate= (TextView) itemView.findViewById(R.id.tv_infoDate);
         mCardView = (CardView) itemView.findViewById(R.id.messageCardView);
 
