@@ -32,6 +32,10 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         mInflater = LayoutInflater.from(mContext);
     }
 
+    public ListData GetItemData(int pos) {
+        return mDatas.get(pos);
+    }
+
     private LayoutInflater mInflater;
     @Override
     public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

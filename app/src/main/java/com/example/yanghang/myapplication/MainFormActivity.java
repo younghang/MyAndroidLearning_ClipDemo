@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
 import com.example.yanghang.myapplication.ListPackage.ListData;
 import com.example.yanghang.myapplication.ListPackage.ListMessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.MyItemTouchHelperCallBack;
@@ -47,14 +48,16 @@ public class MainFormActivity extends AppCompatActivity   {
     public static final String LIST_DATA_POS="listdataToEditePos";
     private List<ListData> listDatas;
 
-    private SimpleCursorAdapter adapter;
-    private SQLiteDatabase db;
-    private Cursor cursor;
+    MyDBManager myDBManager;
 
-    private DaoSession session;
-    private DaoMaster.DevOpenHelper helper;
-    private ListDatasDao userDao;
-    private DaoMaster master;
+//    private SimpleCursorAdapter adapter;
+//    private SQLiteDatabase db;
+//    private Cursor cursor;
+
+    //    private DaoSession session;
+//    private DaoMaster.DevOpenHelper helper;
+//    private ListDatasDao userDao;
+//    private DaoMaster master;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,12 +67,13 @@ public class MainFormActivity extends AppCompatActivity   {
     }
 
     private void InitialView() {
-        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
-        db = helper.getWritableDatabase();
-        master = new DaoMaster(db);
-        session = master.newSession();
-        //得到StudentDAO对象，所以在这看来，对于这三个DAO文件，我们更能接触到的是StudentDao文件，进行CRUD操作也是通过StudentDao对象来操作
-        userDao = session.getListDatasDao();
+        myDBManager = new MyDBManager(MainFormActivity.this.getApplicationContext());
+//        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
+//        db = helper.getWritableDatabase();
+//        master = new DaoMaster(db);
+//        session = master.newSession();
+//        //得到StudentDAO对象，所以在这看来，对于这三个DAO文件，我们更能接触到的是StudentDao文件，进行CRUD操作也是通过StudentDao对象来操作
+//        userDao = session.getListDatasDao();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("ClipBoard");
@@ -80,10 +84,10 @@ public class MainFormActivity extends AppCompatActivity   {
 
         ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
                 this,
-                mDrawerLayout,toolbar,R.string.navigation_drawer_open,
+                mDrawerLayout, toolbar, R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close
 
-        ) ;
+        );
         mDrawerToggle.syncState();
         mDrawerLayout.setDrawerListener(mDrawerToggle);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -112,9 +116,9 @@ public class MainFormActivity extends AppCompatActivity   {
         });
 
         recyclerView = (RecyclerView) findViewById(R.id.rv_Message);
-        listDatas=GetDatas();
+        listDatas = GetDatas();
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)); // 设置布局，否则无法正常使用
-        messageAdapter=new ListMessageAdapter(listDatas,this);
+        messageAdapter = new ListMessageAdapter(listDatas, this);
         messageAdapter.setOnItemClickListener(new ListMessageAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
@@ -136,7 +140,7 @@ public class MainFormActivity extends AppCompatActivity   {
             }
         });
         recyclerView.setAdapter(messageAdapter);
-        new ItemTouchHelper(new MyItemTouchHelperCallBack(listDatas, recyclerView, messageAdapter, userDao))
+        new ItemTouchHelper(new MyItemTouchHelperCallBack(listDatas, recyclerView, messageAdapter, myDBManager))
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
         IsEdite = false;
@@ -147,15 +151,31 @@ public class MainFormActivity extends AppCompatActivity   {
 
     List<ListData> GetDatas() {
         List<ListData> mDatas = new ArrayList<ListData>();
-        List<ListDatas> Datas = userDao.loadAll();
-        if (Datas != null) {
+        myDBManager.open();
+        Cursor cursor = myDBManager.fetchAllDataDescByOrderID();
+        if (cursor == null) {
+            mDatas.add(new ListData("ceshi", "magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810", 0));
 
-            for (int i = Datas.size() - 1; i >= 0; i--) {
-                ListDatas ld = Datas.get(i);
-                mDatas.add(new ListData(ld.getRemark(), ld.getContent(), ld.getDate()));
+        } else {
+            if (cursor.moveToFirst()) {
+                int remarkIndex = cursor.getColumnIndex(MyDBManager.KEY_REMARK);
+                int contentIndex = cursor.getColumnIndex(MyDBManager.KEY_CONTENT);
+                int datetimeIndex = cursor.getColumnIndex(MyDBManager.KEY_DATETIME);
+                int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
+                while (!cursor.isAfterLast()) {
+                    String remark = cursor.getString(remarkIndex);
+                    String content = cursor.getString(contentIndex);
+                    String datetime = cursor.getString(datetimeIndex);
+                    int orderID = cursor.getInt(orderIdIndex);
+                    ListData listData = new ListData(remark, orderID, datetime, content);
+                    mDatas.add(listData);
+
+                    cursor.moveToNext();
+                }
             }
-        } else
-            mDatas.add(new ListData("ceshi", "magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810"));
+            cursor.close();
+        }
+        myDBManager.close();
         return mDatas;
     }
 
@@ -172,8 +192,9 @@ public class MainFormActivity extends AppCompatActivity   {
                     Log.v("TEM", pos + listData.getInformation());
                     messageAdapter.deleteItem(pos);
                     messageAdapter.addItem(listData, pos);
-                    ListDatas item = new ListDatas(messageAdapter.getItemCount() - 1 - Long.valueOf(pos), listData.getInformation(), listData.getRemarks(), listData.getCreateDate());//由于主键id之前设置了自增长，所以传入null即可
-                    userDao.update(item);
+                    myDBManager.open();
+                    myDBManager.updateData(listData.getOrderID(), listData.getRemarks(), listData.getInformation(), listData.getCreateDate());
+                    myDBManager.close();
 
                 }
                 if (resultCode== ActivityEditInfo.RESULT_ADD_NEW)
@@ -182,9 +203,9 @@ public class MainFormActivity extends AppCompatActivity   {
                     int pos =0;
                     Log.v("TEM", pos + listData.getInformation());
                     messageAdapter.addItem(listData);
-                    ListDatas item = new ListDatas((long) messageAdapter.getItemCount() - 1, listData.getInformation(), listData.getRemarks(), listData.getCreateDate());//由于主键id之前设置了自增长，所以传入null即可
-                    userDao.insert(item);
-                    Log.d("mysimpletag", "Inserted new note, ID: " + item.getId());
+                    myDBManager.open();
+                    myDBManager.insertData(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
+                    myDBManager.close();
                 }
                 break;
 
@@ -199,7 +220,7 @@ public class MainFormActivity extends AppCompatActivity   {
         {
             case R.id.add_info:
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
-                intent.putExtra(LIST_DATA, new ListData("",""));
+                intent.putExtra(LIST_DATA, new ListData("", "", messageAdapter.getItemCount()));
                 intent.putExtra(LIST_DATA_POS, -1);
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 break;

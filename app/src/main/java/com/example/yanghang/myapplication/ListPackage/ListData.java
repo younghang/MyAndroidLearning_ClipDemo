@@ -10,6 +10,7 @@ public class ListData implements Serializable {
     String Remarks="";
     String Information="";
     String CreateDate = "";
+    int OrderID = 0;
 
     public String getCreateDate() {
         return CreateDate;
@@ -19,17 +20,29 @@ public class ListData implements Serializable {
         CreateDate = createDate;
     }
 
-    public ListData(String remarks, String information) {
+    public ListData(String remarks, String information, int orderID) {
         Remarks = remarks;
         Information = information;
+        this.OrderID = orderID;
         CreateDate=GetDate();
     }
 
-    public ListData(String remarks, String information, String createDate) {
+    public ListData(String remarks, int orderID, String createDate, String information) {
         Remarks = remarks;
-        Information = information;
+        OrderID = orderID;
         CreateDate = createDate;
+        Information = information;
     }
+
+    public int getOrderID() {
+        return OrderID;
+    }
+
+    public void setOrderID(int orderID) {
+        OrderID = orderID;
+    }
+
+
 
     static String GetDate()
     {
