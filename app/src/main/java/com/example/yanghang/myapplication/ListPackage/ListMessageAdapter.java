@@ -48,6 +48,7 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     public void onBindViewHolder(final MessageViewHolder holder,final int position) {
         holder.tvMessage.setText(mDatas.get(position).getInformation());
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
+        holder.tvMessage.setMaxHeight((int) mContext.getResources().getDimension(R.dimen.max_height_item));
         holder.mCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,6 +90,11 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     public void deleteItem(int pos) {
         mDatas.remove(pos);
         notifyItemRemoved(pos);
+    }
+
+    public void editItem(int pos, ListData ls) {
+        mDatas.set(pos, ls);
+        notifyItemChanged(pos);
     }
 
     public void addItem(ListData data) {

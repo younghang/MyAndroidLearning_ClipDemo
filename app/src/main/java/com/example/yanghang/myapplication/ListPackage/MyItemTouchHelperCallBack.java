@@ -72,6 +72,14 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         //只有更改了，才会调用，根本不是Move就调用
         Collections.swap(listDatas, viewHolder.getAdapterPosition(), target
                 .getAdapterPosition());
+//        ListData from = messageAdapter.GetItemData(viewHolder.getAdapterPosition());
+//        ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
+//        ListData froma=new ListData(from);
+//        froma.setOrderID(to.getOrderID());
+//        ListData toa=new ListData(to);
+//        toa.setOrderID(from.getOrderID());
+//        listDatas.set(viewHolder.getAdapterPosition(), toa);
+//        listDatas.set(target.getAdapterPosition(), froma);
 
         return true;
     }
@@ -89,12 +97,18 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         ListData from = messageAdapter.GetItemData(viewHolder.getAdapterPosition());
         ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
 
+        Log.v(MainFormActivity.MTTAG, "交换的数据from current pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  message=" + from.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换的数据to current pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  message=" + to.getInformation());
+
         myDBManager.open();
 
         myDBManager.updateDataOrder(to.getOrderID(), from);
         myDBManager.updateDataOrder(from.getOrderID(), to);
         myDBManager.close();
-
+        int tempTo = to.getOrderID();
+        int tempFrom = from.getOrderID();
+        listDatas.get(viewHolder.getAdapterPosition()).setOrderID(tempTo);
+        listDatas.get(target.getAdapterPosition()).setOrderID(tempFrom);
     }
 
     @Override

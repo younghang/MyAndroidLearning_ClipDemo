@@ -7,10 +7,16 @@ import java.text.SimpleDateFormat;
  * Created by yanghang on 2016/11/22.
  */
 public class ListData implements Serializable {
-    String Remarks="";
-    String Information="";
-    String CreateDate = "";
-    int OrderID = 0;
+    private String Remarks = "";
+    private String Information = "";
+    private String CreateDate = "";
+    private int OrderID = 0;
+
+    public ListData(ListData from) {
+        this.Remarks = from.getRemarks();
+        this.Information = from.getInformation();
+        this.CreateDate = from.getCreateDate();
+    }
 
     public String getCreateDate() {
         return CreateDate;

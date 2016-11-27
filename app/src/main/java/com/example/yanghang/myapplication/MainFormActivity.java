@@ -38,6 +38,7 @@ import java.util.List;
 public class MainFormActivity extends AppCompatActivity   {
 
     public static boolean IsEdite=false;
+    public static String MTTAG = "nihao";
     public static boolean IsDelete = false;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
@@ -135,6 +136,7 @@ public class MainFormActivity extends AppCompatActivity   {
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
+                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getInformation());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 return false;
             }
@@ -189,9 +191,8 @@ public class MainFormActivity extends AppCompatActivity   {
                     int pos = data.getIntExtra(LIST_DATA_POS,0);
 //                    listDatas.get(pos).setInformation(listData.getInformation());
 //                    listDatas.get(pos).setRemarks(listData.getRemarks());
-                    Log.v("TEM", pos + listData.getInformation());
-                    messageAdapter.deleteItem(pos);
-                    messageAdapter.addItem(listData, pos);
+                    Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  message=" + listData.getInformation());
+                    messageAdapter.editItem(pos, listData);
                     myDBManager.open();
                     myDBManager.updateData(listData.getOrderID(), listData.getRemarks(), listData.getInformation(), listData.getCreateDate());
                     myDBManager.close();

@@ -5,4 +5,5 @@
     <dimen name="from_eval">1dp</dimen>
     <dimen name="to_eval">10dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="max_height_item">180dp</dimen>
 </resources>

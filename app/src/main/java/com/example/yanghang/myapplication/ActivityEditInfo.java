@@ -67,10 +67,6 @@ public class ActivityEditInfo extends AppCompatActivity {
             }
         };
         tvShowInfo.requestFocus();
-
-
-
-
     }
 
     @Override
