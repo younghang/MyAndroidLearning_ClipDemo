@@ -27,7 +27,7 @@ public class MySQLDB extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("create table clipinfos(_id int INTEGER PRIMARY KEY,remark text,content text,datetime text,orderid int)");
+        db.execSQL("create table clipinfos(_id int INTEGER PRIMARY KEY,remark text,content text,datetime text,orderid int unique)");
 
     }
 
