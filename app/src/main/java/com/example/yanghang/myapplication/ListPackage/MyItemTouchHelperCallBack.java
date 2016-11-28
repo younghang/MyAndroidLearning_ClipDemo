@@ -1,12 +1,9 @@
 package com.example.yanghang.myapplication.ListPackage;
 
 import android.animation.ObjectAnimator;
-import android.content.Context;
-import android.graphics.Color;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
@@ -14,8 +11,6 @@ import android.view.animation.DecelerateInterpolator;
 import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
 import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
-import com.example.yanghang.myapplication.greendao.ListDatas;
-import com.example.yanghang.myapplication.greendao.ListDatasDao;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,34 +20,28 @@ import java.util.List;
  */
 public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
 
+    float FromEval;
+    float ToEval;
     private RecyclerView.ViewHolder vh;
-
-
-    public MyItemTouchHelperCallBack(List<ListData> listDatas, RecyclerView recyclerView, ListMessageAdapter messageAdapter, MyDBManager myDBManager) {
-        this.listDatas = listDatas;
-        this.recyclerView = recyclerView;
-        this.messageAdapter = messageAdapter;
-        this.myDBManager = myDBManager;
-          FromEval= recyclerView.getContext().getResources().getDimension(R.dimen.from_eval);
-          ToEval= recyclerView.getContext().getResources().getDimension(R.dimen.to_eval);
-    }
-
-    public MyItemTouchHelperCallBack(IItemTouch mItemTouchListener) {
-        this.mItemTouchListener = mItemTouchListener;
-    }
-
-    public interface IItemTouch {
-        void onItemMove(int fromPosition, int toPosition);
-
-        void onItemDismiss(int position);
-    }
-
     private IItemTouch mItemTouchListener;
     private List<ListData> listDatas;
     private RecyclerView recyclerView;
     private ListMessageAdapter messageAdapter;
     private MyDBManager myDBManager;
 
+    public MyItemTouchHelperCallBack(List<ListData> listDatas, RecyclerView recyclerView, ListMessageAdapter messageAdapter, MyDBManager myDBManager) {
+        this.listDatas = listDatas;
+        this.recyclerView = recyclerView;
+        this.messageAdapter = messageAdapter;
+        this.myDBManager = myDBManager;
+        FromEval = recyclerView.getContext().getResources().getDimension(R.dimen.from_eval);
+        ToEval = recyclerView.getContext().getResources().getDimension(R.dimen.to_eval);
+    }
+
+
+    public MyItemTouchHelperCallBack(IItemTouch mItemTouchListener) {
+        this.mItemTouchListener = mItemTouchListener;
+    }
 
     @Override
     public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
@@ -96,19 +85,19 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         messageAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
         ListData from = messageAdapter.GetItemData(viewHolder.getAdapterPosition());
         ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
-
-        Log.v(MainFormActivity.MTTAG, "交换的数据from current pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  message=" + from.getInformation());
-        Log.v(MainFormActivity.MTTAG, "交换的数据to current pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  message=" + to.getInformation());
-
-        myDBManager.open();
-
-        myDBManager.updateDataOrder(to.getOrderID(), from);
-        myDBManager.updateDataOrder(from.getOrderID(), to);
-        myDBManager.close();
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
-        listDatas.get(viewHolder.getAdapterPosition()).setOrderID(tempTo);
-        listDatas.get(target.getAdapterPosition()).setOrderID(tempFrom);
+        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  message=" + from.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  message=" + to.getInformation());
+
+        myDBManager.open();
+        myDBManager.updateDataOrder(to.getOrderID(), messageAdapter.getItemCount() + 1);
+        myDBManager.updateDataOrder(from.getOrderID(), to.getOrderID());
+        myDBManager.updateDataOrder(messageAdapter.getItemCount() + 1, from.getOrderID());
+        myDBManager.close();
+        messageAdapter.GetItemData(viewHolder.getAdapterPosition()).setOrderID(tempTo);
+        messageAdapter.GetItemData(target.getAdapterPosition()).setOrderID(tempFrom);
+
     }
 
     @Override
@@ -150,8 +139,7 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
             }
         }
     }
-float FromEval ;
-float ToEval ;
+
     private void pickUpAnimation(MessageViewHolder view) {
 //        view.mCardView.setCardBackgroundColor(Color.parseColor("#37000000"));
 
@@ -167,6 +155,12 @@ float ToEval ;
         animator.setInterpolator(new DecelerateInterpolator());
         animator.setDuration(300);
         animator.start();
+    }
+
+    public interface IItemTouch {
+        void onItemMove(int fromPosition, int toPosition);
+
+        void onItemDismiss(int position);
     }
 
 }

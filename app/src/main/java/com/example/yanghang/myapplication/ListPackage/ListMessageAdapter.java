@@ -3,21 +3,14 @@ package com.example.yanghang.myapplication.ListPackage;
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.example.yanghang.myapplication.OthersView.SlidingButtonView;
 import com.example.yanghang.myapplication.R;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.Inflater;
 
 /**
  * Created by yanghang on 2016/11/22.
@@ -25,6 +18,8 @@ import java.util.zip.Inflater;
 public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> {
     private List<ListData> mDatas;
     private Context mContext;
+    private LayoutInflater mInflater;
+    private OnItemClickListener mItemClickListener;
 
     public ListMessageAdapter(List<ListData> mDatas, Context mContext) {
         this.mDatas = mDatas;
@@ -36,7 +31,6 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         return mDatas.get(pos);
     }
 
-    private LayoutInflater mInflater;
     @Override
     public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.item_message_info, parent, false);
@@ -52,7 +46,7 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         holder.mCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int pos = holder.getLayoutPosition();
+                int pos = holder.getAdapterPosition();
                 mItemClickListener.OnItemClick(v, pos);
             }
 
@@ -62,7 +56,7 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         holder.mCardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                int pos = holder.getLayoutPosition();
+                int pos = holder.getAdapterPosition();
                 return mItemClickListener.OnItemLongClick(v, pos);
 
             }
@@ -75,18 +69,12 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         return mDatas.size();
     }
 
-
-    public interface OnItemClickListener
-    {
-        void OnItemClick(View v, int position);
-        boolean OnItemLongClick(View v, int position);
-    }
-    private OnItemClickListener mItemClickListener;
     public void setOnItemClickListener(OnItemClickListener listener) {
         if (listener != null) {
             mItemClickListener=listener;
         }
     }
+
     public void deleteItem(int pos) {
         mDatas.remove(pos);
         notifyItemRemoved(pos);
@@ -101,6 +89,7 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         mDatas.add(0, data);
         notifyDataSetChanged();
     }
+
     public void addItem(ListData data,int pos) {
 
         mDatas.add(pos,data);
@@ -109,6 +98,12 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         else
         notifyItemInserted(pos);
 
+    }
+
+    public interface OnItemClickListener {
+        void OnItemClick(View v, int position);
+
+        boolean OnItemLongClick(View v, int position);
     }
 }
 class MessageViewHolder extends RecyclerView.ViewHolder{

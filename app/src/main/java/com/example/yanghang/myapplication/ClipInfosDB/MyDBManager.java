@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.example.yanghang.myapplication.ListPackage.ListData;
+import com.example.yanghang.myapplication.MainFormActivity;
 
 /**
  * Created by yanghang on 2016/11/27.
@@ -105,8 +106,14 @@ public class MyDBManager {
 
     }
 
+    public boolean updateDataOrder(int OldOrderID, int newOrderId) {
+        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "   newid=" + newOrderId);
+        ContentValues args = new ContentValues();
+        args.put(KEY_ORDERID, newOrderId);
+        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID, null) > 0;
+    }
     public boolean updateDataOrder(int OldOrderID, ListData newData) {
-        Log.v("MYG", "oldid=" + OldOrderID + "  newdata" + newData.getOrderID() + "  " + newData.getInformation());
+        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "  newdata: orderid=" + newData.getOrderID() + "  message=" + newData.getInformation());
         ContentValues args = new ContentValues();
         args.put(KEY_DATETIME, newData.getCreateDate());
         args.put(KEY_CONTENT, newData.getInformation());
