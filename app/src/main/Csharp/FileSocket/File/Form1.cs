@@ -22,7 +22,7 @@ namespace Fileopt
 	/// </summary>
 	public partial class Form1 : Form
 	{
-		string destFile="e:/javaio/新建文件夹/temp.txt";
+		string destFile="./temp.txt";
 		public Form1()
 		{
 			//
