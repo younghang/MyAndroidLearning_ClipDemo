@@ -5,6 +5,7 @@ package com.example.yanghang.myapplication;
  */
 public abstract   class OnConnect {
     abstract void  OnSuccess();
-    abstract void OnFail();
+
+    abstract void OnFail(String errorMessage);
 
 }

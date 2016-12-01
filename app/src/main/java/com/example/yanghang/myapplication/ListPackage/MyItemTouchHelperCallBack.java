@@ -105,9 +105,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         // 将数据集中的数据移除
         final int pos = viewHolder.getAdapterPosition();
         final ListData listData = listDatas.get(pos);
-        listDatas.remove(pos);
-        // 刷新列表
-        messageAdapter.notifyItemRemoved(viewHolder.getAdapterPosition());
+        messageAdapter.deleteItem(pos);
+
         myDBManager.open();
         myDBManager.deleteDataByOrderID(listData.getOrderID());
         myDBManager.close();
@@ -118,7 +117,7 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
             public void onClick(View v) {
                 messageAdapter.addItem(listData, pos);
                 myDBManager.open();
-                myDBManager.insertData(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
+                myDBManager.cancleDelete(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
                 myDBManager.close();
             }
         }).setDuration(Snackbar.LENGTH_LONG).show();

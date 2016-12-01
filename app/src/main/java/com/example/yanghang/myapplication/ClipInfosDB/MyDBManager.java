@@ -61,6 +61,29 @@ public class MyDBManager {
         return mSQLiteDatabase.insert(DB_TABLE, "_id", initialValues);
     }
 
+    public void cancleDelete(String remark, String content, String datetime, int orderID) {
+        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + " >= " + orderID, null, null, null, KEY_ORDERID + " desc");
+        if (cursor.moveToFirst()) {
+
+            int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
+            int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
+            while (!cursor.isAfterLast()) {
+
+                int order = cursor.getInt(orderIdIndex);
+                int id = cursor.getInt(idIndex);
+                Log.v(MainFormActivity.MTTAG, "db delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
+                ContentValues args = new ContentValues();
+                order = order + 1;
+                args.put(KEY_ORDERID, order);
+                mSQLiteDatabase.update(DB_TABLE, args, KEY_ID + "=" + id, null);
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        insertData(remark, content, datetime, orderID);
+
+    }
+
 
     public boolean deleteDataByID(long rowId) {
 
@@ -76,15 +99,19 @@ public class MyDBManager {
             int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
             int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
             while (!cursor.isAfterLast()) {
+
                 int order = cursor.getInt(orderIdIndex);
                 int id = cursor.getInt(idIndex);
+                Log.v(MainFormActivity.MTTAG, "db delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
                 ContentValues args = new ContentValues();
-                args.put(KEY_ORDERID, order - 1);
+                order = order - 1;
+                args.put(KEY_ORDERID, order);
                 mSQLiteDatabase.update(DB_TABLE, args, KEY_ID + "=" + id, null);
                 cursor.moveToNext();
             }
 
         }
+        cursor.close();
     }
 
 

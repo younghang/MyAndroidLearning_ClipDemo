@@ -76,7 +76,14 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     }
 
     public void deleteItem(int pos) {
+        int orderid = mDatas.get(pos).getOrderID();
         mDatas.remove(pos);
+        for (int i = 0; i < mDatas.size(); i++) {
+            int order = mDatas.get(i).getOrderID();
+            if (order > orderid) {
+                mDatas.get(i).setOrderID(order - 1);
+            }
+        }
         notifyItemRemoved(pos);
     }
 
@@ -92,7 +99,15 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
 
     public void addItem(ListData data,int pos) {
 
+
+        for (int i = 0; i < mDatas.size(); i++) {
+            int order = mDatas.get(i).getOrderID();
+            if (order >= data.getOrderID()) {
+                mDatas.get(i).setOrderID(order + 1);
+            }
+        }
         mDatas.add(pos,data);
+
         if (pos==0)
             notifyDataSetChanged();
         else

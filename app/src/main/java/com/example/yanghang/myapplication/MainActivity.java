@@ -31,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
             btnConnect.setEnabled(true);
             switch (val) {
                 case MainActivity.CONNECT_FAILED:
-                    tvProgressInfo.setText("连接失败");
+                    String errorMessage = data.getString("msg");
+                    tvProgressInfo.setText(errorMessage);
                     progressBar.setVisibility(View.INVISIBLE);
                     break;
                 case MainActivity.CONNECT_SUCCESS:
@@ -82,10 +83,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            void OnFail() {
+            void OnFail(String errorMessage) {
                 Message msg = new Message();
                 Bundle data = new Bundle();
                 data.putInt("i", MainActivity.CONNECT_FAILED);
+                data.putString("msg", errorMessage);
                 msg.setData(data);
                 handler.sendMessage(msg);
 

@@ -4,14 +4,11 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,29 +24,24 @@ import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
 import com.example.yanghang.myapplication.ListPackage.ListData;
 import com.example.yanghang.myapplication.ListPackage.ListMessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.MyItemTouchHelperCallBack;
-import com.example.yanghang.myapplication.greendao.DaoMaster;
-import com.example.yanghang.myapplication.greendao.DaoSession;
-import com.example.yanghang.myapplication.greendao.ListDatas;
-import com.example.yanghang.myapplication.greendao.ListDatasDao;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainFormActivity extends AppCompatActivity   {
+public class MainFormActivity extends AppCompatActivity {
 
-    public static boolean IsEdite=false;
+    public static final int REQUEST_TEXT_EDITE_BACK = 0;
+    public static final String LIST_DATA = "listdataToEdite";
+    public static final String LIST_DATA_POS = "listdataToEditePos";
+    public static boolean IsEdite = false;
     public static String MTTAG = "nihao";
     public static boolean IsDelete = false;
+    MyDBManager myDBManager;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout refreshLayout;
     private ListMessageAdapter messageAdapter;
     private DrawerLayout mDrawerLayout;
-    public static final int REQUEST_TEXT_EDITE_BACK=0;
-    public static final String LIST_DATA="listdataToEdite";
-    public static final String LIST_DATA_POS="listdataToEditePos";
     private List<ListData> listDatas;
-
-    MyDBManager myDBManager;
 
 //    private SimpleCursorAdapter adapter;
 //    private SQLiteDatabase db;
@@ -183,12 +175,11 @@ public class MainFormActivity extends AppCompatActivity   {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode)
-        {
+        switch (requestCode) {
             case REQUEST_TEXT_EDITE_BACK:
-                if (resultCode==RESULT_OK) {
-                    ListData listData= (ListData) data.getExtras().get(LIST_DATA);
-                    int pos = data.getIntExtra(LIST_DATA_POS,0);
+                if (resultCode == RESULT_OK) {
+                    ListData listData = (ListData) data.getExtras().get(LIST_DATA);
+                    int pos = data.getIntExtra(LIST_DATA_POS, 0);
 //                    listDatas.get(pos).setInformation(listData.getInformation());
 //                    listDatas.get(pos).setRemarks(listData.getRemarks());
                     Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  message=" + listData.getInformation());
@@ -198,15 +189,19 @@ public class MainFormActivity extends AppCompatActivity   {
                     myDBManager.close();
 
                 }
-                if (resultCode== ActivityEditInfo.RESULT_ADD_NEW)
-                {
-                    ListData listData= (ListData) data.getExtras().get(LIST_DATA);
-                    int pos =0;
+                if (resultCode == ActivityEditInfo.RESULT_ADD_NEW) {
+                    ListData listData = (ListData) data.getExtras().get(LIST_DATA);
+                    int pos = 0;
                     Log.v("TEM", pos + listData.getInformation());
-                    messageAdapter.addItem(listData);
+
                     myDBManager.open();
-                    myDBManager.insertData(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
+
+                    long result = myDBManager.insertData(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
                     myDBManager.close();
+                    if (result == -1)
+                        Toast.makeText(MainFormActivity.this, "存储该行数据出错", Toast.LENGTH_SHORT).show();
+                    else
+                        messageAdapter.addItem(listData);
                 }
                 break;
 
@@ -217,8 +212,7 @@ public class MainFormActivity extends AppCompatActivity   {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId())
-        {
+        switch (item.getItemId()) {
             case R.id.add_info:
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, new ListData("", "", messageAdapter.getItemCount()));
@@ -226,9 +220,9 @@ public class MainFormActivity extends AppCompatActivity   {
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 break;
             case R.id.edit_info:
-                IsEdite=!IsEdite;
+                IsEdite = !IsEdite;
                 if (IsEdite)
-                item.setIcon(R.mipmap.ic_sort);
+                    item.setIcon(R.mipmap.ic_sort);
                 else
                     item.setIcon(R.drawable.ic_edit_white_24dp);
                 break;
@@ -247,12 +241,10 @@ public class MainFormActivity extends AppCompatActivity   {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_form_menu,menu);
+        getMenuInflater().inflate(R.menu.main_form_menu, menu);
         return super.onCreateOptionsMenu(menu);
 
     }
-
-
 
 
 }
