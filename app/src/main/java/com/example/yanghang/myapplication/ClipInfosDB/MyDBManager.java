@@ -62,6 +62,7 @@ public class MyDBManager {
     }
 
     public void cancleDelete(String remark, String content, String datetime, int orderID) {
+        //注意一下顺序，“加” 返回倒序，先加大的  “减”返回顺序，先减小的， 避免重复
         Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + " >= " + orderID, null, null, null, KEY_ORDERID + " desc");
         if (cursor.moveToFirst()) {
 
@@ -92,14 +93,18 @@ public class MyDBManager {
 
     public void deleteDataByOrderID(int orderID) {
 
-        mSQLiteDatabase.delete(DB_TABLE, KEY_ORDERID + "=" + orderID, null);
-        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + " > " + orderID, null, null, null, KEY_ORDERID + " desc");
+        int result = mSQLiteDatabase.delete(DB_TABLE, KEY_ORDERID + "=" + orderID, null);
+        if (result == 0) {
+            Log.v(MainFormActivity.MTTAG, "没有删除任何东西");
+            return;
+        }
+        Log.v(MainFormActivity.MTTAG, "删除的orderid:" + orderID);
+        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + ">=" + orderID, null, null, null, KEY_ORDERID);
         if (cursor.moveToFirst()) {
 
             int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
             int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
             while (!cursor.isAfterLast()) {
-
                 int order = cursor.getInt(orderIdIndex);
                 int id = cursor.getInt(idIndex);
                 Log.v(MainFormActivity.MTTAG, "db delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
