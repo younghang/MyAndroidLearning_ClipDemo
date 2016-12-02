@@ -8,4 +8,6 @@
     <drawable name="press_down">#5Fcccccc</drawable>
     <drawable name="press_up">@android:color/transparent</drawable>
     <color name="message_text">#d5403c3c</color>
+    <color name="message_bg_color">#10ded3</color>
+    <color name="message_bg_color_dark">#07918a</color>
 </resources>

@@ -1,11 +1,13 @@
-package com.example.yanghang.myapplication.ListPackage;
+package com.example.yanghang.myapplication.ListPackage.ClipInfosList;
 
 import android.content.Context;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.example.yanghang.myapplication.R;
@@ -42,7 +44,10 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     public void onBindViewHolder(final MessageViewHolder holder,final int position) {
         holder.tvMessage.setText(mDatas.get(position).getInformation());
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
-        holder.tvMessage.setMaxHeight((int) mContext.getResources().getDimension(R.dimen.max_height_item));
+        holder.tvRemarks.init((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE));
+        holder.tvRemarks.startScroll();
+//        holder.tvMessage.setMaxHeight((int) mContext.getResources().getDimension(R.dimen.max_height_item));
+        holder.tvMessage.setEllipsize(TextUtils.TruncateAt.END);
         holder.mCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -1,8 +1,8 @@
 package com.example.yanghang.myapplication;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.view.Menu;
@@ -11,8 +11,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.OthersView.PerformEdit;
-import com.example.yanghang.myapplication.ListPackage.ListData;
 
 public class ActivityEditInfo extends AppCompatActivity {
     public static int RESULT_ADD_NEW = 345;

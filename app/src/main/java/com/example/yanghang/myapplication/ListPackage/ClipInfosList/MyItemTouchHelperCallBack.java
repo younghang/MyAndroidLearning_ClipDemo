@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication.ListPackage;
+package com.example.yanghang.myapplication.ListPackage.ClipInfosList;
 
 import android.animation.ObjectAnimator;
 import android.support.design.widget.Snackbar;

@@ -2,6 +2,7 @@ package com.example.yanghang.myapplication;
 
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -38,8 +39,13 @@ public class MainActivity extends AppCompatActivity {
                 case MainActivity.CONNECT_SUCCESS:
                     progressBar.setVisibility(View.INVISIBLE);
                     tvProgressInfo.setText("发送成功");
-//                    Intent intent = new Intent(MainActivity.this, ActivityEditInfo.class);
-//                    startActivity(intent);
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    // 将文本内容放到系统剪贴板里。
+                    String strinfo = cm.getPrimaryClip().getItemAt(0).getText().toString();
+                    Intent intent2 = new Intent(MainActivity.this, ActivityMessage.class);
+                    intent2.putExtra(ActivityMessage.DIALOG_MESSAGE, strinfo);
+                    startActivity(intent2);
+
                     break;
             }
 

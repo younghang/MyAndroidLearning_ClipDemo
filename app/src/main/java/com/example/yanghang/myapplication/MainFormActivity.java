@@ -21,9 +21,9 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
-import com.example.yanghang.myapplication.ListPackage.ListData;
-import com.example.yanghang.myapplication.ListPackage.ListMessageAdapter;
-import com.example.yanghang.myapplication.ListPackage.MyItemTouchHelperCallBack;
+import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListMessageAdapter;
+import com.example.yanghang.myapplication.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
 
 import java.util.ArrayList;
 import java.util.List;

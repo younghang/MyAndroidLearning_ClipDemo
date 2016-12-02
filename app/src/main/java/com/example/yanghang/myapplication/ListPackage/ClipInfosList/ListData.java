@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication.ListPackage;
+package com.example.yanghang.myapplication.ListPackage.ClipInfosList;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
@@ -18,14 +18,6 @@ public class ListData implements Serializable {
         this.CreateDate = from.getCreateDate();
     }
 
-    public String getCreateDate() {
-        return CreateDate;
-    }
-
-    public void setCreateDate(String createDate) {
-        CreateDate = createDate;
-    }
-
     public ListData(String remarks, String information, int orderID) {
         Remarks = remarks;
         Information = information;
@@ -40,21 +32,26 @@ public class ListData implements Serializable {
         Information = information;
     }
 
+    static String GetDate() {
+        SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd    hh:mm:ss");
+        String date = sDateFormat.format(new java.util.Date());
+        return date;
+    }
+
+    public String getCreateDate() {
+        return CreateDate;
+    }
+
+    public void setCreateDate(String createDate) {
+        CreateDate = createDate;
+    }
+
     public int getOrderID() {
         return OrderID;
     }
 
     public void setOrderID(int orderID) {
         OrderID = orderID;
-    }
-
-
-
-    static String GetDate()
-    {
-        SimpleDateFormat sDateFormat    =   new SimpleDateFormat("yyyy-MM-dd    hh:mm:ss");
-        String    date    =    sDateFormat.format(new    java.util.Date());
-        return date;
     }
 
     public String getRemarks() {
