@@ -110,8 +110,8 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
 
     public void startScroll() {
 //        Log.v(MainFormActivity.MTTAG,"  startScroll: viewWidth"+viewWidth);
-//        if (textLength < viewWidth)
-//            return;
+        if (textLength < getWidth())
+            return;
         if (isStarting) {
             new Thread(new Runnable() {
                 @Override
@@ -140,7 +140,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
     @Override
     public void onDraw(Canvas canvas) {
 //        Log.v(MainFormActivity.MTTAG,"  onDraw viewWidth: "+viewWidth);
-        if (textLength < viewWidth) {
+        if (textLength < getWidth()) {
             canvas.drawText(text, 0, y, paint);
             return;
         } else

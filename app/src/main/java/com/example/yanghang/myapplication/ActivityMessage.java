@@ -2,27 +2,65 @@ package com.example.yanghang.myapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.widget.TextView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 
-public class ActivityMessage extends AppCompatActivity {
+import com.example.yanghang.myapplication.ListPackage.MessageList.MessageAdapter;
+import com.example.yanghang.myapplication.ListPackage.MessageList.MessageData;
+import com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.SwipeBackLayout;
+import com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ActivityMessage extends SwipeBackActivity {
 
     public static String DIALOG_MESSAGE = "dialog_message";
-    TextView tvDialogMessage;
 
+    Toolbar toolbar;
+    RecyclerView recyclerView;
+    MessageAdapter messageAdapter;
+    List<MessageData> messageData;
+    private SwipeBackLayout mSwipeBackLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_activity_message);
+        setContentView(R.layout.activity_message);
         inital();
     }
 
     private void inital() {
-        tvDialogMessage = (TextView) findViewById(R.id.dialogMessgaeShow);
+
         Intent intent = getIntent();
         String dialogmessage = intent.getStringExtra(DIALOG_MESSAGE);
-        tvDialogMessage.setText(dialogmessage);
 
+        toolbar = (Toolbar) findViewById(R.id.messageToolbar);
+        toolbar.setTitle("Message");
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+        mSwipeBackLayout = getSwipeBackLayout();
+        //设置可以滑动的区域，推荐用屏幕像素的一半来指定
+        mSwipeBackLayout.setEdgeSize(100);
+        //设定滑动关闭的方向，SwipeBackLayout.EDGE_ALL表示向下、左、右滑动均可。EDGE_LEFT，EDGE_RIGHT，EDGE_BOTTOM
+        mSwipeBackLayout.setEdgeTrackingEnabled(SwipeBackLayout.EDGE_BOTH);
+
+
+        messageData = new ArrayList<MessageData>();
+        messageData.add(new MessageData(MessageData.MessageType.YOU, dialogmessage));
+        messageData.add(new MessageData(MessageData.MessageType.COMPUTER, "nihaohsfldsfhalshf"));
+        messageData.add(new MessageData(MessageData.MessageType.YOU, "asdfasfalskdfjlasjfsdjfl"));
+        recyclerView = (RecyclerView) findViewById(R.id.rv_message);
+        messageAdapter = new MessageAdapter(ActivityMessage.this, messageData);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        recyclerView.setAdapter(messageAdapter);
 
     }
 }

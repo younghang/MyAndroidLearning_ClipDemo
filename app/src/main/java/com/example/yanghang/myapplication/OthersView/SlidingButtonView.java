@@ -7,11 +7,10 @@ import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 
-import com.example.yanghang.myapplication.R;
-
 /**
  * Created by yanghang on 2016/11/25.
  */
+//这个是之前想滑动item出现delete按钮的例子
 public class SlidingButtonView extends HorizontalScrollView {
     private TextView mTextView_Delete;
     private int mScrollWidth;

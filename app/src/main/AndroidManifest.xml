@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".MainActivity"
+            android:name=".ActivityConnect"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
         <activity
@@ -28,8 +28,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ActivityMessage">
-
+        <activity
+            android:name=".ActivityMessage"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:parentActivityName=".OthersView.swipebacklayout.lib.app.SwipeBackActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.app.SwipeBackActivity" />
         </activity>
     </application>
 

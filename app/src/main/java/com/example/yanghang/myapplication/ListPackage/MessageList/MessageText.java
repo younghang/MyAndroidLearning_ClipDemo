@@ -1,6 +1,7 @@
-package com.example.yanghang.myapplication.OthersView;
+package com.example.yanghang.myapplication.ListPackage.MessageList;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.CornerPathEffect;
 import android.graphics.Paint;
@@ -24,12 +25,16 @@ import com.example.yanghang.myapplication.R;
 public class MessageText extends TextView {
 
     float roundRectRadius;
-    int paddingLeft;
+    int paddingLeftForTriangle;
+    int paddingRightForTriangle;
     int paddingTop;
-    int padding;
+    int paddingInner;
     int width;
     int height;
     int bgcolor;
+    float rectLeft;
+    float rectRight;
+    boolean isYourSide = false;
     private Paint mPaint;
 
     public MessageText(Context context) {
@@ -42,19 +47,48 @@ public class MessageText extends TextView {
 
     public MessageText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        TypedArray a = context.obtainStyledAttributes(attrs,
+                R.styleable.MessageText, defStyleAttr, 0);
+        if (null != a) {
+            int n = a.getIndexCount();
+            for (int i = 0; i < n; i++) {
+                int attr = a.getIndex(i);
+                switch (attr) {
+                    case R.styleable.MessageText_selfMessage:
+                        isYourSide = a.getBoolean(attr, false);
+                        break;
+                }
+            }
+            a.recycle();
+        }
         init();
     }
 
     private void init() {
+
+
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         Drawable background = getBackground();
         ColorDrawable colorDrawable = (ColorDrawable) background;
         bgcolor = colorDrawable.getColor();
         roundRectRadius = getResources().getDimension(R.dimen.round_rect_corner);
-        paddingLeft = (int) (roundRectRadius * 1.6);
-        padding = (int) (roundRectRadius * 0.4);
-        paddingTop = (int) (padding + getTextSize() + getPaddingTop());
+
+        paddingInner = (int) (roundRectRadius * 0.4);
+        paddingTop = (int) (paddingInner + getTextSize() + getPaddingTop());
+
+        if (isYourSide) {
+            rectLeft = roundRectRadius;
+            rectRight = 0;
+            paddingLeftForTriangle = 0;
+            paddingRightForTriangle = (int) (roundRectRadius * 1.6);
+        } else {
+            rectRight = roundRectRadius;
+            rectLeft = 0;
+            paddingLeftForTriangle = (int) (roundRectRadius * 1.6);
+            paddingRightForTriangle = 0;
+        }
+
     }
 
     @Override
@@ -81,11 +115,11 @@ public class MessageText extends TextView {
                 TextPaint tpaint = new TextPaint();
                 tpaint.setTextSize(getTextSize());
                 float textWidth = tpaint.measureText(getText().toString());
-                int Lines = (int) (textWidth / (Width - paddingLeft - padding));
+                int Lines = (int) (textWidth / (Width - paddingLeftForTriangle - paddingRightForTriangle - paddingInner - getPaddingLeft() - getPaddingRight()));
                 if (Lines > getMaxLines()) {
                     Lines = getMaxLines();
                 }
-                Height = (int) ((Lines) * (getTextSize() + padding / 2) + getPaddingBottom() + paddingTop + getTextSize() / 2);
+                Height = (int) ((Lines + 1) * (getTextSize() + paddingInner / 2) + getPaddingBottom() + paddingTop + getTextSize() / 2);
 
             } else
                 Height = height;
@@ -99,17 +133,29 @@ public class MessageText extends TextView {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        int beforeColor;
+        int afterColor;
+        if (isYourSide) {
+            beforeColor = getResources().getColor(R.color.message_bg_color);
+            afterColor = getResources().getColor(R.color.message_bg_color_dark);
+        } else {
+            beforeColor = getResources().getColor(R.color.white);
+            afterColor = getResources().getColor(R.color.deep_gray);
+        }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 Log.v(MainFormActivity.MTTAG, "按下");
-                bgcolor = getResources().getColor(R.color.message_bg_color_dark);
+                bgcolor = afterColor;
                 postInvalidate();
                 break;
             case MotionEvent.ACTION_UP:
-                bgcolor = getResources().getColor(R.color.message_bg_color);
+                bgcolor = beforeColor;
                 postInvalidate();
-                Log.v(MainFormActivity.MTTAG, "抬起");
-
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                bgcolor = beforeColor;
+                postInvalidate();
+                break;
         }
         return true;
     }
@@ -124,14 +170,21 @@ public class MessageText extends TextView {
 
         setBackground(getResources().getDrawable(R.drawable.press_up));
 
-        RectF rectF = new RectF(roundRectRadius, 0, width, height);
+        RectF rectF = new RectF(rectLeft, 0, width - rectRight, height);
         canvas.drawRoundRect(rectF, roundRectRadius, roundRectRadius, mPaint);
         Path tranglePath = new Path();
         mPaint.setPathEffect(new CornerPathEffect(5));
         tranglePath.reset();
-        tranglePath.moveTo(2.2f * roundRectRadius, 0.6f * roundRectRadius);
-        tranglePath.lineTo(0, roundRectRadius);
-        tranglePath.lineTo(roundRectRadius, 1.4f * roundRectRadius);
+        if (isYourSide) {
+            tranglePath.moveTo(width - 2.2f * roundRectRadius, 0.6f * roundRectRadius);
+            tranglePath.lineTo(width, roundRectRadius);
+            tranglePath.lineTo(width - roundRectRadius, 1.4f * roundRectRadius);
+        } else {
+            tranglePath.moveTo(2.2f * roundRectRadius, 0.6f * roundRectRadius);
+            tranglePath.lineTo(0, roundRectRadius);
+            tranglePath.lineTo(roundRectRadius, 1.4f * roundRectRadius);
+        }
+
         tranglePath.close();
         canvas.drawPath(tranglePath, mPaint);
 
@@ -139,10 +192,10 @@ public class MessageText extends TextView {
         tpaint.setColor(getTextColors().getDefaultColor());
         tpaint.setTextSize(getTextSize());
         float textWidth = tpaint.measureText(getText().toString());
-        int Lines = (int) (textWidth / (width - paddingLeft - padding - getPaddingLeft() - getPaddingRight()));
+        int Lines = (int) (textWidth / (width - paddingLeftForTriangle - paddingRightForTriangle - paddingInner - getPaddingLeft() - getPaddingRight()));
 
         float singleWidth = textWidth / getText().length();
-        int singleLineCount = (int) ((width - padding - paddingLeft - getPaddingLeft() - getPaddingRight()) / singleWidth);
+        int singleLineCount = (int) ((width - paddingInner - paddingLeftForTriangle - paddingRightForTriangle - getPaddingLeft() - getPaddingRight()) / singleWidth);
         int end = getText().length();
         String endings = "";
         if (Lines > getMaxLines()) {
@@ -152,12 +205,12 @@ public class MessageText extends TextView {
         }
 //        Log.v(MainFormActivity.MTTAG, " Lines: " + Lines);
         for (int i = 0; i < Lines; i++) {
-            canvas.drawText(getText().toString(), i * singleLineCount, (1 + i) * singleLineCount, paddingLeft, paddingTop + getTextSize() / 2 + getTextSize() * i + padding / 2 * i, tpaint);
+            canvas.drawText(getText().toString(), i * singleLineCount, (1 + i) * singleLineCount, getPaddingLeft() + paddingLeftForTriangle, paddingTop + getTextSize() / 2 + getTextSize() * i + paddingInner / 2 * i, tpaint);
         }
-        int top = (int) (paddingTop + getTextSize() / 2 + getTextSize() * 1 + padding / 2 * 1);
+        int top = (int) (paddingTop + getTextSize() / 2 + getTextSize() * 1 + paddingInner / 2 * 1);
 //        Log.v(MainFormActivity.MTTAG, " marginTop: " + top);
-        canvas.drawText(getText().toString(), Lines * singleLineCount, end, paddingLeft, paddingTop + getTextSize() / 2 + getTextSize() * Lines + padding / 2 * Lines, tpaint);
-        canvas.drawText(endings, 0, endings.length(), paddingLeft + singleLineCount * singleWidth, paddingTop + getTextSize() / 2 + getTextSize() * (Lines - 1) + padding / 2 * (Lines), tpaint);
+        canvas.drawText(getText().toString(), Lines * singleLineCount, end, paddingLeftForTriangle + getPaddingLeft(), paddingTop + getTextSize() / 2 + getTextSize() * Lines + paddingInner / 2 * Lines, tpaint);
+        canvas.drawText(endings, 0, endings.length(), paddingLeftForTriangle + getPaddingLeft() + singleLineCount * singleWidth, paddingTop + getTextSize() / 2 + getTextSize() * (Lines - 1) + paddingInner / 2 * (Lines), tpaint);
     }
 
 

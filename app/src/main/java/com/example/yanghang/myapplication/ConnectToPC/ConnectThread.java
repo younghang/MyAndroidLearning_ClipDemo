@@ -1,6 +1,8 @@
-package com.example.yanghang.myapplication;
+package com.example.yanghang.myapplication.ConnectToPC;
 
 import android.util.Log;
+
+import com.example.yanghang.myapplication.MainFormActivity;
 
 import java.io.BufferedOutputStream;
 import java.net.ConnectException;
@@ -52,6 +54,19 @@ public class ConnectThread extends Thread {
 
 
     }
+
+    public static class MessageInformation {
+        public String IP;
+        public int Port;
+        public String Message;
+
+        public MessageInformation(String IP, int port, String message) {
+            this.IP = IP;
+            Port = port;
+            Message = message;
+        }
+    }
+
 
 
 }

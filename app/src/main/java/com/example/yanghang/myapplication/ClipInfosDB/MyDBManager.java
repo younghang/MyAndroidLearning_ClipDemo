@@ -20,6 +20,7 @@ public class MyDBManager {
     public static final String KEY_CONTENT = "content";
     public static final String KEY_ID = "_id";
     public static final String KEY_ORDERID = "orderid";
+    public static final String KEY_CATALOGUE="catalogue";
 
     // 执行open（）打开数据库时，保存返回的数据库对象
     private SQLiteDatabase mSQLiteDatabase = null;
@@ -48,8 +49,38 @@ public class MyDBManager {
 
         mDatabaseHelper.close();
     }
+    public int getDataCount()
+    {
+        int count=0;
+        Cursor cursor=mSQLiteDatabase.query(DB_TABLE,null,null,null,null,null,null);
+        if ( cursor.moveToFirst())
+        {
+            while (!cursor.isAfterLast())
+            {
+                count++;
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return count;
+    }
 
-    public long insertData(String remark, String content, String datetime, int orderid) {
+    public int  getCatalogueCount(String catalogue)
+    {
+        int count=0;
+        Cursor cursor=mSQLiteDatabase.query(DB_TABLE, null, KEY_CATALOGUE + "=" + catalogue, null, null, null, KEY_ORDERID);
+        if ( cursor.moveToFirst())
+        {
+            while (!cursor.isAfterLast())
+            {
+                count++;
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        return count;
+    }
+    public long insertData(String remark, String content, String datetime, int orderid,String catalogue) {
 
         ContentValues initialValues = new ContentValues();
 
@@ -57,13 +88,14 @@ public class MyDBManager {
         initialValues.put(KEY_CONTENT, content);
         initialValues.put(KEY_DATETIME, datetime);
         initialValues.put(KEY_ORDERID, orderid);
+        initialValues.put(KEY_CATALOGUE, catalogue);
 
         return mSQLiteDatabase.insert(DB_TABLE, "_id", initialValues);
     }
 
-    public void cancleDelete(String remark, String content, String datetime, int orderID) {
+    public void cancleDelete(String remark, String content, String datetime, int orderID,String catalogue) {
         //注意一下顺序，“加” 返回倒序，先加大的  “减”返回顺序，先减小的， 避免重复
-        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + " >= " + orderID, null, null, null, KEY_ORDERID + " desc");
+        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + " >= " + orderID , null, null, null, KEY_ORDERID + " desc");
         if (cursor.moveToFirst()) {
 
             int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
@@ -81,25 +113,21 @@ public class MyDBManager {
             }
         }
         cursor.close();
-        insertData(remark, content, datetime, orderID);
+        insertData(remark, content, datetime, orderID, catalogue);
 
     }
 
 
-    public boolean deleteDataByID(long rowId) {
 
-        return mSQLiteDatabase.delete(DB_TABLE, "_id" + "=" + rowId, null) > 0;
-    }
+    public void deleteDataByOrderID(int orderID ) {
 
-    public void deleteDataByOrderID(int orderID) {
-
-        int result = mSQLiteDatabase.delete(DB_TABLE, KEY_ORDERID + "=" + orderID, null);
+        int result = mSQLiteDatabase.delete(DB_TABLE, KEY_ORDERID + "=" + orderID , null);
         if (result == 0) {
             Log.v(MainFormActivity.MTTAG, "没有删除任何东西");
             return;
         }
         Log.v(MainFormActivity.MTTAG, "删除的orderid:" + orderID);
-        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + ">=" + orderID, null, null, null, KEY_ORDERID);
+        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + ">=" + orderID , null, null, null, KEY_ORDERID);
         if (cursor.moveToFirst()) {
 
             int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
@@ -124,42 +152,40 @@ public class MyDBManager {
 
         return mSQLiteDatabase.query(DB_TABLE, null, null, null, null, null, KEY_ORDERID + " desc");
     }
-
-
-    public Cursor fetchData(long rowId) throws SQLException {
-
-        Cursor mCursor = mSQLiteDatabase.query(true, DB_TABLE, null, KEY_ID + "=" + rowId, null, null, null, null, null);
-
-        if (mCursor != null) {
-
-            mCursor.moveToFirst();
-        }
-        return mCursor;
-
+    public Cursor fetchAllDataByCatalogue(String catalogue)
+    {
+        if (catalogue.equals(""))
+            return fetchAllDataDescByOrderID();
+        return mSQLiteDatabase.query(DB_TABLE,null,KEY_CATALOGUE+"='"+catalogue+"'",null,null,null,KEY_ORDERID+" desc");
     }
 
-    public boolean updateDataOrder(int OldOrderID, int newOrderId) {
-        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "   newid=" + newOrderId);
+
+
+
+    public boolean updateDataOrder(int OldOrderID, int newOrderId ) {
+        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "   newid=" + newOrderId );
         ContentValues args = new ContentValues();
         args.put(KEY_ORDERID, newOrderId);
-        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID, null) > 0;
+        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID , null) > 0;
     }
-    public boolean updateDataOrder(int OldOrderID, ListData newData) {
-        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "  newdata: orderid=" + newData.getOrderID() + "  message=" + newData.getInformation());
+    public boolean updateDataOrder(int OldOrderID  ,ListData newData) {
+        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "  newdata: orderid=" + newData.getOrderID() + "  catalogue=" + newData.getCatalogue());
         ContentValues args = new ContentValues();
         args.put(KEY_DATETIME, newData.getCreateDate());
         args.put(KEY_CONTENT, newData.getInformation());
         args.put(KEY_REMARK, newData.getRemarks());
-        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID, null) > 0;
+        args.put(KEY_CATALOGUE,newData.getCatalogue());
+        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID , null) > 0;
     }
 
-    public boolean updateData(int OrderID, String remark, String content, String datetime) {
+    public boolean updateData(int OrderID,String catalogue, String remark, String content, String datetime) {
 
         ContentValues args = new ContentValues();
         args.put(KEY_REMARK, remark);
         args.put(KEY_CONTENT, content);
         args.put(KEY_DATETIME, datetime);
+        args.put(KEY_CATALOGUE,catalogue);
 
-        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OrderID, null) > 0;
+        return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" +OrderID  , null) > 0;
     }
 }

@@ -87,8 +87,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
-        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  message=" + from.getInformation());
-        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  message=" + to.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getInformation());
 
         myDBManager.open();
         myDBManager.updateDataOrder(to.getOrderID(), messageAdapter.getItemCount() + 1);
@@ -117,7 +117,7 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
             public void onClick(View v) {
                 messageAdapter.addItem(listData, pos);
                 myDBManager.open();
-                myDBManager.cancleDelete(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
+                myDBManager.cancleDelete(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
                 myDBManager.close();
             }
         }).setDuration(Snackbar.LENGTH_LONG).show();

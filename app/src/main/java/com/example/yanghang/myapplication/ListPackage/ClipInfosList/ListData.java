@@ -11,31 +11,35 @@ public class ListData implements Serializable {
     private String Information = "";
     private String CreateDate = "";
     private int OrderID = 0;
+    private String Catalogue = "default";
 
-    public ListData(ListData from) {
-        this.Remarks = from.getRemarks();
-        this.Information = from.getInformation();
-        this.CreateDate = from.getCreateDate();
-    }
-
-    public ListData(String remarks, String information, int orderID) {
+    public ListData(String remarks, String information, int orderID, String catalogue) {
         Remarks = remarks;
         Information = information;
-        this.OrderID = orderID;
-        CreateDate=GetDate();
-    }
-
-    public ListData(String remarks, int orderID, String createDate, String information) {
-        Remarks = remarks;
         OrderID = orderID;
-        CreateDate = createDate;
+        Catalogue = catalogue;
+    }
+
+    public ListData(String remarks, String information, String createDate, int orderID, String catalogue) {
+        Remarks = remarks;
         Information = information;
+        CreateDate = createDate;
+        OrderID = orderID;
+        Catalogue = catalogue;
     }
 
     static String GetDate() {
         SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd    hh:mm:ss");
         String date = sDateFormat.format(new java.util.Date());
         return date;
+    }
+
+    public String getCatalogue() {
+        return Catalogue;
+    }
+
+    public void setCatalogue(String catalogue) {
+        Catalogue = catalogue;
     }
 
     public String getCreateDate() {

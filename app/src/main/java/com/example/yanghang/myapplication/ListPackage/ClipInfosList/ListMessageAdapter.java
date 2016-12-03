@@ -29,13 +29,16 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         mInflater = LayoutInflater.from(mContext);
     }
 
+    public void setDatas(List<ListData> mDatas) {
+        this.mDatas = mDatas;
+    }
     public ListData GetItemData(int pos) {
         return mDatas.get(pos);
     }
 
     @Override
     public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = mInflater.inflate(R.layout.item_message_info, parent, false);
+        View view = mInflater.inflate(R.layout.item_clip_recycler, parent, false);
         MessageViewHolder messageViewHolder = new MessageViewHolder(view);
         return  messageViewHolder;
     }

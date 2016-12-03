@@ -1,20 +1,26 @@
 package com.example.yanghang.myapplication;
 
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+import com.example.yanghang.myapplication.ConnectToPC.ConnectThread;
+import com.example.yanghang.myapplication.ConnectToPC.OnConnect;
+import com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.SwipeBackLayout;
+import com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
+
+public class ActivityConnect extends SwipeBackActivity {
 
     private static final int CONNECT_SUCCESS = 1;
     private static final int CONNECT_FAILED = 0;
@@ -31,18 +37,18 @@ public class MainActivity extends AppCompatActivity {
             int val = data.getInt("i");
             btnConnect.setEnabled(true);
             switch (val) {
-                case MainActivity.CONNECT_FAILED:
+                case ActivityConnect.CONNECT_FAILED:
                     String errorMessage = data.getString("msg");
                     tvProgressInfo.setText(errorMessage);
                     progressBar.setVisibility(View.INVISIBLE);
                     break;
-                case MainActivity.CONNECT_SUCCESS:
+                case ActivityConnect.CONNECT_SUCCESS:
                     progressBar.setVisibility(View.INVISIBLE);
                     tvProgressInfo.setText("发送成功");
                     ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                     // 将文本内容放到系统剪贴板里。
                     String strinfo = cm.getPrimaryClip().getItemAt(0).getText().toString();
-                    Intent intent2 = new Intent(MainActivity.this, ActivityMessage.class);
+                    Intent intent2 = new Intent(ActivityConnect.this, ActivityMessage.class);
                     intent2.putExtra(ActivityMessage.DIALOG_MESSAGE, strinfo);
                     startActivity(intent2);
 
@@ -51,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    private SwipeBackLayout mSwipeBackLayout;
+    private OnConnect onConnect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,39 +73,45 @@ public class MainActivity extends AppCompatActivity {
         toolbar.setTitle("ConnectPC");
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
-
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
             }
         });
+        mSwipeBackLayout = getSwipeBackLayout();
+        //设置可以滑动的区域，推荐用屏幕像素的一半来指定
+        mSwipeBackLayout.setEdgeSize(100);
+        //设定滑动关闭的方向，SwipeBackLayout.EDGE_ALL表示向下、左、右滑动均可。EDGE_LEFT，EDGE_RIGHT，EDGE_BOTTOM
+        mSwipeBackLayout.setEdgeTrackingEnabled(SwipeBackLayout.EDGE_BOTH);
         editIP = (EditText) findViewById(R.id.ed_ip);
         editPort = (EditText) findViewById(R.id.ed_port);
         btnConnect = (Button) findViewById(R.id.btn_Connect);
         tvProgressInfo = (TextView) findViewById(R.id.tv_ConnnectInfo);
         progressBar = (ProgressBar) findViewById(R.id.progressBar_Connect);
-        final OnConnect onConnect= new OnConnect() {
+        onConnect = new OnConnect() {
+
             @Override
-            void OnSuccess() {
+            public void OnSuccess() {
                 Message msg = new Message();
                 Bundle data = new Bundle();
-                data.putInt("i", MainActivity.CONNECT_SUCCESS);
+                data.putInt("i", ActivityConnect.CONNECT_SUCCESS);
                 msg.setData(data);
                 handler.sendMessage(msg);
 
             }
 
             @Override
-            void OnFail(String errorMessage) {
+            public void OnFail(String errorMessage) {
                 Message msg = new Message();
                 Bundle data = new Bundle();
-                data.putInt("i", MainActivity.CONNECT_FAILED);
+                data.putInt("i", ActivityConnect.CONNECT_FAILED);
                 data.putString("msg", errorMessage);
                 msg.setData(data);
                 handler.sendMessage(msg);
 
             }
+
         };
 
         btnConnect.setOnClickListener(new View.OnClickListener() {
@@ -110,9 +124,17 @@ public class MainActivity extends AppCompatActivity {
                 String strinfo = "";
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
-                strinfo = cm.getPrimaryClip().getItemAt(0).getText().toString();
-                connectThread.strMessage = new MessageInformation(editIP.getText().toString(), Integer.parseInt(editPort.getText().toString()), strinfo);
-                connectThread.start();
+                try {
+                    ClipData.Item cp = cm.getPrimaryClip().getItemAt(0);
+                    strinfo = cp.getText().toString();
+                    connectThread.strMessage = new ConnectThread.MessageInformation(editIP.getText().toString(), Integer.parseInt(editPort.getText().toString()), strinfo);
+                    connectThread.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(ActivityConnect.this, "没有信息可发送", Toast.LENGTH_SHORT).show();
+                    onConnect.OnFail("无信息");
+                }
+
             }
         });
     }
@@ -120,14 +142,3 @@ public class MainActivity extends AppCompatActivity {
 
 }
 
-class MessageInformation {
-    public String IP;
-    public int Port;
-    public String Message;
-
-    public MessageInformation(String IP, int port, String message) {
-        this.IP = IP;
-        Port = port;
-        Message = message;
-    }
-}

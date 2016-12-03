@@ -15,12 +15,15 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
 import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
+import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueAdatpter;
+import com.example.yanghang.myapplication.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListMessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
@@ -37,11 +40,17 @@ public class MainFormActivity extends AppCompatActivity {
     public static String MTTAG = "nihao";
     public static boolean IsDelete = false;
     MyDBManager myDBManager;
+    Toolbar toolbar;
     private RecyclerView recyclerView;
+    private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
     private ListMessageAdapter messageAdapter;
+    private CatalogueAdatpter catalogueAdatpter;
     private DrawerLayout mDrawerLayout;
     private List<ListData> listDatas;
+    private boolean isSettingShow;
+    private List<String> mCatalogue;
+    private String currentCatalogue = "";
 
 //    private SimpleCursorAdapter adapter;
 //    private SQLiteDatabase db;
@@ -68,26 +77,41 @@ public class MainFormActivity extends AppCompatActivity {
 //        //得到StudentDAO对象，所以在这看来，对于这三个DAO文件，我们更能接触到的是StudentDao文件，进行CRUD操作也是通过StudentDao对象来操作
 //        userDao = session.getListDatasDao();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("ClipBoard");
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer);
 
-        ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
+        final ActionBarDrawerToggle mDrawerToggle = new ActionBarDrawerToggle(
                 this,
                 mDrawerLayout, toolbar, R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close
+        ) {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                isSettingShow = false;
+                invalidateOptionsMenu();
+                MyApplication.setCatalogue(catalogueAdatpter.getDatas());
+            }
 
-        );
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                isSettingShow = true;
+                invalidateOptionsMenu();
+            }
+        };
+
         mDrawerToggle.syncState();
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainFormActivity.this, MainActivity.class);
+                Intent intent = new Intent(MainFormActivity.this, ActivityConnect.class);
                 startActivity(intent);
 
 
@@ -108,8 +132,8 @@ public class MainFormActivity extends AppCompatActivity {
             }
         });
 
-        recyclerView = (RecyclerView) findViewById(R.id.rv_Message);
-        listDatas = GetDatas();
+        recyclerView = (RecyclerView) findViewById(R.id.rv_ClipInfos);
+        listDatas = GetDatas("");
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)); // 设置布局，否则无法正常使用
         messageAdapter = new ListMessageAdapter(listDatas, this);
         messageAdapter.setOnItemClickListener(new ListMessageAdapter.OnItemClickListener() {
@@ -124,13 +148,13 @@ public class MainFormActivity extends AppCompatActivity {
             @Override
             public boolean OnItemLongClick(View v, int position) {
                 if (IsEdite)
-                    return true;
+                    return false;
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
                 Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getInformation());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
-                return false;
+                return true;
             }
         });
         recyclerView.setAdapter(messageAdapter);
@@ -138,17 +162,52 @@ public class MainFormActivity extends AppCompatActivity {
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
         IsEdite = false;
+        InitLeftDrawerView();
 
 
     }
 
+    private void InitLeftDrawerView() {
+        catalogueRecycler = (RecyclerView) findViewById(R.id.rv_catalogue);
+        // 设置布局，否则无法正常使用
+        catalogueRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        catalogueAdatpter = new CatalogueAdatpter(MyApplication.getCatalogue(), MainFormActivity.this);
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdatpter);
 
-    List<ListData> GetDatas() {
+        final ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(callback);
+        catalogueAdatpter.setDragStartListener(new CatalogueAdatpter.OnStartDragListener() {
+            @Override
+            public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
+                mItemTouchHelper.startDrag(viewHolder);
+            }
+        });
+        catalogueRecycler.setAdapter(catalogueAdatpter);
+        mItemTouchHelper.attachToRecyclerView(catalogueRecycler);
+        catalogueAdatpter.setOnItemClickListener(new CatalogueAdatpter.OnItemClickListener() {
+            @Override
+            public void OnItemClick(View v, int position) {
+                listDatas = GetDatas(catalogueAdatpter.getItem(position));
+                messageAdapter.setDatas(listDatas);
+                messageAdapter.notifyDataSetChanged();
+                toolbar.setTitle(catalogueAdatpter.getItem(position));
+                mDrawerLayout.closeDrawer(Gravity.LEFT);
+            }
+
+            @Override
+            public boolean OnItemLongClick(View v, int position) {
+                return false;
+            }
+        });
+
+    }
+
+
+    List<ListData> GetDatas(String currentCatalogue) {
         List<ListData> mDatas = new ArrayList<ListData>();
         myDBManager.open();
-        Cursor cursor = myDBManager.fetchAllDataDescByOrderID();
+        Cursor cursor = myDBManager.fetchAllDataByCatalogue(currentCatalogue);
         if (cursor == null) {
-            mDatas.add(new ListData("ceshi", "magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810", 0));
+            mDatas.add(new ListData("ceshi", "magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810", 0, currentCatalogue));
 
         } else {
             if (cursor.moveToFirst()) {
@@ -161,9 +220,8 @@ public class MainFormActivity extends AppCompatActivity {
                     String content = cursor.getString(contentIndex);
                     String datetime = cursor.getString(datetimeIndex);
                     int orderID = cursor.getInt(orderIdIndex);
-                    ListData listData = new ListData(remark, orderID, datetime, content);
+                    ListData listData = new ListData(remark, content, orderID, currentCatalogue);
                     mDatas.add(listData);
-
                     cursor.moveToNext();
                 }
             }
@@ -180,12 +238,11 @@ public class MainFormActivity extends AppCompatActivity {
                 if (resultCode == RESULT_OK) {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
                     int pos = data.getIntExtra(LIST_DATA_POS, 0);
-//                    listDatas.get(pos).setInformation(listData.getInformation());
-//                    listDatas.get(pos).setRemarks(listData.getRemarks());
-                    Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  message=" + listData.getInformation());
+//
+                    Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
                     messageAdapter.editItem(pos, listData);
                     myDBManager.open();
-                    myDBManager.updateData(listData.getOrderID(), listData.getRemarks(), listData.getInformation(), listData.getCreateDate());
+                    myDBManager.updateData(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getInformation(), listData.getCreateDate());
                     myDBManager.close();
 
                 }
@@ -196,7 +253,7 @@ public class MainFormActivity extends AppCompatActivity {
 
                     myDBManager.open();
 
-                    long result = myDBManager.insertData(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID());
+                    long result = myDBManager.insertData(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
                     myDBManager.close();
                     if (result == -1)
                         Toast.makeText(MainFormActivity.this, "存储该行数据出错", Toast.LENGTH_SHORT).show();
@@ -214,8 +271,11 @@ public class MainFormActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.add_info:
+                myDBManager.open();
+                int orderid = myDBManager.getDataCount();
+                myDBManager.close();
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
-                intent.putExtra(LIST_DATA, new ListData("", "", messageAdapter.getItemCount()));
+                intent.putExtra(LIST_DATA, new ListData("", "", orderid, "default"));
                 intent.putExtra(LIST_DATA_POS, -1);
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 break;
@@ -237,6 +297,19 @@ public class MainFormActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        menu.findItem(R.id.add_catalogue).setVisible(isSettingShow);
+        menu.findItem(R.id.settings).setVisible(isSettingShow);
+        menu.findItem(R.id.add_info).setVisible(!isSettingShow);
+        menu.findItem(R.id.del_info).setVisible(!isSettingShow);
+        menu.findItem(R.id.edit_info).setVisible(!isSettingShow);
+
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
