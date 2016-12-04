@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Spinner;
 
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
@@ -25,10 +24,7 @@ public class ActivityEditInfo extends AppCompatActivity {
     public static int RESULT_NOTHING_NEW = 678;
     EditText tvShowInfo;
     PerformEdit mPerformEdit;
-    ImageButton btnRedo;
-    ImageButton btnUndo;
-    ImageButton btnChecked;
-    ImageButton btnCancle;
+
     EditText editRemark;
     Spinner spinner;
     List<String> mCatalogue;
@@ -129,7 +125,7 @@ public class ActivityEditInfo extends AppCompatActivity {
     }
 
     public List<String> getCatalogue() {
-        return MyApplication.getCatalogue();
+        return MyApplication.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
     }
 
     @Override

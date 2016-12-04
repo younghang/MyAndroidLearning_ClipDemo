@@ -8,4 +8,6 @@
     <dimen name="max_height_item">150dp</dimen>
     <dimen name="remark_text_size">16sp</dimen>
     <dimen name="round_rect_corner">20dp</dimen>
+    <dimen name="pop_window_width">250dp</dimen>
+    <dimen name="pop_window_height">120dp</dimen>
 </resources>

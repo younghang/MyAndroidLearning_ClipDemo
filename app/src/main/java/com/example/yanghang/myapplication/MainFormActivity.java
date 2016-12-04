@@ -4,6 +4,8 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
@@ -17,9 +19,14 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
@@ -43,6 +50,10 @@ public class MainFormActivity extends AppCompatActivity {
     MyDBManager myDBManager;
     Toolbar toolbar;
     SearchView searchView;
+    List<String> catalogues;
+    EditText editText;
+    Button btnOK;
+    Button btnCancle;
     private RecyclerView recyclerView;
     private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
@@ -93,12 +104,12 @@ public class MainFormActivity extends AppCompatActivity {
 
     };
     private boolean isSettingShow;
-
 //    private SimpleCursorAdapter adapter;
 //    private SQLiteDatabase db;
 //    private Cursor cursor;
 private List<String> mCatalogue;
     private String currentCatalogue = "";
+    private PopupWindow popupWindow;
 
     //    private DaoSession session;
 //    private DaoMaster.DevOpenHelper helper;
@@ -137,7 +148,7 @@ private List<String> mCatalogue;
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                MyApplication.setCatalogue(catalogueAdatpter.getDatas());
+                MyApplication.setCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdatpter.getDatas());
             }
 
             @Override
@@ -213,9 +224,13 @@ private List<String> mCatalogue;
 
     private void InitLeftDrawerView() {
         catalogueRecycler = (RecyclerView) findViewById(R.id.rv_catalogue);
+        catalogues = MyApplication.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
         // 设置布局，否则无法正常使用
         catalogueRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        catalogueAdatpter = new CatalogueAdatpter(MyApplication.getCatalogue(), MainFormActivity.this);
+        if (catalogues.indexOf("default") == -1) {
+            catalogues.add(0, "default");
+        }
+        catalogueAdatpter = new CatalogueAdatpter(catalogues, MainFormActivity.this);
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdatpter);
 
         final ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(callback);
@@ -239,6 +254,7 @@ private List<String> mCatalogue;
 
             @Override
             public boolean OnItemLongClick(View v, int position) {
+                showPopWindow(catalogues.get(position));
                 return false;
             }
         });
@@ -338,6 +354,9 @@ private List<String> mCatalogue;
                 break;
             case R.id.menu_main_search:
                 break;
+            case R.id.add_catalogue:
+                showPopWindow("");
+                break;
 
         }
 
@@ -368,6 +387,79 @@ private List<String> mCatalogue;
 
         return super.onCreateOptionsMenu(menu);
 
+    }
+
+    private void showPopWindow(final String catalogueName) {
+
+        if (popupWindow == null) {
+            LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            View view = layoutInflater.inflate(R.layout.pop_window, null);
+
+            editText = (EditText) view.findViewById(R.id.edit_catalogue_pop_window);
+            btnOK = (Button) view.findViewById(R.id.btn_ok_catalogue_pop_window);
+            btnCancle = (Button) view.findViewById(R.id.btn_cancle_catalogue_pop_window);
+
+            // 创建一个PopuWidow对象
+            popupWindow = new PopupWindow(view, (int) getResources().getDimension(R.dimen.pop_window_width), (int) getResources().getDimension(R.dimen.pop_window_height));
+        }
+        editText.setText(catalogueName);
+        btnCancle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+            }
+        });
+        btnOK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String catalogueNewName = editText.getText().toString();
+                if (catalogues.indexOf(catalogueNewName) != -1) {
+                    Toast.makeText(MainFormActivity.this, catalogueNewName + "已经存在", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (catalogueName.equals("")) {
+                    catalogues.add(0, catalogueNewName);
+                    catalogueAdatpter.notifyDataSetChanged();
+
+                } else {
+                    int index = 0;
+                    index = catalogues.indexOf(catalogueName);
+                    if (index == -1)
+                        return;
+                    catalogues.set(index, catalogueNewName);
+                    catalogueAdatpter.notifyItemChanged(index);
+                    setCatalogueChanged(catalogueName, catalogueNewName);
+                }
+                popupWindow.dismiss();
+            }
+        });
+        // 使其聚集
+        popupWindow.setFocusable(true);
+        // 设置允许在外点击消失
+        popupWindow.setOutsideTouchable(true);
+
+        // 这个是为了点击“返回Back”也能使其消失，并且并不会影响你的背景
+        popupWindow.setBackgroundDrawable(new BitmapDrawable());
+        WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        // 显示的位置为:屏幕的宽度的一半-PopupWindow的高度的一半
+        Point rect = new Point();
+        windowManager.getDefaultDisplay().getSize(rect);
+        int xPos = rect.x / 2
+                - popupWindow.getWidth() / 2;
+        int yPos = popupWindow.getWidth() / 2;
+
+
+        popupWindow.showAsDropDown(this.findViewById(R.id.toolbar), xPos, yPos);
+
+
+    }
+
+    private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {
+        myDBManager.open();
+        myDBManager.changeCatalogue(oldCatalogue, newCatalogue);
+
+        myDBManager.close();
     }
 
 

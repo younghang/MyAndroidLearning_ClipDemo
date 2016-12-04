@@ -195,4 +195,19 @@ public class MyDBManager {
         return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" +OrderID  , null) > 0;
     }
 
+    public void changeCatalogue(String oldCatalogue, String newCatalogue) {
+        Cursor cursor = fetchAllDataByCatalogue(oldCatalogue);
+
+        if (cursor.moveToFirst()) {
+            int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
+            while (cursor.isAfterLast()) {
+                int id = cursor.getInt(idIndex);
+                ContentValues args = new ContentValues();
+                args.put(KEY_CATALOGUE, newCatalogue);
+                mSQLiteDatabase.update(DB_TABLE, args, KEY_ID + "=" + id, null);
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+    }
 }

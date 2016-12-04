@@ -86,8 +86,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
-//        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
-//        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getInformation());
+//        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.loadCatalogue() + "  message=" + from.getInformation());
+//        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.loadCatalogue() + "  message=" + to.getInformation());
 
         myDBManager.open();
         myDBManager.updateDataOrder(to.getOrderID(), -1);
