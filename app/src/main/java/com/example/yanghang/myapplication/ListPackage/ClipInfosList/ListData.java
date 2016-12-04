@@ -18,6 +18,7 @@ public class ListData implements Serializable {
         Information = information;
         OrderID = orderID;
         Catalogue = catalogue;
+        CreateDate = GetDate();
     }
 
     public ListData(String remarks, String information, String createDate, int orderID, String catalogue) {

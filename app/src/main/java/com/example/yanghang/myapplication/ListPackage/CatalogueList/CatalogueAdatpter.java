@@ -1,8 +1,8 @@
 package com.example.yanghang.myapplication.ListPackage.CatalogueList;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
@@ -144,22 +144,27 @@ class CatalogueHolder extends RecyclerView.ViewHolder implements
 
     TextView tvCatalogue;
     ImageView dragImage;
+    CardView cardView;
+
 
     public CatalogueHolder(View itemView) {
         super(itemView);
         tvCatalogue = (TextView) itemView.findViewById(R.id.tv_catalogue_recycler);
         dragImage = (ImageView) itemView.findViewById(R.id.drag_image);
+        cardView = (CardView) itemView.findViewById(R.id.catalogueCardView);
+
 
     }
 
     @Override
     public void onItemSelected() {
-        itemView.setBackgroundColor(Color.LTGRAY);
+//        itemView.setBackgroundColor(Color.LTGRAY);
     }
 
     @Override
     public void onItemClear() {
-        itemView.setBackgroundColor(0);
+//        itemView.setBackgroundColor(0);
+//        cardView.setBackgroundColor(Color.parseColor("#227b7474"));
     }
 }
 

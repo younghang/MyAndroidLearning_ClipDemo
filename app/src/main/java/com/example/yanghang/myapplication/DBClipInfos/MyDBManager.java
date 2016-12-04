@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication.ClipInfosDB;
+package com.example.yanghang.myapplication.DBClipInfos;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -159,6 +159,12 @@ public class MyDBManager {
         return mSQLiteDatabase.query(DB_TABLE,null,KEY_CATALOGUE+"='"+catalogue+"'",null,null,null,KEY_ORDERID+" desc");
     }
 
+    public Cursor searchDataInContent(String content) {
+        String queryStr = "select * from " + DB_TABLE + " where " + KEY_CONTENT + " like '%" + content + "%' order by " + KEY_ORDERID + " desc";
+
+        return mSQLiteDatabase.rawQuery(queryStr, null);
+    }
+
 
 
 
@@ -188,4 +194,5 @@ public class MyDBManager {
 
         return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" +OrderID  , null) > 0;
     }
+
 }

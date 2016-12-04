@@ -2,10 +2,12 @@ package com.example.yanghang.myapplication.ListPackage.MessageList;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
 
 import java.util.List;
@@ -18,14 +20,17 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     Context context;
     LayoutInflater inflater;
     List<MessageData> mDatas;
-
+    OnItemClickListener onItemClickListener;
     private int COMPUTER_TYPE = 456;
     private int YOU_TYPE = 123;
-
     public MessageAdapter(Context context, List<MessageData> mDatas) {
         this.context = context;
         this.mDatas = mDatas;
         inflater = LayoutInflater.from(context);
+    }
+
+    public String getItemAt(int pos) {
+        return mDatas.get(pos).getMessageText();
     }
 
     @Override
@@ -38,6 +43,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
         return 0;
 
+    }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+        if (onItemClickListener != null) {
+            this.onItemClickListener = onItemClickListener;
+        }
     }
 
     @Override
@@ -56,12 +67,25 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+        Log.v(MainFormActivity.MTTAG, "onBind set text:" + mDatas.get(position).getMessageText());
         if (holder instanceof MessagePCHolder) {
             ((MessagePCHolder) holder).messageText.setText(mDatas.get(position).getMessageText());
+            ((MessagePCHolder) holder).messageText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClickListener.onItemClick(v, holder.getAdapterPosition());
+                }
+            });
         }
         if (holder instanceof MessagePhoneHolder) {
             ((MessagePhoneHolder) holder).messageText.setText(mDatas.get(position).getMessageText());
+            ((MessagePhoneHolder) holder).messageText.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onItemClickListener.onItemClick(v, holder.getAdapterPosition());
+                }
+            });
         }
 
     }
@@ -69,6 +93,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public int getItemCount() {
         return mDatas.size();
+    }
+
+    public interface OnItemClickListener {
+        public void onItemClick(View v, int pos);
+
+        public boolean onItemLongClick(View v, int pos);
     }
 }
 

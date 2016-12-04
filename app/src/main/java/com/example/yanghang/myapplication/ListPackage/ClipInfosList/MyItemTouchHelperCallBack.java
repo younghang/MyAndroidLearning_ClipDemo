@@ -4,11 +4,10 @@ import android.animation.ObjectAnimator;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
-import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
+import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
 import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
 
@@ -87,13 +86,13 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
-        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
-        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getInformation());
+//        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
+//        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getInformation());
 
         myDBManager.open();
-        myDBManager.updateDataOrder(to.getOrderID(), messageAdapter.getItemCount() + 1);
+        myDBManager.updateDataOrder(to.getOrderID(), -1);
         myDBManager.updateDataOrder(from.getOrderID(), to.getOrderID());
-        myDBManager.updateDataOrder(messageAdapter.getItemCount() + 1, from.getOrderID());
+        myDBManager.updateDataOrder(-1, from.getOrderID());
         myDBManager.close();
         messageAdapter.GetItemData(viewHolder.getAdapterPosition()).setOrderID(tempTo);
         messageAdapter.GetItemData(target.getAdapterPosition()).setOrderID(tempFrom);

@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication.ClipInfosDB;
+package com.example.yanghang.myapplication.DBClipInfos;
 
 import android.content.Context;
 import android.database.DatabaseErrorHandler;

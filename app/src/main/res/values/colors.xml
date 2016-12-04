@@ -11,5 +11,5 @@
     <color name="message_bg_color">#9aa9df</color>
     <color name="message_bg_color_dark">#4379d6</color>
     <color name="light_gray">#227b7474</color>
-    <color name="deep_gray">#5f7b7474</color>
+    <color name="deep_gray">#c8c0c0</color>
 </resources>

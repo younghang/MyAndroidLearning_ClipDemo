@@ -1,11 +1,14 @@
 package com.example.yanghang.myapplication;
 
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.yanghang.myapplication.ListPackage.MessageList.MessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.MessageList.MessageData;
@@ -35,7 +38,9 @@ public class ActivityMessage extends SwipeBackActivity {
 
         Intent intent = getIntent();
         String dialogmessage = intent.getStringExtra(DIALOG_MESSAGE);
-
+        if (dialogmessage == null) {
+            dialogmessage = "";
+        }
         toolbar = (Toolbar) findViewById(R.id.messageToolbar);
         toolbar.setTitle("Message");
         setSupportActionBar(toolbar);
@@ -55,10 +60,24 @@ public class ActivityMessage extends SwipeBackActivity {
 
         messageData = new ArrayList<MessageData>();
         messageData.add(new MessageData(MessageData.MessageType.YOU, dialogmessage));
-        messageData.add(new MessageData(MessageData.MessageType.COMPUTER, "nihaohsfldsfhalshf"));
-        messageData.add(new MessageData(MessageData.MessageType.YOU, "asdfasfalskdfjlasjfsdjfl"));
+        messageData.add(new MessageData(MessageData.MessageType.COMPUTER, "nihaohsfldsfhalshfasdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjfl"));
+        messageData.add(new MessageData(MessageData.MessageType.YOU, "asdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjflasdfasfalskdfjlasjfsdjfl"));
         recyclerView = (RecyclerView) findViewById(R.id.rv_message);
         messageAdapter = new MessageAdapter(ActivityMessage.this, messageData);
+        messageAdapter.setOnItemClickListener(new MessageAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int pos) {
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                // 将文本内容放到系统剪贴板里。
+                cm.setText(messageAdapter.getItemAt(pos));
+                Toast.makeText(ActivityMessage.this, "复制到粘贴板", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public boolean onItemLongClick(View v, int pos) {
+                return false;
+            }
+        });
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setAdapter(messageAdapter);
 

@@ -12,15 +12,22 @@
     <item
         android:id="@+id/add_info"
         android:icon="@mipmap/ic_add"
-        android:orderInCategory="80"
+        android:orderInCategory="81"
         android:title="新建"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/edit_info"
         android:icon="@drawable/ic_edit_white_24dp"
-        android:orderInCategory="90"
+        android:orderInCategory="82"
         android:title="编辑"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_main_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:orderInCategory="86"
+        android:title="搜索"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
     <item
         android:id="@+id/add_catalogue"
         android:icon="@drawable/ic_add_white_24dp"

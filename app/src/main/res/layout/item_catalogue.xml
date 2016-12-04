@@ -8,8 +8,9 @@
         android:id="@+id/item_catalogue_tv"
         style="?android:attr/spinnerItemStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:ellipsize="marquee"
+        android:gravity="left|center"
         android:singleLine="true"
         android:textAlignment="inherit"
         android:textSize="18sp" />

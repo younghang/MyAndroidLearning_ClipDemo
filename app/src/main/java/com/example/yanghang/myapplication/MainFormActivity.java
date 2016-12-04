@@ -12,6 +12,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
@@ -21,7 +22,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import com.example.yanghang.myapplication.ClipInfosDB.MyDBManager;
+import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueAdatpter;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
@@ -41,6 +42,7 @@ public class MainFormActivity extends AppCompatActivity {
     public static boolean IsDelete = false;
     MyDBManager myDBManager;
     Toolbar toolbar;
+    SearchView searchView;
     private RecyclerView recyclerView;
     private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
@@ -48,13 +50,55 @@ public class MainFormActivity extends AppCompatActivity {
     private CatalogueAdatpter catalogueAdatpter;
     private DrawerLayout mDrawerLayout;
     private List<ListData> listDatas;
+    SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(String query) {
+//            Log.v(MTTAG, "开始查询");
+            myDBManager.open();
+            Cursor cursor = myDBManager.searchDataInContent(query);
+            List<ListData> mDatas = new ArrayList<>();
+            if (cursor.moveToFirst()) {
+                int remarkIndex = cursor.getColumnIndex(MyDBManager.KEY_REMARK);
+                int contentIndex = cursor.getColumnIndex(MyDBManager.KEY_CONTENT);
+                int datetimeIndex = cursor.getColumnIndex(MyDBManager.KEY_DATETIME);
+                int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
+                int catalogueIndex = cursor.getColumnIndex(MyDBManager.KEY_CATALOGUE);
+                while (!cursor.isAfterLast()) {
+                    String remark = cursor.getString(remarkIndex);
+                    String content = cursor.getString(contentIndex);
+                    String datetime = cursor.getString(datetimeIndex);
+                    String catalogue = cursor.getString(catalogueIndex);
+                    int orderID = cursor.getInt(orderIdIndex);
+                    ListData listData = new ListData(remark, content, datetime, orderID, catalogue);
+                    mDatas.add(listData);
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+            myDBManager.close();
+            listDatas = mDatas;
+            messageAdapter.setDatas(listDatas);
+            messageAdapter.notifyDataSetChanged();
+            toolbar.setTitle("查询\"" + query + "\"结果");
+            mDrawerLayout.closeDrawer(Gravity.LEFT);
+            return true;
+
+        }
+
+        @Override
+        public boolean onQueryTextChange(String newText) {
+            return false;
+        }
+
+
+    };
     private boolean isSettingShow;
-    private List<String> mCatalogue;
-    private String currentCatalogue = "";
 
 //    private SimpleCursorAdapter adapter;
 //    private SQLiteDatabase db;
 //    private Cursor cursor;
+private List<String> mCatalogue;
+    private String currentCatalogue = "";
 
     //    private DaoSession session;
 //    private DaoMaster.DevOpenHelper helper;
@@ -201,7 +245,6 @@ public class MainFormActivity extends AppCompatActivity {
 
     }
 
-
     List<ListData> GetDatas(String currentCatalogue) {
         List<ListData> mDatas = new ArrayList<ListData>();
         myDBManager.open();
@@ -220,7 +263,7 @@ public class MainFormActivity extends AppCompatActivity {
                     String content = cursor.getString(contentIndex);
                     String datetime = cursor.getString(datetimeIndex);
                     int orderID = cursor.getInt(orderIdIndex);
-                    ListData listData = new ListData(remark, content, orderID, currentCatalogue);
+                    ListData listData = new ListData(remark, content, datetime, orderID, currentCatalogue);
                     mDatas.add(listData);
                     cursor.moveToNext();
                 }
@@ -293,10 +336,12 @@ public class MainFormActivity extends AppCompatActivity {
                 else
                     item.setIcon(R.drawable.ic_delete_inactive_24dp);
                 break;
+            case R.id.menu_main_search:
+                break;
 
         }
 
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -307,7 +352,7 @@ public class MainFormActivity extends AppCompatActivity {
         menu.findItem(R.id.add_info).setVisible(!isSettingShow);
         menu.findItem(R.id.del_info).setVisible(!isSettingShow);
         menu.findItem(R.id.edit_info).setVisible(!isSettingShow);
-
+        menu.findItem(R.id.menu_main_search).setVisible(isSettingShow);
 
         return super.onPrepareOptionsMenu(menu);
     }
@@ -315,6 +360,12 @@ public class MainFormActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_form_menu, menu);
+        searchView = (SearchView) menu.findItem(R.id.menu_main_search).getActionView();
+        if (searchView != null) {
+//            Toast.makeText(MainFormActivity.this, "null searchview", Toast.LENGTH_SHORT).show();
+            searchView.setOnQueryTextListener(onQueryTextListener);
+        }
+
         return super.onCreateOptionsMenu(menu);
 
     }
