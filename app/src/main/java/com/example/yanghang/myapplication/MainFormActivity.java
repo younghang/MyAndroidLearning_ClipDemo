@@ -207,7 +207,7 @@ private List<String> mCatalogue;
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
-                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getInformation());
+//                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getInformation());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 return true;
             }
@@ -245,7 +245,9 @@ private List<String> mCatalogue;
         catalogueAdatpter.setOnItemClickListener(new CatalogueAdatpter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-                listDatas = GetDatas(catalogueAdatpter.getItem(position));
+                String catlogue = catalogueAdatpter.getItem(position);
+                listDatas = GetDatas(catlogue);
+                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
                 messageAdapter.setDatas(listDatas);
                 messageAdapter.notifyDataSetChanged();
                 toolbar.setTitle(catalogueAdatpter.getItem(position));
@@ -254,7 +256,9 @@ private List<String> mCatalogue;
 
             @Override
             public boolean OnItemLongClick(View v, int position) {
-                showPopWindow(catalogues.get(position));
+                String catlogue = catalogueAdatpter.getItem(position);
+                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
+                showPopWindow(catlogue);
                 return false;
             }
         });
@@ -274,12 +278,15 @@ private List<String> mCatalogue;
                 int contentIndex = cursor.getColumnIndex(MyDBManager.KEY_CONTENT);
                 int datetimeIndex = cursor.getColumnIndex(MyDBManager.KEY_DATETIME);
                 int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
+                int catalogueIndex = cursor.getColumnIndex(MyDBManager.KEY_CATALOGUE);
                 while (!cursor.isAfterLast()) {
                     String remark = cursor.getString(remarkIndex);
                     String content = cursor.getString(contentIndex);
                     String datetime = cursor.getString(datetimeIndex);
                     int orderID = cursor.getInt(orderIdIndex);
-                    ListData listData = new ListData(remark, content, datetime, orderID, currentCatalogue);
+                    String catalogue = cursor.getString(catalogueIndex);
+                    Log.v(MTTAG, "GetData : content=" + content + "  catalogue=" + catalogue);
+                    ListData listData = new ListData(remark, content, datetime, orderID, catalogue);
                     mDatas.add(listData);
                     cursor.moveToNext();
                 }
@@ -427,9 +434,10 @@ private List<String> mCatalogue;
                     index = catalogues.indexOf(catalogueName);
                     if (index == -1)
                         return;
+//                    Log.v(MTTAG, "change catalogue: index" + index + "  catalogue=" + catalogueName);
+                    setCatalogueChanged(catalogueName, catalogueNewName);
                     catalogues.set(index, catalogueNewName);
                     catalogueAdatpter.notifyItemChanged(index);
-                    setCatalogueChanged(catalogueName, catalogueNewName);
                 }
                 popupWindow.dismiss();
             }
@@ -449,7 +457,7 @@ private List<String> mCatalogue;
                 - popupWindow.getWidth() / 2;
         int yPos = popupWindow.getWidth() / 2;
 
-
+        popupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         popupWindow.showAsDropDown(this.findViewById(R.id.toolbar), xPos, yPos);
 
 
@@ -458,7 +466,6 @@ private List<String> mCatalogue;
     private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {
         myDBManager.open();
         myDBManager.changeCatalogue(oldCatalogue, newCatalogue);
-
         myDBManager.close();
     }
 
