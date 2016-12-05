@@ -10,6 +10,16 @@
     tools:context="com.example.yanghang.myapplication.MainFormActivity"
     tools:showIn="@layout/activity_main_form">
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        android:rotation="-90"
+        android:src="@android:drawable/ic_menu_send" />
     <android.support.v4.widget.SwipeRefreshLayout
     android:id="@+id/reglost_srl"
     android:layout_width="match_parent"
