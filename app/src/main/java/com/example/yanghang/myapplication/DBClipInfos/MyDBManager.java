@@ -100,7 +100,7 @@ public class MyDBManager {
 
                 int order = cursor.getInt(orderIdIndex);
                 int id = cursor.getInt(idIndex);
-                Log.v(MainFormActivity.MTTAG, "db delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
+                Log.v(MainFormActivity.MTTAG, "db cancle delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
                 ContentValues args = new ContentValues();
                 order = order + 1;
                 args.put(KEY_ORDERID, order);
@@ -118,10 +118,10 @@ public class MyDBManager {
 
         int result = mSQLiteDatabase.delete(DB_TABLE, KEY_ORDERID + "=" + orderID, null);
         if (result == 0) {
-            Log.v(MainFormActivity.MTTAG, "没有删除任何东西");
+            Log.v(MainFormActivity.MTTAG, "找不到orderid=" + orderID + "没有删除任何东西");
             return;
         }
-        Log.v(MainFormActivity.MTTAG, "删除的orderid:" + orderID);
+        Log.v(MainFormActivity.MTTAG, "删除orderid:" + orderID);
         Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + ">=" + orderID, null, null, null, KEY_ORDERID);
         if (cursor.moveToFirst()) {
 

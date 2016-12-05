@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
@@ -86,8 +87,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
-//        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.loadCatalogue() + "  message=" + from.getInformation());
-//        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.loadCatalogue() + "  message=" + to.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getInformation());
 
         myDBManager.open();
         myDBManager.updateDataOrder(to.getOrderID(), -1);
@@ -102,8 +103,10 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         // 将数据集中的数据移除
-        final int pos = viewHolder.getAdapterPosition();
-        final ListData listData = listDatas.get(pos);
+        final int pos = viewHolder.getLayoutPosition();
+        ListData listDatatemp = listDatas.get(pos);
+        final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getInformation(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
+
         messageAdapter.deleteItem(pos);
 
         myDBManager.open();

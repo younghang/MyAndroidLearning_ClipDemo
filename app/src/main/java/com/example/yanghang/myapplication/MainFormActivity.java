@@ -207,7 +207,7 @@ private List<String> mCatalogue;
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
-//                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getInformation());
+                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getInformation() + "  catalogue=" + listDatas.get(position).getCatalogue());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 return true;
             }
@@ -247,17 +247,19 @@ private List<String> mCatalogue;
             public void OnItemClick(View v, int position) {
                 String catlogue = catalogueAdatpter.getItem(position);
                 listDatas = GetDatas(catlogue);
-                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
+//                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
                 messageAdapter.setDatas(listDatas);
+                recyclerView.setAdapter(messageAdapter);
                 messageAdapter.notifyDataSetChanged();
                 toolbar.setTitle(catalogueAdatpter.getItem(position));
+                currentCatalogue = catlogue;
                 mDrawerLayout.closeDrawer(Gravity.LEFT);
             }
 
             @Override
             public boolean OnItemLongClick(View v, int position) {
                 String catlogue = catalogueAdatpter.getItem(position);
-                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
+//                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
                 showPopWindow(catlogue);
                 return false;
             }
@@ -285,7 +287,7 @@ private List<String> mCatalogue;
                     String datetime = cursor.getString(datetimeIndex);
                     int orderID = cursor.getInt(orderIdIndex);
                     String catalogue = cursor.getString(catalogueIndex);
-                    Log.v(MTTAG, "GetData : content=" + content + "  catalogue=" + catalogue);
+//                    Log.v(MTTAG, "GetData : content=" + content + "  catalogue=" + catalogue);
                     ListData listData = new ListData(remark, content, datetime, orderID, catalogue);
                     mDatas.add(listData);
                     cursor.moveToNext();
@@ -339,9 +341,10 @@ private List<String> mCatalogue;
             case R.id.add_info:
                 myDBManager.open();
                 int orderid = myDBManager.getDataCount();
+                Log.v(MTTAG, "新建 orderid=" + orderid);
                 myDBManager.close();
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
-                intent.putExtra(LIST_DATA, new ListData("", "", orderid, "default"));
+                intent.putExtra(LIST_DATA, new ListData("", "", orderid, currentCatalogue));
                 intent.putExtra(LIST_DATA_POS, -1);
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 break;
@@ -376,7 +379,13 @@ private List<String> mCatalogue;
         menu.findItem(R.id.add_catalogue).setVisible(isSettingShow);
         menu.findItem(R.id.settings).setVisible(isSettingShow);
         menu.findItem(R.id.add_info).setVisible(!isSettingShow);
+        if (currentCatalogue.equals(""))
         menu.findItem(R.id.del_info).setVisible(!isSettingShow);
+        else {
+            menu.findItem(R.id.del_info).setVisible(false);
+            IsDelete = false;
+        }
+
         menu.findItem(R.id.edit_info).setVisible(!isSettingShow);
         menu.findItem(R.id.menu_main_search).setVisible(isSettingShow);
 
