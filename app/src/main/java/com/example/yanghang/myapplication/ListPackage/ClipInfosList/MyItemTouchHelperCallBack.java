@@ -13,7 +13,6 @@ import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by yanghang on 2016/11/23.
@@ -24,13 +23,13 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     float ToEval;
     private RecyclerView.ViewHolder vh;
     private IItemTouch mItemTouchListener;
-    private List<ListData> listDatas;
+
     private RecyclerView recyclerView;
     private ListMessageAdapter messageAdapter;
     private MyDBManager myDBManager;
 
-    public MyItemTouchHelperCallBack(List<ListData> listDatas, RecyclerView recyclerView, ListMessageAdapter messageAdapter, MyDBManager myDBManager) {
-        this.listDatas = listDatas;
+    public MyItemTouchHelperCallBack(RecyclerView recyclerView, ListMessageAdapter messageAdapter, MyDBManager myDBManager) {
+
         this.recyclerView = recyclerView;
         this.messageAdapter = messageAdapter;
         this.myDBManager = myDBManager;
@@ -59,10 +58,10 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
         // 移动时更改列表中对应的位置并返回true
         //只有更改了，才会调用，根本不是Move就调用
-        Collections.swap(listDatas, viewHolder.getAdapterPosition(), target
+        Collections.swap(messageAdapter.getDatas(), viewHolder.getAdapterPosition(), target
                 .getAdapterPosition());
-//        ListData from = messageAdapter.GetItemData(viewHolder.getAdapterPosition());
-//        ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
+//        ListData from = messageAdapter.getItemData(viewHolder.getAdapterPosition());
+//        ListData to = messageAdapter.getItemData(target.getAdapterPosition());
 //        ListData froma=new ListData(from);
 //        froma.setOrderID(to.getOrderID());
 //        ListData toa=new ListData(to);
@@ -83,8 +82,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         // 移动完成后刷新列表
 
         messageAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target.getAdapterPosition());
-        ListData from = messageAdapter.GetItemData(viewHolder.getAdapterPosition());
-        ListData to = messageAdapter.GetItemData(target.getAdapterPosition());
+        ListData from = messageAdapter.getItemData(viewHolder.getAdapterPosition());
+        ListData to = messageAdapter.getItemData(target.getAdapterPosition());
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
         Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
@@ -95,8 +94,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         myDBManager.updateDataOrder(from.getOrderID(), to.getOrderID());
         myDBManager.updateDataOrder(-1, from.getOrderID());
         myDBManager.close();
-        messageAdapter.GetItemData(viewHolder.getAdapterPosition()).setOrderID(tempTo);
-        messageAdapter.GetItemData(target.getAdapterPosition()).setOrderID(tempFrom);
+        messageAdapter.getItemData(viewHolder.getAdapterPosition()).setOrderID(tempTo);
+        messageAdapter.getItemData(target.getAdapterPosition()).setOrderID(tempFrom);
 
     }
 
@@ -104,7 +103,7 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         // 将数据集中的数据移除
         final int pos = viewHolder.getLayoutPosition();
-        ListData listDatatemp = listDatas.get(pos);
+        ListData listDatatemp = messageAdapter.getItemData(pos);
         final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getInformation(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
 
         messageAdapter.deleteItem(pos);

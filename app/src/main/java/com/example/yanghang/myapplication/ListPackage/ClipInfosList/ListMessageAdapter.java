@@ -29,10 +29,7 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         mInflater = LayoutInflater.from(mContext);
     }
 
-    public void setDatas(List<ListData> mDatas) {
-        this.mDatas = mDatas;
-    }
-    public ListData GetItemData(int pos) {
+    public ListData getItemData(int pos) {
         return mDatas.get(pos);
     }
 
@@ -40,11 +37,11 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.item_clip_recycler, parent, false);
         MessageViewHolder messageViewHolder = new MessageViewHolder(view);
-        return  messageViewHolder;
+        return messageViewHolder;
     }
 
     @Override
-    public void onBindViewHolder(final MessageViewHolder holder,final int position) {
+    public void onBindViewHolder(final MessageViewHolder holder, final int position) {
         holder.tvMessage.setText(mDatas.get(position).getInformation());
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
         holder.tvRemarks.init((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE));
@@ -103,6 +100,14 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     public void addItem(ListData data) {
         mDatas.add(0, data);
         notifyDataSetChanged();
+    }
+
+    public List<ListData> getDatas() {
+        return mDatas;
+    }
+
+    public void setDatas(List<ListData> mDatas) {
+        this.mDatas = mDatas;
     }
 
     public void addItem(ListData data,int pos) {

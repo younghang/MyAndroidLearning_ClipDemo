@@ -194,6 +194,7 @@ private List<String> mCatalogue;
         messageAdapter.setOnItemClickListener(new ListMessageAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
+                Log.v(MTTAG, "ItemClick orderid=" + messageAdapter.getItemData(position).getOrderID());
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
                 cm.setText(listDatas.get(position).getInformation());
@@ -213,7 +214,7 @@ private List<String> mCatalogue;
             }
         });
         recyclerView.setAdapter(messageAdapter);
-        new ItemTouchHelper(new MyItemTouchHelperCallBack(listDatas, recyclerView, messageAdapter, myDBManager))
+        new ItemTouchHelper(new MyItemTouchHelperCallBack(recyclerView, messageAdapter, myDBManager))
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
         IsEdite = false;
@@ -249,8 +250,11 @@ private List<String> mCatalogue;
                 listDatas = GetDatas(catlogue);
 //                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
                 messageAdapter.setDatas(listDatas);
-                recyclerView.setAdapter(messageAdapter);
                 messageAdapter.notifyDataSetChanged();
+
+                recyclerView.setLayoutManager(new LinearLayoutManager(MainFormActivity.this, LinearLayoutManager.VERTICAL, false)); // 设置布局，否则无法正常使用
+                recyclerView.setAdapter(messageAdapter);
+
                 toolbar.setTitle(catalogueAdatpter.getItem(position));
                 currentCatalogue = catlogue;
                 mDrawerLayout.closeDrawer(Gravity.LEFT);
@@ -379,12 +383,12 @@ private List<String> mCatalogue;
         menu.findItem(R.id.add_catalogue).setVisible(isSettingShow);
         menu.findItem(R.id.settings).setVisible(isSettingShow);
         menu.findItem(R.id.add_info).setVisible(!isSettingShow);
-        if (currentCatalogue.equals(""))
+//        if (currentCatalogue.equals(""))
         menu.findItem(R.id.del_info).setVisible(!isSettingShow);
-        else {
-            menu.findItem(R.id.del_info).setVisible(false);
-            IsDelete = false;
-        }
+//        else {
+//            menu.findItem(R.id.del_info).setVisible(false);
+//            IsDelete = false;
+//        }
 
         menu.findItem(R.id.edit_info).setVisible(!isSettingShow);
         menu.findItem(R.id.menu_main_search).setVisible(isSettingShow);
