@@ -265,7 +265,7 @@ private List<String> mCatalogue;
                 String catlogue = catalogueAdatpter.getItem(position);
 //                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
                 showPopWindow(catlogue);
-                return false;
+                return true;
             }
         });
 
@@ -411,6 +411,8 @@ private List<String> mCatalogue;
 
     private void showPopWindow(final String catalogueName) {
 
+        int width = (int) getResources().getDimension(R.dimen.pop_window_width);
+        int height = (int) getResources().getDimension(R.dimen.pop_window_height);
         if (popupWindow == null) {
             LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -421,7 +423,8 @@ private List<String> mCatalogue;
             btnCancle = (Button) view.findViewById(R.id.btn_cancle_catalogue_pop_window);
 
             // 创建一个PopuWidow对象
-            popupWindow = new PopupWindow(view, (int) getResources().getDimension(R.dimen.pop_window_width), (int) getResources().getDimension(R.dimen.pop_window_height));
+
+            popupWindow = new PopupWindow(view, width, height);
         }
         editText.setText(catalogueName);
         btnCancle.setOnClickListener(new View.OnClickListener() {
@@ -469,7 +472,7 @@ private List<String> mCatalogue;
         int xPos = rect.x / 2
                 - popupWindow.getWidth() / 2;
         int yPos = popupWindow.getWidth() / 2;
-
+        popupWindow.setAnimationStyle(R.style.popwin_anim_style);//设置窗口显示的动画效果
         popupWindow.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         popupWindow.showAsDropDown(this.findViewById(R.id.toolbar), xPos, yPos);
 
