@@ -42,7 +42,7 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
 
     @Override
     public void onBindViewHolder(final MessageViewHolder holder, final int position) {
-        holder.tvMessage.setText(mDatas.get(position).getInformation());
+        holder.tvMessage.setText(mDatas.get(position).getContent());
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
         holder.tvRemarks.init((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE));
         holder.tvRemarks.startScroll();

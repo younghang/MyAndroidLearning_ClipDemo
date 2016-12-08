@@ -2,90 +2,38 @@ package com.example.yanghang.myapplication;
 
 
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.ListPreference;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.preference.RingtonePreference;
-import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
-import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ListAdapter;
+import android.widget.Toast;
 
+import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
+import com.example.yanghang.myapplication.FileUtils.FileUtils;
+import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
+
+import java.io.File;
+import java.lang.reflect.Field;
 import java.util.List;
 
-/**
- * A {@link PreferenceActivity} that presents a set of application settings. On
- * handset devices, settings are presented as a single list. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the list of settings.
- * <p/>
- * See <a href="http://developer.android.com/design/patterns/settings.html">
- * Android Design: Settings</a> for design guidelines and the <a
- * href="http://developer.android.com/guide/topics/ui/settings.html">Settings
- * API Guide</a> for more information on developing a Settings UI.
- */
+
 public class SettingsActivity extends AppCompatPreferenceActivity {
-    /**
-     * A preference value change listener that updates the preference's summary
-     * to reflect its new value.
-     */
-    private static Preference.OnPreferenceChangeListener sBindPreferenceSummaryToValueListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            String stringValue = value.toString();
-
-            if (preference instanceof ListPreference) {
-                // For list preferences, look up the correct display value in
-                // the preference's 'entries' list.
-                ListPreference listPreference = (ListPreference) preference;
-                int index = listPreference.findIndexOfValue(stringValue);
-
-                // Set the summary to reflect the new value.
-                preference.setSummary(
-                        index >= 0
-                                ? listPreference.getEntries()[index]
-                                : null);
-
-            } else if (preference instanceof RingtonePreference) {
-                // For ringtone preferences, look up the correct display value
-                // using RingtoneManager.
-                if (TextUtils.isEmpty(stringValue)) {
-                    // Empty values correspond to 'silent' (no ringtone).
-                    preference.setSummary(R.string.pref_ringtone_silent);
-
-                } else {
-                    Ringtone ringtone = RingtoneManager.getRingtone(
-                            preference.getContext(), Uri.parse(stringValue));
-
-                    if (ringtone == null) {
-                        // Clear the summary if there was a lookup error.
-                        preference.setSummary(null);
-                    } else {
-                        // Set the summary to reflect the new ringtone display
-                        // name.
-                        String name = ringtone.getTitle(preference.getContext());
-                        preference.setSummary(name);
-                    }
-                }
-
-            } else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
-                preference.setSummary(stringValue);
-            }
-            return true;
-        }
-    };
 
     /**
      * Helper method to determine if the device has an extra-large screen. For
@@ -96,31 +44,62 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
 
-    /**
-     * Binds a preference's summary to its value. More specifically, when the
-     * preference's value is changed, its summary (line of text below the
-     * preference title) is updated to reflect the value. The summary is also
-     * immediately updated upon calling this method. The exact display format is
-     * dependent on the type of preference.
-     *
-     * @see #sBindPreferenceSummaryToValueListener
-     */
-    private static void bindPreferenceSummaryToValue(Preference preference) {
-        // Set the listener to watch for value changes.
-        preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
 
-        // Trigger the listener immediately with the preference's
-        // current value.
-        sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                PreferenceManager
-                        .getDefaultSharedPreferences(preference.getContext())
-                        .getString(preference.getKey(), ""));
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupActionBar();
+        replaceHeaderLayoutResId();
+    }
+
+    private void replaceHeaderLayoutResId() {
+        try {
+            ListAdapter adapter = getListAdapter();
+            Class headerAdapterClazz = Class.forName("android.preference.PreferenceActivity$HeaderAdapter");
+            if (!headerAdapterClazz.isInstance(adapter)) {
+                return;
+            }
+
+            boolean ok = false;
+
+            try {
+                Field field = headerAdapterClazz.getDeclaredField("mLayoutResId");
+                field.setAccessible(true);
+                field.setInt(adapter, R.layout.item_preference_header);
+
+                ok = true;
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+
+            if (!ok) {
+                try {
+                    Field field = headerAdapterClazz.getDeclaredField("mInflater");
+                    field.setAccessible(true);
+                    field.set(adapter, new FakeLayoutInflater((LayoutInflater) field.get(adapter)));
+
+                    ok = true;
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (ClassCastException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (ok) {
+                getListView().setDivider(getResources().getDrawable(R.drawable.press_up));
+                getListView().setDividerHeight(0);
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -138,10 +117,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
-            if (!super.onMenuItemSelected(featureId, item)) {
-                NavUtils.navigateUpFromSameTask(this);
-            }
-            return true;
+            finish();
         }
         return super.onMenuItemSelected(featureId, item);
     }
@@ -169,9 +145,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName)
-                || DataSyncPreferenceFragment.class.getName().equals(fragmentName)
-                || NotificationPreferenceFragment.class.getName().equals(fragmentName);
+                || GeneralPreferenceFragment.class.getName().equals(fragmentName);
+
     }
 
     /**
@@ -179,89 +154,215 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class GeneralPreferenceFragment extends PreferenceFragment {
+    public static class GeneralPreferenceFragment extends PreferenceFragment
+            implements Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
+
+        public static final int REQUEST_CODE_FILE = 2;
+        public static final int REQUEST_CODE_FILEPATH = 1;
+        private static final String MSG_FILE = "saving_loading_file";
+
+        private static final int MSG_SAVING_FILE_FINISH = 4561;
+        private static final int MSG_SAVING_FILE_FAILED = 459;
+        private static final int MSG_LOADING_FILE_FINISH = 51;
+        private static final int MSG_LOADING_FILE_FAILED = 99;
+        AlertDialog loadingDialog;
+        private Preference filePathPreference;
+        private Preference fileNamePreference;
+        Handler handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+
+                super.handleMessage(msg);
+                int msgLoading = msg.getData().getInt(MSG_FILE);
+                switch (msgLoading) {
+                    case MSG_SAVING_FILE_FINISH:
+                        loadingDialog.hide();
+                        Toast.makeText(getActivity(), "文件保存在" + filePathPreference.getSummary() + "/" + fileNamePreference.getSummary() + ".json", Toast.LENGTH_SHORT).show();
+                        break;
+                    case MSG_SAVING_FILE_FAILED:
+                        loadingDialog.hide();
+                        Toast.makeText(getActivity(), "文件保存失败，或没有权限访问外置存储卡", Toast.LENGTH_SHORT).show();
+                        break;
+                    case MSG_LOADING_FILE_FINISH:
+                        loadingDialog.hide();
+
+                        Toast.makeText(getActivity(), "加载完成，请关闭本程序，重新打开", Toast.LENGTH_SHORT).show();
+                        break;
+                    case MSG_LOADING_FILE_FAILED:
+                        loadingDialog.hide();
+                        Toast.makeText(getActivity(), "数据加载失败，请检查数据是否正确", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
+        private Preference fileImport;
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
 
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("example_text"));
-            bindPreferenceSummaryToValue(findPreference("example_list"));
+            fileNamePreference = findPreference(getResources().getString(R.string.dataFileName));
+            filePathPreference = findPreference(getResources().getString(R.string.dataFilePath));
+            fileImport = findPreference(getResources().getString(R.string.dataImport));
+            fileImport.setOnPreferenceClickListener(this);
+            filePathPreference.setOnPreferenceClickListener(this);
+            fileNamePreference.setOnPreferenceClickListener(this);
+//            fileNamePreference.setOnPreferenceChangeListener(this);
+//            filePathPreference.setOnPreferenceChangeListener(this);
+            fileNamePreference.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(fileNamePreference.getKey(), ""));
+            filePathPreference.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(filePathPreference.getKey(), ""));
+            fileImport.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(fileImport.getKey(), ""));
+
+            loadingDialog = new AlertDialog.Builder(getActivity()).setView(LayoutInflater.from(getActivity().getApplicationContext())
+                    .inflate(R.layout.loading, null))
+                    .setTitle("Loading")
+                    .setCancelable(false).create();
         }
 
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
             int id = item.getItemId();
             if (id == android.R.id.home) {
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
+                onDestroy();
                 return true;
             }
             return super.onOptionsItemSelected(item);
         }
-    }
-
-    /**
-     * This fragment shows notification preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class NotificationPreferenceFragment extends PreferenceFragment {
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_notification);
-            setHasOptionsMenu(true);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("notifications_new_message_ringtone"));
-        }
 
         @Override
-        public boolean onOptionsItemSelected(MenuItem item) {
-            int id = item.getItemId();
-            if (id == android.R.id.home) {
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
+        public boolean onPreferenceClick(Preference preference) {
+            if (preference == fileNamePreference) {
+                showDialog();
                 return true;
             }
-            return super.onOptionsItemSelected(item);
-        }
-    }
-
-    /**
-     * This fragment shows data and sync preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
-     */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public static class DataSyncPreferenceFragment extends PreferenceFragment {
-        @Override
-        public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            addPreferencesFromResource(R.xml.pref_data_sync);
-            setHasOptionsMenu(true);
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("sync_frequency"));
-        }
-
-        @Override
-        public boolean onOptionsItemSelected(MenuItem item) {
-            int id = item.getItemId();
-            if (id == android.R.id.home) {
-                startActivity(new Intent(getActivity(), SettingsActivity.class));
+            if (preference == filePathPreference) {
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                try {
+                    startActivityForResult(intent, REQUEST_CODE_FILEPATH);
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), "setting filePath:can't find activity", Toast.LENGTH_SHORT).show();
+                }
                 return true;
+
             }
-            return super.onOptionsItemSelected(item);
+            if (preference == fileImport) {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(intent, REQUEST_CODE_FILE);
+            }
+            return false;
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_FILEPATH) {
+                Uri uri = data.getData();
+                String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
+                filePathPreference.setSummary(file);
+                PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(filePathPreference.getKey(), file).apply();
+            } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_FILE) {
+                Uri uri = data.getData();
+                final String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
+                PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(fileImport.getKey(), file).apply();
+                fileImport.setSummary(file);
+                loadingDialog.show();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Message msg = new Message();
+                        Bundle data = new Bundle();
+                        try {
+                            List<ListData> lists = FileUtils.loadListDatas(file);
+                            new MyDBManager(getActivity()).insertDatas(lists);
+                            data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
+                        } catch (Exception e) {
+                            data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);
+                            e.printStackTrace();
+                        }
+                        msg.setData(data);
+                        handler.sendMessage(msg);
+                    }
+                }).start();
+
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+
+        private void showDialog() {
+            View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.dialog_data_save, null);
+            final EditText editText = (EditText) view.findViewById(R.id.edit_text);
+            editText.setText(fileNamePreference.getSummary());
+            AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+                    .setTitle("保存文件名")
+                    .setView(view)
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            String str = editText.getText().toString();
+                            if (str != null && !new File(filePathPreference.getSummary().toString()).exists()) {
+                                Toast.makeText(getActivity(), "请先选择正确的保存路径", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(fileNamePreference.getKey(), str).apply();
+                            fileNamePreference.setSummary(str);
+                            loadingDialog.show();
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Message msg = new Message();
+                                    Bundle data = new Bundle();
+                                    try {
+                                        Thread.sleep(500);
+                                        boolean re = FileUtils.saveListDatas(new MyDBManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString());
+                                        if (re) data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
+                                        else data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+                                    } catch (Exception e) {
+                                        data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+                                    }
+                                    msg.setData(data);
+                                    handler.sendMessage(msg);
+                                }
+                            }).start();
+                        }
+                    })
+                    .setNegativeButton("取消", null)
+
+                    .show();
+        }
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            String stringValue = newValue.toString();
+//            Log.v(MainFormActivity.MTTAG,"Preference Changed:"+ stringValue);
+            //不会调用的，需要自己手动改
+            preference.setSummary(stringValue);
+            return true;
         }
     }
+
+    private class FakeLayoutInflater extends LayoutInflater {
+
+        private LayoutInflater mInflater;
+
+        protected FakeLayoutInflater(LayoutInflater inflater) {
+            super(null);
+            mInflater = inflater;
+        }
+
+        @Override
+        public LayoutInflater cloneInContext(Context newContext) {
+            return null;
+        }
+
+        @Override
+        public View inflate(int resource, ViewGroup root, boolean attachToRoot) {
+            return mInflater.inflate(R.layout.item_preference_header, root, attachToRoot);
+        }
+    }
+
+
 }

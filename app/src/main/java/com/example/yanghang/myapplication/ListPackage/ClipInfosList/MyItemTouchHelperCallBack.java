@@ -86,14 +86,14 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         ListData to = messageAdapter.getItemData(target.getAdapterPosition());
         int tempTo = to.getOrderID();
         int tempFrom = from.getOrderID();
-        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getInformation());
-        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getInformation());
+        Log.v(MainFormActivity.MTTAG, "交换数据from   pos=" + viewHolder.getAdapterPosition() + " 数据为：  order=" + from.getOrderID() + "  catalogue=" + from.getCatalogue() + "  message=" + from.getContent());
+        Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getContent());
 
-        myDBManager.open();
+
         myDBManager.updateDataOrder(to.getOrderID(), -1);
         myDBManager.updateDataOrder(from.getOrderID(), to.getOrderID());
         myDBManager.updateDataOrder(-1, from.getOrderID());
-        myDBManager.close();
+
         messageAdapter.getItemData(viewHolder.getAdapterPosition()).setOrderID(tempTo);
         messageAdapter.getItemData(target.getAdapterPosition()).setOrderID(tempFrom);
 
@@ -104,22 +104,17 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         // 将数据集中的数据移除
         final int pos = viewHolder.getLayoutPosition();
         ListData listDatatemp = messageAdapter.getItemData(pos);
-        final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getInformation(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
+        final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
 
         messageAdapter.deleteItem(pos);
-
-        myDBManager.open();
         myDBManager.deleteDataByOrderID(listData.getOrderID());
-        myDBManager.close();
-
-
         Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 messageAdapter.addItem(listData, pos);
-                myDBManager.open();
-                myDBManager.cancleDelete(listData.getRemarks(), listData.getInformation(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
-                myDBManager.close();
+
+                myDBManager.cancleDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+
             }
         }).setDuration(Snackbar.LENGTH_LONG).show();
     }

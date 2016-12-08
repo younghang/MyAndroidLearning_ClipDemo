@@ -8,22 +8,22 @@ import java.text.SimpleDateFormat;
  */
 public class ListData implements Serializable {
     private String Remarks = "";
-    private String Information = "";
+    private String Content = "";
     private String CreateDate = "";
     private int OrderID = 0;
     private String Catalogue = "default";
 
-    public ListData(String remarks, String information, int orderID, String catalogue) {
+    public ListData(String remarks, String content, int orderID, String catalogue) {
         Remarks = remarks;
-        Information = information;
+        Content = content;
         OrderID = orderID;
         Catalogue = catalogue;
         CreateDate = GetDate();
     }
 
-    public ListData(String remarks, String information, String createDate, int orderID, String catalogue) {
+    public ListData(String remarks, String content, String createDate, int orderID, String catalogue) {
         Remarks = remarks;
-        Information = information;
+        Content = content;
         CreateDate = createDate;
         OrderID = orderID;
         Catalogue = catalogue;
@@ -67,11 +67,11 @@ public class ListData implements Serializable {
         Remarks = remarks;
     }
 
-    public String getInformation() {
-        return Information;
+    public String getContent() {
+        return Content;
     }
 
-    public void setInformation(String information) {
-        Information = information;
+    public void setContent(String content) {
+        Content = content;
     }
 }

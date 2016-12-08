@@ -14,6 +14,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.OthersView.PerformEdit;
 
@@ -60,7 +61,7 @@ public class ActivityEditInfo extends AppCompatActivity {
         tvShowInfo = (EditText) findViewById(R.id.tv_ShowInfo);
 
         editRemark = (EditText) findViewById(R.id.edit_remark);
-        tvShowInfo.setText(listData.getInformation());
+        tvShowInfo.setText(listData.getContent());
         editRemark.setText(listData.getRemarks());
 
         spinner = (Spinner) findViewById(R.id.catalogue_spinner);
@@ -99,14 +100,14 @@ public class ActivityEditInfo extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.checked:
-                listData.setInformation(tvShowInfo.getText().toString());
+                listData.setContent(tvShowInfo.getText().toString());
                 listData.setRemarks(editRemark.getText().toString());
                 listData.setCatalogue(spinner.getSelectedItem().toString());
                 Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
                 intent.putExtra(MainFormActivity.LIST_DATA, listData);
                 intent.putExtra(MainFormActivity.LIST_DATA_POS, pos);
                 if (pos == -1) {
-                    if (listData.getInformation().equals("")) {
+                    if (listData.getContent().equals("")) {
                         setResult(RESULT_NOTHING_NEW, intent);
                     } else
                         setResult(RESULT_ADD_NEW, intent);
@@ -125,7 +126,7 @@ public class ActivityEditInfo extends AppCompatActivity {
     }
 
     public List<String> getCatalogue() {
-        return MyApplication.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
+        return FileUtils.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
     }
 
     @Override
