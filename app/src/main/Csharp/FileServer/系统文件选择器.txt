@@ -1,0 +1,20 @@
+系统文件选择器
+12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao:   uri=   content://com.android.providers.media.documents/document/image%3A345518
+12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: com.android.providers.media.documents
+12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: /document/image:345518
+12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: content
+12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: [document, image:345518]
+
+快图浏览
+12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao:   uri=   content://media/external/images/media/348350
+12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: media
+12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: /external/images/media/348350
+12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: content
+12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: [external, images, media, 348350]
+
+系统图片浏览器
+12-09 13:48:52.788 1186-1186/com.example.yanghang.myapplication V/nihao:   uri=   content://media/external/images/media/348350
+12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: media
+12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: /external/images/media/348350
+12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: content
+12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: [external, images, media, 348350]

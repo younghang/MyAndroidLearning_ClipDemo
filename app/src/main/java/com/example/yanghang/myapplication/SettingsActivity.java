@@ -167,6 +167,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         private static final int MSG_LOADING_FILE_FAILED = 99;
         AlertDialog loadingDialog;
         private Preference filePathPreference;
+
         private Preference fileNamePreference;
         Handler handler = new Handler() {
             @Override

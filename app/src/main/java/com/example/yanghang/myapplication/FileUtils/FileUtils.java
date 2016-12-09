@@ -4,6 +4,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -201,14 +202,12 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
     }
 
 
-    /**
-     * Gets the corresponding path to a file from the given content:// URI
-     *
-     * @param selectedVideoUri The content:// URI to find the file path from
-     *                         .
-     * @return the file path as a string
-     */
     public static String getFilePathFromContentUri(Context context, Uri selectedVideoUri) {
+        Log.v(MainFormActivity.MTTAG, "  uri=   " + selectedVideoUri.toString());
+        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getAuthority());
+        Log.v(MainFormActivity.MTTAG, "   path=  " + selectedVideoUri.getPath());
+        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getScheme());
+        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getPathSegments().toString());
 
         String filePath;
         String authority = selectedVideoUri.getAuthority();
@@ -225,39 +224,43 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 //                Log.v(MainFormActivity.MTTAG, filePath);
                 return filePath;
             }
+        } else if (authority.equals("com.android.providers.media.documents")) {
+            final String docId = DocumentsContract.getDocumentId(selectedVideoUri);
+            final String[] split = docId.split(":");
+            final String type = split[0];
+            Uri contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            final String selection = "_id=?";
+            final String[] selectionArgs = new String[]{
+                    split[1]
+            };
+            Log.v(MainFormActivity.MTTAG, "id=" + split[1]);
+            final String column = "_data";
+            final String[] projection = {
+                    column
+            };
+            return getQuery(context, projection, contentUri, selection, selectionArgs);
+
         } else if (authority.equals("media")) {
             String[] filePathColumn = {MediaStore.MediaColumns.DATA};
-
-//        Cursor cursor = contentResolver.query(selectedVideoUri, filePathColumn, null, null, null);
-//      也可用下面的方法拿到cursor
-            Cursor cursor = context.getContentResolver().query(selectedVideoUri, filePathColumn, null, null, null);
-
-            cursor.moveToFirst();
-
-            int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-            filePath = cursor.getString(columnIndex);
-//            Log.v(MainFormActivity.MTTAG, columnIndex+"\n"+filePath);
-            cursor.close();
-            return filePath;
+            return getQuery(context, filePathColumn, selectedVideoUri, null, null);
         }
         return null;
-//        Log.v(MainFormActivity.MTTAG, "  uri=   "+selectedVideoUri.toString());
-//        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getAuthority() );
-//        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getPath() );
-//        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getScheme() );
-//        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getPathSegments().toString());
 
 
     }
-//    /**
-//     * Get a file path from a Uri. This will get the the path for Storage Access
-//     * Framework Documents, as well as the _data field for the MediaStore and
-//     * other file-based ContentProviders.
-//     *
-//     * @param context The context.
-//     * @param uri The Uri to query.
-//     * @author paulburke
-//     */
+
+    private static String getQuery(Context context, String[] filePathColumn, Uri selectedVideoUri, String selection, String[] selectionArgs) {
+        Cursor cursor = context.getContentResolver().query(selectedVideoUri, filePathColumn, selection, selectionArgs, null);
+
+        cursor.moveToFirst();
+
+        int columnIndex = cursor.getColumnIndexOrThrow(filePathColumn[0]);
+        String filePath = cursor.getString(columnIndex);
+        Log.v(MainFormActivity.MTTAG, "index " + columnIndex + "   filePath=  " + filePath);
+        cursor.close();
+        return filePath;
+    }
+
 //    public static String getPhotoPathFromContentUri(final Context context, final Uri uri) {
 //
 //        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
@@ -274,7 +277,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 //                    return Environment.getExternalStorageDirectory() + "/" + split[1];
 //                }
 //
-    // TODO handle non-primary volumes
+
 //            }
 //            // DownloadsProvider
 //            else if (isDownloadsDocument(uri)) {
@@ -320,16 +323,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 //        return null;
 //    }
 //
-//    /**
-//     * Get the value of the data column for this Uri. This is useful for
-//     * MediaStore Uris, and other file-based ContentProviders.
-//     *
-//     * @param context The context.
-//     * @param uri The Uri to query.
-//     * @param selection (Optional) Filter used in the query.
-//     * @param selectionArgs (Optional) Selection arguments used in the query.
-//     * @return The value of the _data column, which is typically a file path.
-//     */
+
 //    public static String getDataColumn(Context context, Uri uri, String selection,
 //                                       String[] selectionArgs) {
 //

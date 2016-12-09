@@ -29,6 +29,11 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         inflater = LayoutInflater.from(context);
     }
 
+    public void addItem(MessageData messageData) {
+        mDatas.add(messageData);
+        notifyItemInserted(mDatas.size() - 1);
+    }
+
     public String getItemAt(int pos) {
         return mDatas.get(pos).getMessageText();
     }
