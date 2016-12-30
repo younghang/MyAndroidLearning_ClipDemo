@@ -8,7 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 
-import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
+import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.myapplication.MainFormActivity;
 import com.example.yanghang.myapplication.R;
 
@@ -26,13 +26,13 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
 
     private RecyclerView recyclerView;
     private ListMessageAdapter messageAdapter;
-    private MyDBManager myDBManager;
+    private DBListInfoManager DBListInfoManager;
 
-    public MyItemTouchHelperCallBack(RecyclerView recyclerView, ListMessageAdapter messageAdapter, MyDBManager myDBManager) {
+    public MyItemTouchHelperCallBack(RecyclerView recyclerView, ListMessageAdapter messageAdapter, DBListInfoManager DBListInfoManager) {
 
         this.recyclerView = recyclerView;
         this.messageAdapter = messageAdapter;
-        this.myDBManager = myDBManager;
+        this.DBListInfoManager = DBListInfoManager;
         FromEval = recyclerView.getContext().getResources().getDimension(R.dimen.from_eval);
         ToEval = recyclerView.getContext().getResources().getDimension(R.dimen.to_eval);
     }
@@ -90,9 +90,9 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         Log.v(MainFormActivity.MTTAG, "交换数据to     pos=" + target.getAdapterPosition() + " 数据为：  order=" + to.getOrderID() + "  catalogue=" + to.getCatalogue() + "  message=" + to.getContent());
 
 
-        myDBManager.updateDataOrder(to.getOrderID(), -1);
-        myDBManager.updateDataOrder(from.getOrderID(), to.getOrderID());
-        myDBManager.updateDataOrder(-1, from.getOrderID());
+        DBListInfoManager.updateDataOrder(to.getOrderID(), -1);
+        DBListInfoManager.updateDataOrder(from.getOrderID(), to.getOrderID());
+        DBListInfoManager.updateDataOrder(-1, from.getOrderID());
 
         messageAdapter.getItemData(viewHolder.getAdapterPosition()).setOrderID(tempTo);
         messageAdapter.getItemData(target.getAdapterPosition()).setOrderID(tempFrom);
@@ -107,13 +107,13 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
 
         messageAdapter.deleteItem(pos);
-        myDBManager.deleteDataByOrderID(listData.getOrderID());
+        DBListInfoManager.deleteDataByOrderID(listData.getOrderID());
         Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 messageAdapter.addItem(listData, pos);
 
-                myDBManager.cancleDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+                DBListInfoManager.cancleDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
 
             }
         }).setDuration(Snackbar.LENGTH_LONG).show();

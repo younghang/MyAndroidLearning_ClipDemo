@@ -32,12 +32,12 @@ public class ActivityEditInfo extends AppCompatActivity {
     private ListData listData;
     private int pos;
     private ArrayAdapter<String> arr_adapter;
+    private boolean isEdit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_text);
-
         Initial();
     }
 
@@ -57,13 +57,18 @@ public class ActivityEditInfo extends AppCompatActivity {
         Bundle bundle = getIntent().getExtras();
         listData = (ListData) bundle.get(MainFormActivity.LIST_DATA);
         pos = (int) bundle.get(MainFormActivity.LIST_DATA_POS);
+        if (pos == -1)
+            isEdit = true;
+        else
+            isEdit = false;
 
         tvShowInfo = (EditText) findViewById(R.id.tv_ShowInfo);
 
         editRemark = (EditText) findViewById(R.id.edit_remark);
         tvShowInfo.setText(listData.getContent());
         editRemark.setText(listData.getRemarks());
-
+        editRemark.setFocusable(isEdit);
+        tvShowInfo.setFocusable(isEdit);
         spinner = (Spinner) findViewById(R.id.catalogue_spinner);
         mCatalogue = getCatalogue();
 
@@ -78,6 +83,7 @@ public class ActivityEditInfo extends AppCompatActivity {
             spinner.setSelection(index, true);
         else spinner.setSelection(0, true);
 
+        spinner.setVisibility(isEdit ? View.VISIBLE : View.GONE);
         mPerformEdit = new PerformEdit(tvShowInfo) {
             @Override
             protected void onTextChanged(Editable s) {
@@ -86,12 +92,14 @@ public class ActivityEditInfo extends AppCompatActivity {
             }
         };
         tvShowInfo.requestFocus();
+
         tvShowInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                Log.v(MainFormActivity.MTTAG, "EditInfo Activity EditText click");
                 tvShowInfo.requestFocus();
                 InputMethodManager imm = (InputMethodManager) ActivityEditInfo.this.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(tvShowInfo, InputMethodManager.SHOW_IMPLICIT);
+                imm.showSoftInput(tvShowInfo, InputMethodManager.HIDE_IMPLICIT_ONLY);
             }
         });
     }
@@ -99,7 +107,7 @@ public class ActivityEditInfo extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.checked:
+            case R.id.menu_checked:
                 listData.setContent(tvShowInfo.getText().toString());
                 listData.setRemarks(editRemark.getText().toString());
                 listData.setCatalogue(spinner.getSelectedItem().toString());
@@ -115,12 +123,22 @@ public class ActivityEditInfo extends AppCompatActivity {
                     setResult(RESULT_OK, intent);
                 finish();
                 break;
-            case R.id.redo:
+            case R.id.menu_redo:
                 mPerformEdit.redo();
                 break;
-            case R.id.undo:
+            case R.id.menu_undo:
                 mPerformEdit.undo();
                 break;
+            case R.id.menu_editable:
+                isEdit = true;
+                editRemark.setFocusable(true);
+                editRemark.requestFocus();
+                editRemark.setFocusableInTouchMode(true);
+                tvShowInfo.setFocusable(true);
+                tvShowInfo.setFocusableInTouchMode(true);
+                spinner.setVisibility(View.VISIBLE);
+                tvShowInfo.requestFocus();
+                invalidateOptionsMenu();
         }
         return true;
     }
@@ -133,5 +151,14 @@ public class ActivityEditInfo extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.edit_menu, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.menu_redo).setVisible(isEdit);
+        menu.findItem(R.id.menu_undo).setVisible(isEdit);
+        menu.findItem(R.id.menu_checked).setVisible(isEdit);
+        menu.findItem(R.id.menu_editable).setVisible(!isEdit);
+        return super.onPrepareOptionsMenu(menu);
     }
 }

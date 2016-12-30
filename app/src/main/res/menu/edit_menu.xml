@@ -5,22 +5,28 @@
     tools:context=".MainActivity" >
 
     <item
-        android:id="@+id/undo"
+        android:id="@+id/menu_undo"
+        android:icon="@drawable/ic_undo_white_24dp"
         android:orderInCategory="80"
         android:title="撤销"
-        android:icon="@drawable/ic_undo_white_24dp"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/redo"
+        android:id="@+id/menu_redo"
+        android:icon="@drawable/ic_redo_white_24dp"
         android:orderInCategory="90"
         android:title="重做"
-        android:icon="@drawable/ic_redo_white_24dp"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/checked"
+        android:id="@+id/menu_checked"
+        android:icon="@drawable/ic_check_white_24dp"
         android:orderInCategory="90"
         android:title="确定"
-        android:icon="@drawable/ic_check_white_24dp"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_editable"
+        android:icon="@drawable/ic_edit_white_24dp"
+        android:orderInCategory="90"
+        android:title="编辑"
+        app:showAsAction="ifRoom" />
 
 </menu>

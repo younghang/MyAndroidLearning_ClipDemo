@@ -24,7 +24,7 @@ import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.Toast;
 
-import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
+import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 
@@ -277,7 +277,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Bundle data = new Bundle();
                         try {
                             List<ListData> lists = FileUtils.loadListDatas(file);
-                            new MyDBManager(getActivity()).insertDatas(lists);
+                            new DBListInfoManager(getActivity()).insertDatas(lists);
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
                         } catch (Exception e) {
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);
@@ -318,7 +318,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                     Bundle data = new Bundle();
                                     try {
                                         Thread.sleep(500);
-                                        boolean re = FileUtils.saveListDatas(new MyDBManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString());
+                                        boolean re = FileUtils.saveListDatas(new DBListInfoManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString());
                                         if (re) data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
                                         else data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
                                     } catch (Exception e) {

@@ -21,7 +21,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,7 +32,7 @@ import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
-import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
+import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueAdatpter;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
@@ -53,7 +52,7 @@ public class MainFormActivity extends AppCompatActivity {
     public static boolean IsEdite = false;
     public static String MTTAG = "nihao";
     public static boolean IsDelete = false;
-    MyDBManager myDBManager;
+    DBListInfoManager DBListInfoManager;
     Toolbar toolbar;
     SearchView searchView;
     List<String> catalogues;
@@ -91,7 +90,7 @@ public class MainFormActivity extends AppCompatActivity {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    listDatas = myDBManager.searchData(query);
+                    listDatas = DBListInfoManager.searchData(query);
                     Message msg = new Message();
                     Bundle data = new Bundle();
                     data.putInt(MSG_LOADING_DATA, MSG_FINISH_LOADING_DATA);
@@ -137,7 +136,7 @@ public class MainFormActivity extends AppCompatActivity {
     }
 
     private void InitialView() {
-        myDBManager = new MyDBManager(MainFormActivity.this.getApplicationContext());
+        DBListInfoManager = new DBListInfoManager(MainFormActivity.this.getApplicationContext());
 //        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
 //        db = helper.getWritableDatabase();
 //        master = new DaoMaster(db);
@@ -205,13 +204,13 @@ public class MainFormActivity extends AppCompatActivity {
         });
 
         recyclerView = (RecyclerView) findViewById(R.id.rv_ClipInfos);
-        listDatas = myDBManager.getDatas("");
+        listDatas = DBListInfoManager.getDatas("");
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)); // 设置布局，否则无法正常使用
         messageAdapter = new ListMessageAdapter(listDatas, this);
         messageAdapter.setOnItemClickListener(new ListMessageAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-                Log.v(MTTAG, "ItemClick orderid=" + messageAdapter.getItemData(position).getOrderID());
+//                Log.v(MTTAG, "ItemClick orderid=" + messageAdapter.getItemData(position).getOrderID());
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
                 cm.setText(listDatas.get(position).getContent());
@@ -225,13 +224,13 @@ public class MainFormActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
-                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
+//                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 return true;
             }
         });
         recyclerView.setAdapter(messageAdapter);
-        new ItemTouchHelper(new MyItemTouchHelperCallBack(recyclerView, messageAdapter, myDBManager))
+        new ItemTouchHelper(new MyItemTouchHelperCallBack(recyclerView, messageAdapter, DBListInfoManager))
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
         IsEdite = false;
@@ -268,7 +267,7 @@ public class MainFormActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        listDatas = myDBManager.getDatas(catlogue);
+                        listDatas = DBListInfoManager.getDatas(catlogue);
                         Message msg = new Message();
                         Bundle data = new Bundle();
                         data.putInt(MSG_LOADING_DATA, MSG_FINISH_LOADING_DATA);
@@ -305,16 +304,16 @@ public class MainFormActivity extends AppCompatActivity {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
                     int pos = data.getIntExtra(LIST_DATA_POS, 0);
 //
-                    Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
+//                    Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
                     messageAdapter.editItem(pos, listData);
-                    myDBManager.updateData(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
+                    DBListInfoManager.updateData(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
 
                 }
                 if (resultCode == ActivityEditInfo.RESULT_ADD_NEW) {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
                     int pos = 0;
-                    Log.v("TEM", pos + listData.getContent());
-                    long result = myDBManager.insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+//                    Log.v("TEM", pos + listData.getContent());
+                    long result = DBListInfoManager.insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
 
                     if (result == -1)
                         Toast.makeText(MainFormActivity.this, "存储该行数据出错", Toast.LENGTH_SHORT).show();
@@ -332,8 +331,8 @@ public class MainFormActivity extends AppCompatActivity {
 
         switch (item.getItemId()) {
             case R.id.add_info:
-                int orderid = myDBManager.getDataCount();
-                Log.v(MTTAG, "新建 orderid=" + orderid);
+                int orderid = DBListInfoManager.getDataCount();
+//                Log.v(MTTAG, "新建 orderid=" + orderid);
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, new ListData("", "", orderid, currentCatalogue));
                 intent.putExtra(LIST_DATA_POS, -1);
@@ -491,7 +490,7 @@ public class MainFormActivity extends AppCompatActivity {
     }
 
     private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {
-        myDBManager.changeCatalogue(oldCatalogue, newCatalogue);
+        DBListInfoManager.changeCatalogue(oldCatalogue, newCatalogue);
     }
 
 

@@ -8,7 +8,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import com.example.yanghang.myapplication.DBClipInfos.MyDBManager;
+import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.MainFormActivity;
 
@@ -45,11 +45,11 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             JSONObject jsonObject = new JSONObject();
             ListData listData = mDatas.get(i);
             try {
-                jsonObject.put(MyDBManager.KEY_CATALOGUE, listData.getCatalogue());
-                jsonObject.put(MyDBManager.KEY_CONTENT, listData.getContent());
-                jsonObject.put(MyDBManager.KEY_DATETIME, listData.getCreateDate());
-                jsonObject.put(MyDBManager.KEY_REMARK, listData.getRemarks());
-                jsonObject.put(MyDBManager.KEY_ORDERID, listData.getOrderID());
+                jsonObject.put(DBListInfoManager.KEY_CATALOGUE, listData.getCatalogue());
+                jsonObject.put(DBListInfoManager.KEY_CONTENT, listData.getContent());
+                jsonObject.put(DBListInfoManager.KEY_DATETIME, listData.getCreateDate());
+                jsonObject.put(DBListInfoManager.KEY_REMARK, listData.getRemarks());
+                jsonObject.put(DBListInfoManager.KEY_ORDERID, listData.getOrderID());
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -75,7 +75,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
                 JSONArray array = json.getJSONArray(LISTDATA_CLIPS_NAME);
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject jsonObject = array.getJSONObject(i);
-                    ListData listData = new ListData(jsonObject.getString(MyDBManager.KEY_REMARK), jsonObject.getString(MyDBManager.KEY_CONTENT), jsonObject.getString(MyDBManager.KEY_DATETIME), jsonObject.getInt(MyDBManager.KEY_ORDERID), jsonObject.getString(MyDBManager.KEY_CATALOGUE));
+                    ListData listData = new ListData(jsonObject.getString(DBListInfoManager.KEY_REMARK), jsonObject.getString(DBListInfoManager.KEY_CONTENT), jsonObject.getString(DBListInfoManager.KEY_DATETIME), jsonObject.getInt(DBListInfoManager.KEY_ORDERID), jsonObject.getString(DBListInfoManager.KEY_CATALOGUE));
                     listDatas.add(listData);
                 }
 

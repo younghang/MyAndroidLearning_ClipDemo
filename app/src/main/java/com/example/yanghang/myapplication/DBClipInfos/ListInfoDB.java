@@ -8,20 +8,20 @@ import android.database.sqlite.SQLiteOpenHelper;
 /**
  * Created by yanghang on 2016/11/27.
  */
-public class MySQLDB extends SQLiteOpenHelper {
+public class ListInfoDB extends SQLiteOpenHelper {
 
     private static final int VERSION = 2;
     private static final String DB_NAME = "clipdata.db";
 
-    public MySQLDB(Context context) {
+    public ListInfoDB(Context context) {
         super(context, DB_NAME, null, VERSION);
     }
 
-    public MySQLDB(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+    public ListInfoDB(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
     }
 
-    public MySQLDB(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
+    public ListInfoDB(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
         super(context, name, factory, version, errorHandler);
     }
 

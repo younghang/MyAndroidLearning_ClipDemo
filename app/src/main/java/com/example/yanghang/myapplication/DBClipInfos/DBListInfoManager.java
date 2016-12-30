@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * Created by yanghang on 2016/11/27.
  */
-public class MyDBManager {
+public class DBListInfoManager {
     public static final String DB_TABLE = "clipinfos";
     public static final String KEY_REMARK = "remark";
     public static final String KEY_DATETIME = "datetime";
@@ -32,9 +32,9 @@ public class MyDBManager {
     // 本地Context对象
     private Context mContext = null;
     // 由SQLiteOpenHelper继承过来
-    private MySQLDB mDatabaseHelper = null;
+    private ListInfoDB mDatabaseHelper = null;
 
-    public MyDBManager(Context context) {
+    public DBListInfoManager(Context context) {
 
         mContext = context;
     }
@@ -42,7 +42,7 @@ public class MyDBManager {
     // 打开数据库，返回数据库对象
     private void open() throws SQLException {
 
-        mDatabaseHelper = new MySQLDB(mContext);
+        mDatabaseHelper = new ListInfoDB(mContext);
         mSQLiteDatabase = mDatabaseHelper.getWritableDatabase();
     }
 
@@ -73,11 +73,11 @@ public class MyDBManager {
         Cursor cursor = searchDataInContent(query);
         List<ListData> mDatas = new ArrayList<>();
         if (cursor.moveToFirst()) {
-            int remarkIndex = cursor.getColumnIndex(MyDBManager.KEY_REMARK);
-            int contentIndex = cursor.getColumnIndex(MyDBManager.KEY_CONTENT);
-            int datetimeIndex = cursor.getColumnIndex(MyDBManager.KEY_DATETIME);
-            int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
-            int catalogueIndex = cursor.getColumnIndex(MyDBManager.KEY_CATALOGUE);
+            int remarkIndex = cursor.getColumnIndex(DBListInfoManager.KEY_REMARK);
+            int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
+            int datetimeIndex = cursor.getColumnIndex(DBListInfoManager.KEY_DATETIME);
+            int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+            int catalogueIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CATALOGUE);
             while (!cursor.isAfterLast()) {
                 String remark = cursor.getString(remarkIndex);
                 String content = cursor.getString(contentIndex);
@@ -136,8 +136,8 @@ public class MyDBManager {
         Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + " >= " + orderID, null, null, null, KEY_ORDERID + " desc");
         if (cursor.moveToFirst()) {
 
-            int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
-            int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
+            int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+            int idIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ID);
             while (!cursor.isAfterLast()) {
 
                 int order = cursor.getInt(orderIdIndex);
@@ -168,8 +168,8 @@ public class MyDBManager {
         Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + ">=" + orderID, null, null, null, KEY_ORDERID);
         if (cursor.moveToFirst()) {
 
-            int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
-            int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
+            int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+            int idIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ID);
             while (!cursor.isAfterLast()) {
                 int order = cursor.getInt(orderIdIndex);
                 int id = cursor.getInt(idIndex);
@@ -199,7 +199,7 @@ public class MyDBManager {
     }
 
     private Cursor searchDataInContent(String content) {
-        String queryStr = "select * from " + DB_TABLE + " where " + KEY_CONTENT + " like '%" + content + "%' order by " + KEY_ORDERID + " desc";
+        String queryStr = "select * from " + DB_TABLE + " where " + KEY_CONTENT + " like '%" + content + "%'" + " or " + KEY_REMARK + " like '%" + content + "%'" + " order by " + KEY_ORDERID + " desc";
 
         return mSQLiteDatabase.rawQuery(queryStr, null);
     }
@@ -213,11 +213,11 @@ public class MyDBManager {
 
         } else {
             if (cursor.moveToFirst()) {
-                int remarkIndex = cursor.getColumnIndex(MyDBManager.KEY_REMARK);
-                int contentIndex = cursor.getColumnIndex(MyDBManager.KEY_CONTENT);
-                int datetimeIndex = cursor.getColumnIndex(MyDBManager.KEY_DATETIME);
-                int orderIdIndex = cursor.getColumnIndex(MyDBManager.KEY_ORDERID);
-                int catalogueIndex = cursor.getColumnIndex(MyDBManager.KEY_CATALOGUE);
+                int remarkIndex = cursor.getColumnIndex(DBListInfoManager.KEY_REMARK);
+                int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
+                int datetimeIndex = cursor.getColumnIndex(DBListInfoManager.KEY_DATETIME);
+                int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+                int catalogueIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CATALOGUE);
                 while (!cursor.isAfterLast()) {
                     String remark = cursor.getString(remarkIndex);
                     String content = cursor.getString(contentIndex);
@@ -275,8 +275,8 @@ public class MyDBManager {
         Cursor cursor = fetchAllDataByCatalogue(oldCatalogue);
 //        Log.v(MainFormActivity.MTTAG, "DB: oldCatalogue=" + oldCatalogue);
         if (cursor.moveToFirst()) {
-            int idIndex = cursor.getColumnIndex(MyDBManager.KEY_ID);
-            int contentIndex = cursor.getColumnIndex(MyDBManager.KEY_CONTENT);
+            int idIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ID);
+            int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
             while (!cursor.isAfterLast()) {
                 int id = cursor.getInt(idIndex);
                 String content = cursor.getColumnName(contentIndex);

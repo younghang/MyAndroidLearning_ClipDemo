@@ -7,16 +7,17 @@
     android:layout_height="wrap_content"
     android:background="?attr/colorPrimary"
     android:minHeight="?attr/actionBarSize"
-    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-    android:theme="@style/AppTheme.AppBarOverlay" >
+    android:theme="@style/AppTheme.AppBarOverlay"
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Light">
 
         <EditText
             android:id="@+id/edit_remark"
-            android:singleLine="true"
-            android:text=""
-            android:hint="备注"
-            android:background="@null"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:focusableInTouchMode="true"
+            android:hint="备注"
+            android:singleLine="true"
+            android:text="" />
 
 </android.support.v7.widget.Toolbar>
