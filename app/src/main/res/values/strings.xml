@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">ClipBoard</string>
     <string name="info">hello</string>
     <string name="title_activity_main_form">MainFormActivity</string>
     <string name="navigation_drawer_open">open</string>
@@ -65,4 +65,7 @@
     <string name="dataFilePath">dataFilePathPreference</string>
     <string name="internal_storage">Internal storage</string>
     <string name="dataImport">dataImport</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

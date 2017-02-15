@@ -14,22 +14,10 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/edit_toolbar"
         android:layout_marginTop="5dp"></Spinner>
-    <EditText
-
-        android:id="@+id/tv_ShowInfo"
-        android:layout_width="match_parent"
+    <FrameLayout android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/catalogue_spinner"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:background="@null"
-        android:editable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="top|left"
-        android:hint="输入文本"
-        android:inputType="textMultiLine"
-        android:scrollbars="vertical"
-        android:textIsSelectable="true" />
+        android:id="@+id/mainFragment"/>
 
 
 

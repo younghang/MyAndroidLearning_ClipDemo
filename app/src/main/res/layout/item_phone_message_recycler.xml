@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.example.yanghang.myapplication.ListPackage.MessageList.MessageText
+    <com.example.yanghang.myapplication.OthersView.MessageText
         android:id="@+id/tv_message_item_phone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

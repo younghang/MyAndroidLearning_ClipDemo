@@ -167,6 +167,10 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         } else {
             try {
                 JSONObject json = loadJsonFromDisk(file);
+                if (json==null)
+                {
+                    return mList;
+                }
                 JSONArray jsonArray = json.getJSONArray(CATALOGUE_NAME);
                 for (int i = 0; i < jsonArray.length(); i++) {
                     mList.add(jsonArray.getString(i));

@@ -17,13 +17,13 @@ import java.util.List;
 /**
  * Created by yanghang on 2016/11/22.
  */
-public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> {
+public class ListClipInfoAdapter extends RecyclerView.Adapter<ClipInfoViewHolder> {
     private List<ListData> mDatas;
     private Context mContext;
     private LayoutInflater mInflater;
     private OnItemClickListener mItemClickListener;
 
-    public ListMessageAdapter(List<ListData> mDatas, Context mContext) {
+    public ListClipInfoAdapter(List<ListData> mDatas, Context mContext) {
         this.mDatas = mDatas;
         this.mContext = mContext;
         mInflater = LayoutInflater.from(mContext);
@@ -34,15 +34,23 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
     }
 
     @Override
-    public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ClipInfoViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = mInflater.inflate(R.layout.item_clip_recycler, parent, false);
-        MessageViewHolder messageViewHolder = new MessageViewHolder(view);
-        return messageViewHolder;
+        ClipInfoViewHolder clipInfoViewHolder = new ClipInfoViewHolder(view);
+        return clipInfoViewHolder;
     }
 
     @Override
-    public void onBindViewHolder(final MessageViewHolder holder, final int position) {
-        holder.tvMessage.setText(mDatas.get(position).getContent());
+    public void onBindViewHolder(final ClipInfoViewHolder holder, final int position) {
+        String strMessage="";
+        if (mDatas.get(position).getCatalogue().equals("日记"))
+        {
+            strMessage=mDatas.get(position).getContent().replaceAll("@#@","||");
+        }
+        else {
+            strMessage=mDatas.get(position).getContent();
+        }
+        holder.tvMessage.setText(strMessage);
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
         holder.tvRemarks.init((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE));
         holder.tvRemarks.startScroll();
@@ -134,13 +142,13 @@ public class ListMessageAdapter extends RecyclerView.Adapter<MessageViewHolder> 
         boolean OnItemLongClick(View v, int position);
     }
 }
-class MessageViewHolder extends RecyclerView.ViewHolder{
+class ClipInfoViewHolder extends RecyclerView.ViewHolder{
 
     AlwaysMarqueeTextView tvRemarks;
     TextView tvMessage;
     CardView mCardView;
     TextView tvInfoDate;
-    public MessageViewHolder(View itemView) {
+    public ClipInfoViewHolder(View itemView) {
         super(itemView);
         tvRemarks = (AlwaysMarqueeTextView) itemView.findViewById(R.id.tv_Remarks);
         tvMessage = (TextView) itemView.findViewById(R.id.tv_Message);

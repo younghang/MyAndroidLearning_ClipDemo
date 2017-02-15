@@ -49,7 +49,7 @@ public class CatalogueAdatpter extends RecyclerView.Adapter<CatalogueHolder> imp
 
     @Override
     public CatalogueHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.item_catalogue_recycle, parent, false);
+        View view = inflater.inflate(R.layout.item_catalogue_left_drawer, parent, false);
         CatalogueHolder catalogueHolder = new CatalogueHolder(view);
         return catalogueHolder;
     }

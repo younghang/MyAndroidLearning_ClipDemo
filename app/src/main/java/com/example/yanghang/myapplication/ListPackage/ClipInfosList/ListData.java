@@ -30,7 +30,7 @@ public class ListData implements Serializable {
     }
 
     static String GetDate() {
-        SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd    hh:mm:ss");
+        SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd\nhh:mm:ss");
         String date = sDateFormat.format(new java.util.Date());
         return date;
     }

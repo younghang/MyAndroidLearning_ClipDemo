@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <com.example.yanghang.myapplication.OthersView.CircleProgressBar
+        android:id="@+id/loadingProgressBar"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:ringColor="@color/colorPrimary"
+        app:radius="40dp"
+        app:strokeWidth="5dp"
         android:layout_gravity="center_horizontal|center_vertical" />
+
 </LinearLayout>

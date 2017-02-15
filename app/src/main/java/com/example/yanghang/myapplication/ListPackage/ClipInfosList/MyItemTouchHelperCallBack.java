@@ -25,10 +25,10 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     private IItemTouch mItemTouchListener;
 
     private RecyclerView recyclerView;
-    private ListMessageAdapter messageAdapter;
+    private ListClipInfoAdapter messageAdapter;
     private DBListInfoManager DBListInfoManager;
 
-    public MyItemTouchHelperCallBack(RecyclerView recyclerView, ListMessageAdapter messageAdapter, DBListInfoManager DBListInfoManager) {
+    public MyItemTouchHelperCallBack(RecyclerView recyclerView, ListClipInfoAdapter messageAdapter, DBListInfoManager DBListInfoManager) {
 
         this.recyclerView = recyclerView;
         this.messageAdapter = messageAdapter;
@@ -128,14 +128,14 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         super.onSelectedChanged(viewHolder, actionState);
         if (viewHolder != null) {
                 vh = viewHolder;
-                pickUpAnimation((MessageViewHolder) viewHolder);
+                pickUpAnimation((ClipInfoViewHolder) viewHolder);
             } else {if (vh != null) {
-                putDownAnimation((MessageViewHolder) vh);
+                putDownAnimation((ClipInfoViewHolder) vh);
             }
         }
     }
 
-    private void pickUpAnimation(MessageViewHolder view) {
+    private void pickUpAnimation(ClipInfoViewHolder view) {
 //        view.mCardView.setCardBackgroundColor(Color.parseColor("#37000000"));
 
         ObjectAnimator animator = ObjectAnimator.ofFloat(view.mCardView, "cardElevation", FromEval, ToEval);
@@ -144,7 +144,7 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         animator.start();
     }
 
-    private void putDownAnimation(MessageViewHolder view) {
+    private void putDownAnimation(ClipInfoViewHolder view) {
 //        view.mCardView.setCardBackgroundColor(Color.parseColor("#FFFAFAFA"));
         ObjectAnimator animator = ObjectAnimator.ofFloat(view.mCardView, "cardElevation", ToEval, FromEval);
         animator.setInterpolator(new DecelerateInterpolator());

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.yanghang.myapplication.MainFormActivity;
+import com.example.yanghang.myapplication.OthersView.MessageText;
 import com.example.yanghang.myapplication.R;
 
 import java.util.List;

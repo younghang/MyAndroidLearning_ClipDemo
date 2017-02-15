@@ -16,9 +16,16 @@
     </declare-styleable>
 
     <attr name="SwipeBackLayoutStyle" format="reference" />
+
     <declare-styleable name="MessageText">
         <attr name="selfMessage" format="reference|boolean"></attr>
+    </declare-styleable>
 
+    <declare-styleable name="CircleProgressBar">
+        <attr name="radius" format="dimension"/>
+        <attr name="strokeWidth" format="dimension"/>
+        <attr name="circleColor" format="color"/>
+        <attr name="ringColor" format="color"/>
     </declare-styleable>
 
 </resources>

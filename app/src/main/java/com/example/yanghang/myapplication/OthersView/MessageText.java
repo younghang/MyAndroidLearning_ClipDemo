@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication.ListPackage.MessageList;
+package com.example.yanghang.myapplication.OthersView;
 
 import android.content.Context;
 import android.content.res.TypedArray;

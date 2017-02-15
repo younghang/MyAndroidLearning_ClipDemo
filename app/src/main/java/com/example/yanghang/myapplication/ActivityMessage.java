@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
@@ -24,6 +25,7 @@ import com.example.yanghang.myapplication.ConnectToPC.FileInfo;
 import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.ListPackage.MessageList.MessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.MessageList.MessageData;
+import com.example.yanghang.myapplication.OthersView.CircleProgressBar;
 import com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.SwipeBackLayout;
 import com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 
@@ -40,6 +42,7 @@ public class ActivityMessage extends SwipeBackActivity {
     private final static int REQUEST_FILE = 678;
     private static final int SEND_MESSAGE_FINISH = 123;
     private static final int SEND_MESSAGE_FAIL = 145;
+    private static final String  SEND_MESSAGE_PROGRESS="message progress";
     public static String DIALOG_MESSAGE = "dialog_message";
     private static String SEND_MESSAGE = "send_message";
     Toolbar toolbar;
@@ -55,24 +58,36 @@ public class ActivityMessage extends SwipeBackActivity {
     AlertDialog loadingDialog;
     private SwipeBackLayout mSwipeBackLayout;
     private ImageButton btnSend;
+    private CircleProgressBar loadingProgress;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             Bundle data = msg.getData();
-            int val = data.getInt(SEND_MESSAGE);
-
-            switch (val) {
-                case SEND_MESSAGE_FAIL:
-                    Toast.makeText(ActivityMessage.this, "发送文件失败", Toast.LENGTH_SHORT).show();
-                    break;
-                case SEND_MESSAGE_FINISH:
-                    Toast.makeText(ActivityMessage.this, "发送文件" + fileName + "完成", Toast.LENGTH_SHORT).show();
-                    messageAdapter.addItem(new MessageData(MessageData.MessageType.YOU, fileName));
-                    break;
+            int percent=data.getInt(SEND_MESSAGE_PROGRESS, -1);
+            Log.v(MainFormActivity.MTTAG, "handle message:percent= " + percent);
+            if (percent>=0&&loadingProgress!=null)
+            {
+                Log.v(MainFormActivity.MTTAG, "loadingBar percent= " + percent);
+                loadingProgress.setProgress(percent);
             }
-            loadingDialog.hide();
-            btnSend.setEnabled(true);
+            int val = data.getInt(SEND_MESSAGE,0);
+            if (val!=0)
+            {
+                switch (val) {
+                    case SEND_MESSAGE_FAIL:
+                        Toast.makeText(ActivityMessage.this, "发送文件失败", Toast.LENGTH_SHORT).show();
+                        break;
+                    case SEND_MESSAGE_FINISH:
+                        Toast.makeText(ActivityMessage.this, "发送文件" + fileName + "完成", Toast.LENGTH_SHORT).show();
+                        messageAdapter.addItem(new MessageData(MessageData.MessageType.YOU, fileName));
+                        break;
+                }
+                loadingDialog.hide();
+                btnSend.setEnabled(true);
+            }
+
+
         }
     };
     private ImageButton btnImage;
@@ -186,8 +201,9 @@ public class ActivityMessage extends SwipeBackActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        loadingDialog = new AlertDialog.Builder(ActivityMessage.this).setView(LayoutInflater.from(getApplicationContext())
-                .inflate(R.layout.loading, null))
+        View view=LayoutInflater.from(getApplicationContext()).inflate(R.layout.loading, null);
+        loadingProgress = (CircleProgressBar) view.findViewById(R.id.loadingProgressBar);
+        loadingDialog = new AlertDialog.Builder(ActivityMessage.this).setView(view)
                 .setTitle("Loading")
                 .setCancelable(false).create();
 
@@ -212,8 +228,22 @@ public class ActivityMessage extends SwipeBackActivity {
             bi.read(hello);
             int c = 0;
             byte[] buffer = new byte[4 * 1024];
+            int currentProgress=0;
+            long sendLength=0;
+            int percent=0;
             FileInputStream fileInputStream = new FileInputStream(sendFile);
             while ((c = fileInputStream.read(buffer, 0, buffer.length)) != -1) {
+                sendLength+=c;
+                percent= (int) (100*1.0f*sendLength/fileSize);
+                if (currentProgress<percent) {
+                    Message msg = new Message();
+                    Bundle data = new Bundle();
+                    data.putInt(SEND_MESSAGE_PROGRESS,percent);
+                    Log.v(MainFormActivity.MTTAG, "percent= " + percent);
+                    msg.setData(data);
+                    handler.sendMessage(msg);
+                    currentProgress=percent;
+                }
                 bo.write(buffer, 0, c);
 
             }
