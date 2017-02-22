@@ -16,6 +16,7 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,7 @@ import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -187,7 +189,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     case MSG_LOADING_FILE_FINISH:
                         loadingDialog.hide();
 
-                        Toast.makeText(getActivity(), "加载完成，请关闭本程序，重新打开", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "加载完成，请关闭本程序，重新打开.", Toast.LENGTH_SHORT).show();
                         break;
                     case MSG_LOADING_FILE_FAILED:
                         loadingDialog.hide();
@@ -275,18 +277,38 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     public void run() {
                         Message msg = new Message();
                         Bundle data = new Bundle();
+                        List<ListData> listsNew = new ArrayList<ListData>();
                         try {
                             List<ListData> lists = FileUtils.loadListDatas(file);
                             List<String> catalogue=FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
+                            DBListInfoManager dbListInfoManager =new DBListInfoManager(getActivity());
+
+                            List<ListData> listsOrigin =dbListInfoManager.getDatas("");
                             for (int i=0;i<lists.size();i++)
                             {
-                                if (!catalogue.contains(lists.get(i).getCatalogue()))
+                                ListData ld=lists.get(i);
+                                boolean IsItemAdd=true;
+                                if (!catalogue.contains(ld.getCatalogue()))
                                 {
-                                    catalogue.add(lists.get(i).getCatalogue());
+                                    catalogue.add(ld.getCatalogue());
+                                }
+                                for (int j=0;j<listsOrigin.size();j++)
+                                {
+                                    if (listsOrigin.get(j).getContent().equals(ld.getContent()))
+                                    {
+                                        IsItemAdd=false;
+                                        Log.v(MainFormActivity.MTTAG,"导入记录SettingActivity ：条目"+ld.getContent()+"已经存在，不再添加" ) ;
+                                        break;
+                                    }
+                                }
+                                if (IsItemAdd)
+                                {
+                                    listsNew.add(ld);
                                 }
                             }
-                            FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(),catalogue);
-                            new DBListInfoManager(getActivity()).insertDatas(lists);
+                            FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(),catalogue,true);
+
+                            dbListInfoManager.insertDatas(listsNew);
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
                         } catch (Exception e) {
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);

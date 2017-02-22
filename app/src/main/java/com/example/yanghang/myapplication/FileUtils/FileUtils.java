@@ -30,6 +30,7 @@ import java.util.List;
  */
 public class FileUtils {   //        getgetApplicationContext().getFilesDir().getAbsolutePath();
     private static String CATALOGUE_FILE_NAME = "catalogue.json";
+    private static String CATALOGUE_NEW_FILE_NAME="new_catalogue.json";
     private static String CATALOGUE_NAME = "catalogue";
     private static String LISTDATA_CLIPS_NAME = "clips";
     private static String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
@@ -156,39 +157,60 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
 
         List<String> mList = new ArrayList<>();
-        File file = new File(filePath + "/" + CATALOGUE_FILE_NAME);
+        File file = new File(filePath + "/" + CATALOGUE_NEW_FILE_NAME);
 
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            try {
-                JSONObject json = loadJsonFromDisk(file);
-                if (json==null)
-                {
-                    return mList;
-                }
-                JSONArray jsonArray = json.getJSONArray(CATALOGUE_NAME);
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    mList.add(jsonArray.getString(i));
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        if (file.exists()) {
+            mList = loadCatalogueFile(file);
+            file.delete();
         }
-
+        else {
+            try {
+                file= new File(filePath + "/" + CATALOGUE_FILE_NAME);
+                if (!file.exists())
+                {
+                    file.createNewFile();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mList = loadCatalogueFile(file);
+        }
         return mList;
 
     }
+    private static List<String> loadCatalogueFile(File file)
+    {
+        List<String> mList = new ArrayList<>();
+        try {
+            JSONObject json = loadJsonFromDisk(file);
+            if (json==null)
+            {
+                return mList;
+            }
+            JSONArray jsonArray = json.getJSONArray(CATALOGUE_NAME);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                mList.add(jsonArray.getString(i));
+            }
 
-    public static void saveCatalogue(String filePath, List<String> mList) {
-        File file = createFile(CATALOGUE_FILE_NAME, filePath);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return mList;
+    }
+
+    public static void saveCatalogue(String filePath, List<String> mList,boolean newFile) {
+        String fileName="";
+        if (newFile)
+        {
+            fileName=CATALOGUE_NEW_FILE_NAME;
+        }
+        else{
+            fileName=CATALOGUE_FILE_NAME;
+        }
+
+        File file = createFile(fileName, filePath);
         if (file == null) {
-            Log.v(MainFormActivity.MTTAG, "saveCatalogue: file null");
+            Log.v(MainFormActivity.MTTAG, "saveCatalogue: file is null");
             return;
         }
         JSONObject json = new JSONObject();

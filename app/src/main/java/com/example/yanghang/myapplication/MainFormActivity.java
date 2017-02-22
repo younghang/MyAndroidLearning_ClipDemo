@@ -175,10 +175,10 @@ public class MainFormActivity extends AppCompatActivity {
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas());
+                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false);
                 if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                         || !Environment.isExternalStorageRemovable()) {
-                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas());
+                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false);
                 }
             }
 
@@ -515,10 +515,10 @@ public class MainFormActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas());
+        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false);
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
-            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas());
+            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false);
         }
     }
 
