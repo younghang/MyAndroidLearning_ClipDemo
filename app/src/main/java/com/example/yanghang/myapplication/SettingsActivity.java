@@ -191,7 +191,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         break;
                     case MSG_LOADING_FILE_FAILED:
                         loadingDialog.hide();
-                        Toast.makeText(getActivity(), "数据加载失败，请检查数据是否正确", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "数据加载失败，请检查数据是否正确或访问存储权限", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -277,6 +277,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Bundle data = new Bundle();
                         try {
                             List<ListData> lists = FileUtils.loadListDatas(file);
+                            List<String> catalogue=FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
+                            for (int i=0;i<lists.size();i++)
+                            {
+                                if (!catalogue.contains(lists.get(i).getCatalogue()))
+                                {
+                                    catalogue.add(lists.get(i).getCatalogue());
+                                }
+                            }
+                            FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(),catalogue);
                             new DBListInfoManager(getActivity()).insertDatas(lists);
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
                         } catch (Exception e) {

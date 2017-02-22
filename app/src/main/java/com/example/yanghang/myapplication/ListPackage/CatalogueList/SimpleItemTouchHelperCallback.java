@@ -15,7 +15,7 @@ import android.view.View;
  * </br/>
  * Expects the <code>RecyclerView.Adapter</code> to listen for {@link
  * ItemTouchHelperAdapter} callbacks and the <code>RecyclerView.ViewHolder</code> to implement
- * {@link CatalogueAdatpter.ItemTouchHelperViewHolder}.
+ * {@link CatalogueAdapter.ItemTouchHelperViewHolder}.
  *
  * @author Paul Burke (ipaulpro)
  */
@@ -23,9 +23,9 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
 
     public static final float ALPHA_FULL = 1.0f;
 
-    private final CatalogueAdatpter mAdapter;
+    private final CatalogueAdapter mAdapter;
 
-    public SimpleItemTouchHelperCallback(CatalogueAdatpter adapter) {
+    public SimpleItemTouchHelperCallback(CatalogueAdapter adapter) {
         mAdapter = adapter;
     }
 
@@ -80,7 +80,7 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
             // Let the view holder know that this item is being moved or dragged
-            CatalogueAdatpter.ItemTouchHelperViewHolder itemViewHolder = (CatalogueAdatpter.ItemTouchHelperViewHolder) ((CatalogueHolder) viewHolder);
+            CatalogueAdapter.ItemTouchHelperViewHolder itemViewHolder = (CatalogueAdapter.ItemTouchHelperViewHolder) ((CatalogueHolder) viewHolder);
             itemViewHolder.onItemSelected();
         }
 
@@ -94,7 +94,7 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
         viewHolder.itemView.setAlpha(ALPHA_FULL);
 
         // Tell the view holder it's time to restore the idle state
-        CatalogueAdatpter.ItemTouchHelperViewHolder itemViewHolder = (CatalogueAdatpter.ItemTouchHelperViewHolder) viewHolder;
+        CatalogueAdapter.ItemTouchHelperViewHolder itemViewHolder = (CatalogueAdapter.ItemTouchHelperViewHolder) viewHolder;
         itemViewHolder.onItemClear();
     }
 

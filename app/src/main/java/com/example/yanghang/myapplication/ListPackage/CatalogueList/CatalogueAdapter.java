@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.yanghang.myapplication.R;
 
@@ -21,14 +22,14 @@ import java.util.List;
  * Created by yanghang on 2016/12/3.
  */
 
-public class CatalogueAdatpter extends RecyclerView.Adapter<CatalogueHolder> implements SimpleItemTouchHelperCallback.ItemTouchHelperAdapter {
+public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueHolder> implements SimpleItemTouchHelperCallback.ItemTouchHelperAdapter {
     List<String> mDatas;
     Context context;
     LayoutInflater inflater;
     private OnStartDragListener mDragStartListener;
     private OnItemClickListener mItemClickListener;
 
-    public CatalogueAdatpter(List<String> mDatas, Context context) {
+    public CatalogueAdapter(List<String> mDatas, Context context) {
         this.mDatas = mDatas;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
@@ -95,8 +96,9 @@ public class CatalogueAdatpter extends RecyclerView.Adapter<CatalogueHolder> imp
 
     @Override
     public void onItemDismiss(int position) {
+        Toast.makeText(context,"\""+mDatas.get(position).toString()+"\""+"已被移除",Toast.LENGTH_LONG).show();
         mDatas.remove(position);
-        notifyItemRemoved(position);
+         notifyItemRemoved(position);
     }
 
     @Override
@@ -140,7 +142,7 @@ public class CatalogueAdatpter extends RecyclerView.Adapter<CatalogueHolder> imp
 }
 
 class CatalogueHolder extends RecyclerView.ViewHolder implements
-        CatalogueAdatpter.ItemTouchHelperViewHolder {
+        CatalogueAdapter.ItemTouchHelperViewHolder {
 
     TextView tvCatalogue;
     ImageView dragImage;

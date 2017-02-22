@@ -1,5 +1,6 @@
 package com.example.yanghang.myapplication;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -7,10 +8,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
+import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -34,7 +39,7 @@ import android.widget.Toast;
 
 import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.myapplication.FileUtils.FileUtils;
-import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueAdatpter;
+import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListClipInfoAdapter;
@@ -42,8 +47,17 @@ import com.example.yanghang.myapplication.ListPackage.ClipInfosList.MyItemTouchH
 
 import java.util.List;
 
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnNeverAskAgain;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.RuntimePermissions;
+
+@RuntimePermissions
 public class MainFormActivity extends AppCompatActivity {
 
+    private static final String DONT_ASK_AGAIN="dont_ask_again";
     public static final int REQUEST_TEXT_EDITE_BACK = 0;
     public static final String LIST_DATA = "listdataToEdite";
     public static final String LIST_DATA_POS = "listdataToEditePos";
@@ -64,7 +78,7 @@ public class MainFormActivity extends AppCompatActivity {
     private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
     private ListClipInfoAdapter listClipInfoAdapter;
-    private CatalogueAdatpter catalogueAdatpter;
+    private CatalogueAdapter catalogueAdapter;
     private DrawerLayout mDrawerLayout;
     private List<ListData> listDatas;
     Handler handler = new Handler() {
@@ -132,6 +146,7 @@ public class MainFormActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_form);
         InitialView();
+        initGlobalPer();
 
     }
 
@@ -160,10 +175,10 @@ public class MainFormActivity extends AppCompatActivity {
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdatpter.getDatas());
+                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas());
                 if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                         || !Environment.isExternalStorageRemovable()) {
-                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdatpter.getDatas());
+                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas());
                 }
             }
 
@@ -255,22 +270,22 @@ public class MainFormActivity extends AppCompatActivity {
         if (catalogues.indexOf("default") == -1) {
             catalogues.add(0, "default");
         }
-        catalogueAdatpter = new CatalogueAdatpter(catalogues, MainFormActivity.this);
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdatpter);
+        catalogueAdapter = new CatalogueAdapter(catalogues, MainFormActivity.this);
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdapter);
 
         final ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(callback);
-        catalogueAdatpter.setDragStartListener(new CatalogueAdatpter.OnStartDragListener() {
+        catalogueAdapter.setDragStartListener(new CatalogueAdapter.OnStartDragListener() {
             @Override
             public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
                 mItemTouchHelper.startDrag(viewHolder);
             }
         });
-        catalogueRecycler.setAdapter(catalogueAdatpter);
+        catalogueRecycler.setAdapter(catalogueAdapter);
         mItemTouchHelper.attachToRecyclerView(catalogueRecycler);
-        catalogueAdatpter.setOnItemClickListener(new CatalogueAdatpter.OnItemClickListener() {
+        catalogueAdapter.setOnItemClickListener(new CatalogueAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-                final String catlogue = catalogueAdatpter.getItem(position);
+                final String catlogue = catalogueAdapter.getItem(position);
                 refreshLayout.setRefreshing(true);
                 new Thread(new Runnable() {
                     @Override
@@ -287,14 +302,14 @@ public class MainFormActivity extends AppCompatActivity {
 
 //                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
 
-                toolbar.setTitle(catalogueAdatpter.getItem(position));
+                toolbar.setTitle(catalogueAdapter.getItem(position));
                 currentCatalogue = catlogue;
                 mDrawerLayout.closeDrawer(Gravity.LEFT);
             }
 
             @Override
             public boolean OnItemLongClick(View v, int position) {
-                String catlogue = catalogueAdatpter.getItem(position);
+                String catlogue = catalogueAdapter.getItem(position);
 //                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
                 showPopWindow(catlogue);
                 return true;
@@ -461,7 +476,7 @@ public class MainFormActivity extends AppCompatActivity {
                 }
                 if (catalogueName.equals("")) {
                     catalogues.add(0, catalogueNewName);
-                    catalogueAdatpter.notifyDataSetChanged();
+                    catalogueAdapter.notifyDataSetChanged();
 
                 } else {
                     int index = 0;
@@ -471,7 +486,7 @@ public class MainFormActivity extends AppCompatActivity {
 //                    Log.v(MTTAG, "change catalogue: index" + index + "  catalogue=" + catalogueName);
                     setCatalogueChanged(catalogueName, catalogueNewName);
                     catalogues.set(index, catalogueNewName);
-                    catalogueAdatpter.notifyItemChanged(index);
+                    catalogueAdapter.notifyItemChanged(index);
                 }
                 popupWindow.dismiss();
             }
@@ -500,16 +515,105 @@ public class MainFormActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdatpter.getDatas());
+        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas());
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
-            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdatpter.getDatas());
+            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas());
         }
     }
 
     private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {
         DBListInfoManager.changeCatalogue(oldCatalogue, newCatalogue);
     }
+
+    /*<=======================================全局基础权限申请=================================================>*/
+
+    /**
+     * 申请全局都需要的权限,如读写权限,这些权限是进入app就需要的,拒绝则警告用户程序可能会崩溃
+     */
+    private void initGlobalPer() {
+         MainFormActivityPermissionsDispatcher.sucessWithCheck(this);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[]
+            grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        MainFormActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);//将回调交给代理类处理
+    }
+
+    @NeedsPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void sucess() {//权限申请成功
+
+    }
+
+    @OnShowRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void showRationaleForCamera(PermissionRequest request) {
+        showRationaleDialog("为了正常使用会进行缓存及文件存储操作,需要您授予相关的存储权限!\n请您放心,该权限为正常使用权限,不会涉及到您的隐私!\n稍后请点击弹出框的允许按钮", request);
+    }
+
+    @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void onCameraDenied() {//被拒绝
+        Toast.makeText(MainFormActivity.this,"您拒绝了权限，可能会导致该应用内部发生错误,请尽快授权",Toast.LENGTH_SHORT).show();
+    }
+
+    @OnNeverAskAgain(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    void onCameraNeverAskAgain() {//被拒绝并且勾选了不再提醒
+        if (!  PreferenceManager.getDefaultSharedPreferences(MainFormActivity.this).getBoolean(DONT_ASK_AGAIN, false) ) AskForPermission();
+    }
+
+    /**
+     * 再用户拒绝过一次之后,告知用户具体需要权限的原因
+     *
+     * @param messageResId
+     * @param request
+     */
+    private void showRationaleDialog(String messageResId, final PermissionRequest request) {
+        new AlertDialog.Builder(this)
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(@NonNull DialogInterface dialog, int which) {
+                        request.proceed();//请求权限
+                    }
+                })
+                .setTitle("请求权限")
+                .setCancelable(false)
+                .setMessage(messageResId)
+                .show();
+    }
+
+    /**
+     * 被拒绝并且不再提醒,提示用户去设置界面重新打开权限
+     */
+    private void AskForPermission() {
+        new AlertDialog.Builder(this)
+                .setTitle("缺少基础存储权限")
+                .setMessage("当前应用缺少存储权限,请去设置界面授权.\n授权之后按两次返回键可回到该应用哦")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        Toast.makeText(MainFormActivity.this,"您拒绝了权限，可能会导致该应用无法使用,请尽快授权",Toast.LENGTH_SHORT).show();
+
+                    }
+                })
+                .setNeutralButton("不在提醒", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        PreferenceManager.getDefaultSharedPreferences(MainFormActivity.this).edit().putBoolean(DONT_ASK_AGAIN, true).commit();
+                        Toast.makeText(MainFormActivity.this,"将不再提醒请求基础权限,建议尽快授权",Toast.LENGTH_SHORT).show();
+
+                    }
+                }).setPositiveButton("设置", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.parse("package:" + getPackageName())); // 根据包名打开对应的设置界面
+                startActivity(intent);
+            }
+        }).create().show();
+    }
+/*<========================================================================================>*/
 
 
 }
