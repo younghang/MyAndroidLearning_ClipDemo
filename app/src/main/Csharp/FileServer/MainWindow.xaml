@@ -1,12 +1,101 @@
-﻿<Window x:Class="FileServer.MainWindow"
-        Width="600" Height="400"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Closed="Window_Closed" Closing="Window_Closing"  >
-     <StackPanel Width="600" Height="400" Orientation="Vertical" Margin="0 0" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-        <RichTextBox Height="300" x:Name="richEdit" Background="#FFDEDEDE"  >
-           
-          
-        </RichTextBox>
-
-    </StackPanel>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	x:Class="FileServer.MainWindow"
+	Width="600"
+	Height="400"
+	Closed="Window_Closed"
+	Closing="Window_Closing"
+	Visibility="Visible"
+	BorderThickness="0,0,20,20"
+	Background="Transparent"
+	WindowStyle="None"
+	AllowsTransparency="True"
+	x:Name="window1"
+	MouseLeftButtonDown="window1_MouseLeftButtonDown">
+	<Window.Effect>
+		<DropShadowEffect
+			BlurRadius="10"
+			Color="#FF260A29"
+			ShadowDepth="12"
+			Opacity="0.69" />
+	</Window.Effect>
+	<Border
+		x:Name="wb"
+		CornerRadius="5"
+		BorderThickness="1"
+		BorderBrush="#FF76D480"
+		MouseLeftButtonDown="dragPanel_MouseLeftButtonDown">
+		<Border.Background>
+			<LinearGradientBrush
+				EndPoint="0.8,1"
+				StartPoint="0,0">
+				<GradientStop
+					Color="#FF76D480"
+					Offset="0" />
+				<GradientStop
+					Color="#FF1bb82b"
+					Offset="1" />
+			</LinearGradientBrush>
+		</Border.Background>
+		<Grid
+			x:Name="root">
+			<Grid.RowDefinitions>
+				<RowDefinition
+					Height="auto" />
+				<RowDefinition
+					Height="*" />
+			</Grid.RowDefinitions>
+			<StackPanel
+				Name="stackRoot"
+				Orientation="Vertical"
+				Width="600"
+				Height="400">
+				<StackPanel
+					Margin="0"
+					Width="600"
+					Height="50"
+					Name="dragPanel"
+					Orientation="Horizontal">
+					<Button
+						x:Name="btn_Mini"
+						Height="40"
+						Width="40"
+						FontSize="30"
+						Margin="480,0,10,0"
+						Click="btnMininue"
+						BorderThickness="0"
+						ToolTip="最小化"
+					 >
+						<Button.OpacityMask>
+							<ImageBrush
+								ImageSource="最小化.png" />
+						</Button.OpacityMask>
+					</Button>
+					<Button
+						x:Name="btn_Exit"
+						Click="btnClose"
+						Height="40"
+						Width="40"
+						FontSize="30">
+						<Button.OpacityMask>
+							<ImageBrush
+								ImageSource="退出按钮.png" />
+						</Button.OpacityMask>
+					</Button>
+				</StackPanel>
+				<StackPanel
+					Width="600"
+					Orientation="Vertical"
+					Margin="0,0,0,0"
+					Name="stackPanel"
+					Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+					<RichTextBox
+						Height="300"
+						x:Name="richEdit"
+						Background="#FFDEDEDE" />
+				</StackPanel>
+			</StackPanel>
+		</Grid>
+	</Border>
 </Window>

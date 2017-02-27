@@ -6,35 +6,14 @@ using System.Threading.Tasks;
 
 namespace FileServer
 {
-    class FileInfo
+    public class FileInfo
     {
-        public FileInfo(String fileName, long fileSize)
+        public string fileName { get; set; }
+        public int fileSize { get; set; }
+        public FileInfo(string name,int size)
         {
-            this.fileName = fileName;
-            this.fileSize = fileSize;
+            fileName = name;
+            fileSize = size;
         }
-
-        public String getFileName()
-        {
-            return fileName;
-        }
-
-        public void setFileName(String fileName)
-        {
-            this.fileName = fileName;
-        }
-
-        public long getFileSize()
-        {
-            return fileSize;
-        }
-
-        public void setFileSize(long fileSize)
-        {
-            this.fileSize = fileSize;
-        }
-
-        private String fileName;
-        private long fileSize;
     }
 }

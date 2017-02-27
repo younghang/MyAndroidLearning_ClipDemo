@@ -19,8 +19,10 @@ import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.Fragment.FragmentDiary;
 import com.example.yanghang.myapplication.Fragment.FragmentEditAbstract;
 import com.example.yanghang.myapplication.Fragment.FragmentEditInfo;
+import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ActivityEditInfo extends AppCompatActivity implements FragmentEditInfo.OnFragmentInteractionListener,FragmentDiary.OnFragmentInteractionListener{
@@ -30,7 +32,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
 
     EditText editRemark;
     Spinner spinner;
-    List<String> mCatalogue;
+    List<CatalogueInfos> mCatalogue;
 
     private ListData listData;
     private int pos;
@@ -78,13 +80,11 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
             isEdit = false;
 
 
-        if (!listData.getCatalogue().equals("日记"))
-        {
+        if (!listData.getCatalogue().equals("日记")) {
             fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
-        }
-        else {
+        } else {
             fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
-            notShowSpinner=true;
+            notShowSpinner = true;
         }
 
         setFragment(fragment);
@@ -95,14 +95,19 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
 
         spinner = (Spinner) findViewById(R.id.catalogue_spinner);
         mCatalogue = getCatalogue();
+        List<String> catalogueNames = new ArrayList<>();
+        for (int i = 0; i < mCatalogue.size(); i++)
+        {
+            catalogueNames.add(mCatalogue.get(i).getCatalogue());
+        }
 
-        arr_adapter = new ArrayAdapter<String>(this, R.layout.item_catalogue_selected, R.id.item_catalogue_tv, mCatalogue);
+        arr_adapter = new ArrayAdapter<String>(this, R.layout.item_catalogue_selected, R.id.item_catalogue_tv, catalogueNames);
         //设置样式
         arr_adapter.setDropDownViewResource(R.layout.item_catalogue_pop);
         //加载适配器
         spinner.setAdapter(arr_adapter);
         String catalogue = listData.getCatalogue();
-        int index = mCatalogue.indexOf(catalogue);
+        int index = catalogueNames.indexOf(catalogue);
         if (index != -1)
             spinner.setSelection(index, true);
         else spinner.setSelection(0, true);
@@ -150,7 +155,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
         return true;
     }
 
-    public List<String> getCatalogue() {
+    public List<CatalogueInfos> getCatalogue() {
         return FileUtils.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
     }
 

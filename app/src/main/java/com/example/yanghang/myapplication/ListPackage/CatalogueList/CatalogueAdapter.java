@@ -23,23 +23,36 @@ import java.util.List;
  */
 
 public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueHolder> implements SimpleItemTouchHelperCallback.ItemTouchHelperAdapter {
-    List<String> mDatas;
+    List<CatalogueInfos> mDatas;
     Context context;
     LayoutInflater inflater;
     private OnStartDragListener mDragStartListener;
     private OnItemClickListener mItemClickListener;
 
-    public CatalogueAdapter(List<String> mDatas, Context context) {
+    public CatalogueAdapter(List<CatalogueInfos> mDatas, Context context) {
         this.mDatas = mDatas;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
     }
 
-    public List<String> getDatas() {
+    public boolean contains(String catalogueName) {
+        for (int i = 0; i < mDatas.size(); i++) {
+            if (mDatas.get(i).getCatalogue().equals(catalogueName))
+                return true;
+        }
+        return false;
+    }
+    public void addItem(CatalogueInfos catalogueInfos)
+    {
+        mDatas.add(0,catalogueInfos);
+        notifyItemInserted(0);
+    }
+
+    public List<CatalogueInfos> getDatas() {
         return mDatas;
     }
 
-    public String getItem(int pos) {
+    public CatalogueInfos getItem(int pos) {
         return mDatas.get(pos);
     }
 
@@ -57,7 +70,7 @@ public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueHolder> impl
 
     @Override
     public void onBindViewHolder(final CatalogueHolder holder, int position) {
-        holder.tvCatalogue.setText(mDatas.get(position));
+        holder.tvCatalogue.setText(mDatas.get(position).getCatalogue());
         holder.dragImage.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -96,15 +109,41 @@ public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueHolder> impl
 
     @Override
     public void onItemDismiss(int position) {
-        Toast.makeText(context,"\""+mDatas.get(position).toString()+"\""+"已被移除",Toast.LENGTH_LONG).show();
+        Toast.makeText(context, "\"" + mDatas.get(position).getCatalogue().toString() + "\"" + "已被移除", Toast.LENGTH_LONG).show();
         mDatas.remove(position);
-         notifyItemRemoved(position);
+        notifyItemRemoved(position);
     }
 
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
         Collections.swap(mDatas, fromPosition, toPosition);
         notifyItemMoved(fromPosition, toPosition);
+    }
+
+    public int indexOf(String catalogueName) {
+        int index=-1;
+        for (int i=0;i<mDatas.size();i++)
+        {
+            if (mDatas.get(i).getCatalogue().equals(catalogueName))
+            {
+                index=i;
+                break;
+            }
+        }
+        return index;
+    }
+
+    public void set(int index, String catalogueNewName) {
+        String description=mDatas.get(index).getCatalogueDescription();
+        mDatas.set(index, new CatalogueInfos(catalogueNewName, description));
+    }
+    public void set(int index,CatalogueInfos catalogueInfos)
+    {
+        if(index==-1)
+        {
+            mDatas.add(catalogueInfos);
+        }else
+        mDatas.set(index, catalogueInfos);
     }
 
     public interface OnItemClickListener {

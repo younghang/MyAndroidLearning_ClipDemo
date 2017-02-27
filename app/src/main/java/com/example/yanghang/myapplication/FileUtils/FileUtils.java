@@ -9,6 +9,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
+import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.MainFormActivity;
 
@@ -21,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +31,9 @@ import java.util.List;
 public class FileUtils {   //        getgetApplicationContext().getFilesDir().getAbsolutePath();
     private static String CATALOGUE_FILE_NAME = "catalogue.json";
     private static String CATALOGUE_NEW_FILE_NAME="new_catalogue.json";
-    private static String CATALOGUE_NAME = "catalogue";
+    private static String CATALOGUE_JSON_NAME = "catalogue";
+    private static String CATALOGUE_NAME="catalogue";
+    private static String CATALOGUE_DESCRIPTION="catalogue_description";
     private static String LISTDATA_CLIPS_NAME = "clips";
     private static String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
     private static String SAVE_FILE_CATALOGUE_BAK_SUFFIX = ".bak";
@@ -152,11 +154,19 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         } else return file;
 
     }
+    public static List<CatalogueInfos> loadCatalogueFromDisk(String fileAbsoluteName)
+    {
+        List<CatalogueInfos> lists  ;
+        File file = new File(fileAbsoluteName);
+        lists = loadCatalogueFile(file);
 
-    public static List<String> loadCatalogue(String filePath) {
+        return lists;
+    }
+
+    public static List<CatalogueInfos> loadCatalogue(String filePath) {
 
 
-        List<String> mList = new ArrayList<>();
+        List<CatalogueInfos> mList ;
         File file = new File(filePath + "/" + CATALOGUE_NEW_FILE_NAME);
 
         if (file.exists()) {
@@ -178,53 +188,77 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         return mList;
 
     }
-    private static List<String> loadCatalogueFile(File file)
+    private static List<CatalogueInfos> loadCatalogueFile(File file)
     {
-        List<String> mList = new ArrayList<>();
+        List<CatalogueInfos> mList = new ArrayList<>();
+        JSONArray jsonArray=null;
         try {
             JSONObject json = loadJsonFromDisk(file);
             if (json==null)
             {
                 return mList;
             }
-            JSONArray jsonArray = json.getJSONArray(CATALOGUE_NAME);
+            jsonArray = json.getJSONArray(CATALOGUE_JSON_NAME);
             for (int i = 0; i < jsonArray.length(); i++) {
-                mList.add(jsonArray.getString(i));
+                CatalogueInfos catalogueInfos = new CatalogueInfos(jsonArray.getJSONObject(i).getString(CATALOGUE_NAME), jsonArray.getJSONObject(i).getString(CATALOGUE_DESCRIPTION));
+                mList.add(catalogueInfos);
             }
 
         } catch (JSONException e) {
+            try {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    CatalogueInfos catalogueInfos = new CatalogueInfos(jsonArray.getString(i),"");
+                    mList.add(catalogueInfos);
+                }
+            }
+            catch (JSONException ea)
+            {
+                ea.printStackTrace();
+            }
             e.printStackTrace();
         }
         return mList;
     }
 
-    public static void saveCatalogue(String filePath, List<String> mList,boolean newFile) {
-        String fileName="";
-        if (newFile)
+    public static boolean saveCatalogue(String filePath, List<CatalogueInfos> mList, boolean newFile,String fileName)  {
+        //此为保存到其他位置，另存为，并非加载储存在默认位置的目录
+        if (fileName.equals(""))
         {
-            fileName=CATALOGUE_NEW_FILE_NAME;
-        }
-        else{
-            fileName=CATALOGUE_FILE_NAME;
-        }
 
+            if (newFile)
+            {//因为退出的时候会直接保存为加载之前的目录，覆盖掉加载后的目录文件
+                fileName=CATALOGUE_NEW_FILE_NAME;
+            }
+            else{
+                fileName=CATALOGUE_FILE_NAME;
+            }
+        }
         File file = createFile(fileName, filePath);
         if (file == null) {
             Log.v(MainFormActivity.MTTAG, "saveCatalogue: file is null");
-            return;
+            return false;
         }
         JSONObject json = new JSONObject();
         JSONArray jsonArray = new JSONArray();
 
         for (int i = 0; i < mList.size(); i++) {
-            jsonArray.put(mList.get(i));
+            JSONObject jsonObject=new JSONObject();
+            try {
+                jsonObject.put(CATALOGUE_NAME,mList.get(i).getCatalogue());
+                jsonObject.put(CATALOGUE_DESCRIPTION, mList.get(i).getCatalogueDescription());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            jsonArray.put(jsonObject);
         }
         try {
-            json.put(CATALOGUE_NAME, jsonArray);
-            saveJsonObjectToDisk(file, json);
+            json.put(CATALOGUE_JSON_NAME, jsonArray);
+            return saveJsonObjectToDisk(file, json);
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
 

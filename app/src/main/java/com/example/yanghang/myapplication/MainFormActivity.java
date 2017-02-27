@@ -40,6 +40,7 @@ import android.widget.Toast;
 import com.example.yanghang.myapplication.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueAdapter;
+import com.example.yanghang.myapplication.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.myapplication.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.myapplication.ListPackage.ClipInfosList.ListClipInfoAdapter;
@@ -70,7 +71,7 @@ public class MainFormActivity extends AppCompatActivity {
     DBListInfoManager DBListInfoManager;
     Toolbar toolbar;
     SearchView searchView;
-    List<String> catalogues;
+    List<CatalogueInfos> catalogues;
     EditText editText;
     Button btnOK;
     Button btnCancle;
@@ -135,6 +136,7 @@ public class MainFormActivity extends AppCompatActivity {
 //    private Cursor cursor;
     private List<String> mCatalogue;
     private String currentCatalogue = "";
+    private String currentCatalogueDetail="";
     private PopupWindow popupWindow;
 
     //    private DaoSession session;
@@ -161,6 +163,21 @@ public class MainFormActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("ClipBoard");
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new AlertDialog.Builder(MainFormActivity.this)
+                        .setTitle("目录说明").setMessage(currentCatalogueDetail)
+                        .setPositiveButton("修改", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                showCatalogueAlter();
+                            }
+                        })
+                        .setNegativeButton("取消",null)
+                        .create().show();
+            }
+        });
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -175,10 +192,10 @@ public class MainFormActivity extends AppCompatActivity {
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false);
+                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
                 if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                         || !Environment.isExternalStorageRemovable()) {
-                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false);
+                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
                 }
             }
 
@@ -267,10 +284,11 @@ public class MainFormActivity extends AppCompatActivity {
         }
         // 设置布局，否则无法正常使用
         catalogueRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
-        if (catalogues.indexOf("default") == -1) {
-            catalogues.add(0, "default");
-        }
+
         catalogueAdapter = new CatalogueAdapter(catalogues, MainFormActivity.this);
+        if (!catalogueAdapter.contains("default")) {
+             catalogueAdapter.addItem(new CatalogueInfos("default",""));
+        }
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdapter);
 
         final ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(callback);
@@ -285,7 +303,7 @@ public class MainFormActivity extends AppCompatActivity {
         catalogueAdapter.setOnItemClickListener(new CatalogueAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-                final String catlogue = catalogueAdapter.getItem(position);
+                final String catlogue = catalogueAdapter.getItem(position).getCatalogue();
                 refreshLayout.setRefreshing(true);
                 new Thread(new Runnable() {
                     @Override
@@ -302,14 +320,15 @@ public class MainFormActivity extends AppCompatActivity {
 
 //                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
 
-                toolbar.setTitle(catalogueAdapter.getItem(position));
+                toolbar.setTitle(catalogueAdapter.getItem(position).getCatalogue());
                 currentCatalogue = catlogue;
+                currentCatalogueDetail=catalogueAdapter.getItem(position).getCatalogueDescription();
                 mDrawerLayout.closeDrawer(Gravity.LEFT);
             }
 
             @Override
             public boolean OnItemLongClick(View v, int position) {
-                String catlogue = catalogueAdapter.getItem(position);
+                String catlogue = catalogueAdapter.getItem(position).getCatalogue();
 //                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
                 showPopWindow(catlogue);
                 return true;
@@ -378,7 +397,7 @@ public class MainFormActivity extends AppCompatActivity {
             case R.id.menu_main_search:
                 break;
             case R.id.add_catalogue:
-//                showDialog();
+//                showCatalogueAlter();
                 showPopWindow("");
                 break;
             case R.id.settings:
@@ -391,23 +410,31 @@ public class MainFormActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void showDialog() {
-        View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.pop_window, null);
-        final EditText editText = (EditText) view.findViewById(R.id.edit_catalogue_pop_window);
+    private void showCatalogueAlter() {
+        View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.dialog_modify_catalogue, null);
+        final EditText edCatalogueName = (EditText) view.findViewById(R.id.dialogue_catalogue_name);
+        final EditText edCatalogueDescription= ((EditText) view.findViewById(R.id.dialogue_catalogue_description));
+        edCatalogueDescription.setText(currentCatalogueDetail);
+        edCatalogueDescription.setHint("目录详情");
+        edCatalogueName.setText(currentCatalogue);
         AlertDialog alertDialog = new AlertDialog.Builder(MainFormActivity.this)
-                .setTitle("添加新项")
+                .setTitle("修改目录")
                 .setView(view)
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String str = editText.getText().toString();
-                        Toast.makeText(MainFormActivity.this, str, Toast.LENGTH_SHORT).show();
-
+                        String description = edCatalogueDescription.getText().toString();
+                         String name=edCatalogueName.getText().toString();
+                        catalogueAdapter.set(catalogueAdapter.indexOf(currentCatalogue),new CatalogueInfos(name,description));
+                        currentCatalogueDetail=description;
+                        setCatalogueChanged(currentCatalogue , name);
+                        currentCatalogue=name;
+                        toolbar.setTitle(currentCatalogue);
                     }
                 })
                 .setNegativeButton("取消", null)
-                .setNeutralButton("哈哈", null)
-                .show();
+                .create();
+        alertDialog.show();
     }
 
     @Override
@@ -470,23 +497,25 @@ public class MainFormActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String catalogueNewName = editText.getText().toString();
-                if (catalogues.indexOf(catalogueNewName) != -1) {
+                if (catalogueAdapter.contains(catalogueNewName) ) {
                     Toast.makeText(MainFormActivity.this, catalogueNewName + "已经存在", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                //新建目录
                 if (catalogueName.equals("")) {
-                    catalogues.add(0, catalogueNewName);
-                    catalogueAdapter.notifyDataSetChanged();
+                    catalogueAdapter.addItem(new CatalogueInfos(catalogueNewName,""));
 
                 } else {
                     int index = 0;
-                    index = catalogues.indexOf(catalogueName);
+                    index = catalogueAdapter.indexOf(catalogueName);
                     if (index == -1)
                         return;
 //                    Log.v(MTTAG, "change catalogue: index" + index + "  catalogue=" + catalogueName);
                     setCatalogueChanged(catalogueName, catalogueNewName);
-                    catalogues.set(index, catalogueNewName);
+                    catalogueAdapter.set(index, catalogueNewName);
                     catalogueAdapter.notifyItemChanged(index);
+                    currentCatalogue=catalogueNewName;
+                    toolbar.setTitle(currentCatalogue);
                 }
                 popupWindow.dismiss();
             }
@@ -515,10 +544,10 @@ public class MainFormActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false);
+        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
-            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false);
+            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
         }
     }
 

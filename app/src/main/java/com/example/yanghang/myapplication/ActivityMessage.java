@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.myapplication.ConnectToPC.ConnectThread;
 import com.example.yanghang.myapplication.ConnectToPC.FileInfo;
+import com.example.yanghang.myapplication.ConnectToPC.PhoneServer;
 import com.example.yanghang.myapplication.FileUtils.FileUtils;
 import com.example.yanghang.myapplication.ListPackage.MessageList.MessageAdapter;
 import com.example.yanghang.myapplication.ListPackage.MessageList.MessageData;
@@ -42,9 +43,11 @@ public class ActivityMessage extends SwipeBackActivity {
     private final static int REQUEST_FILE = 678;
     private static final int SEND_MESSAGE_FINISH = 123;
     private static final int SEND_MESSAGE_FAIL = 145;
+    private static final int MESSAGE_FROM_PC=4512;
     private static final String  SEND_MESSAGE_PROGRESS="message progress";
     public static String DIALOG_MESSAGE = "dialog_message";
     private static String SEND_MESSAGE = "send_message";
+    private static String RECEIVE_MESSAGE_FROM_PC="receive_message_from_pc";
     Toolbar toolbar;
     RecyclerView recyclerView;
     MessageAdapter messageAdapter;
@@ -75,8 +78,13 @@ public class ActivityMessage extends SwipeBackActivity {
             if (val!=0)
             {
                 switch (val) {
+                    case MESSAGE_FROM_PC:
+                        String message = data.getString(RECEIVE_MESSAGE_FROM_PC);
+                        messageAdapter.addItem(new MessageData(MessageData.MessageType.COMPUTER,message));
+                        break;
                     case SEND_MESSAGE_FAIL:
                         Toast.makeText(ActivityMessage.this, "发送文件失败", Toast.LENGTH_SHORT).show();
+                        messageAdapter.addItem(new MessageData(MessageData.MessageType.YOU, fileName+"  发送失败"));
                         break;
                     case SEND_MESSAGE_FINISH:
                         Toast.makeText(ActivityMessage.this, "发送文件" + fileName + "完成", Toast.LENGTH_SHORT).show();
@@ -101,6 +109,7 @@ public class ActivityMessage extends SwipeBackActivity {
     }
 
     private void inital() {
+
 
         Intent intent = getIntent();
         String dialogmessage = intent.getStringExtra(DIALOG_MESSAGE);
@@ -147,7 +156,40 @@ public class ActivityMessage extends SwipeBackActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setAdapter(messageAdapter);
         initialButtons();
+        initialServer();
 
+    }
+    PhoneServer phoneServer;
+    private void initialServer() {
+
+        phoneServer=new PhoneServer(new PhoneServer.IUpdateMessage() {
+            @Override
+            public void updateMessage(String message) {
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                data.putInt(SEND_MESSAGE, MESSAGE_FROM_PC);
+                data.putString(RECEIVE_MESSAGE_FROM_PC,message);
+                msg.setData(data);
+                handler.sendMessage(msg);
+            }
+
+            @Override
+            public void failedReceive() {
+
+            }
+
+            @Override
+            public void disconnectPCtoServer() {
+                phoneServer.close();
+
+            }
+        },ActivityMessage.this);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                phoneServer.setUpServer();
+            }
+        }).start();
     }
 
     private void initialButtons() {

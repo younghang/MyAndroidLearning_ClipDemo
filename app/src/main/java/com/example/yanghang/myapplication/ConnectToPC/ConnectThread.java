@@ -43,6 +43,7 @@ public class ConnectThread extends Thread {
 
         try {
             socket = new Socket(strMessage.IP, strMessage.Port);
+            socket.setSoTimeout(5000);
             String strinfo = strMessage.Message;
             byte[] buffers = strinfo.getBytes("UTF-8");
             BufferedOutputStream bf = new BufferedOutputStream(socket.getOutputStream());

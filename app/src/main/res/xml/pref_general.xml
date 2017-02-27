@@ -1,27 +1,55 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-
-
-    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
-    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
-    <Preference
-        android:capitalize="words"
-        android:key="@string/dataFileName"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="导出所有记录" />
-
-    <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
-         dismiss it. -->
-    <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
     <Preference
         android:key="@string/dataFilePath"
         android:title="选择文件夹"
 
         />
-    <Preference
-        android:key="@string/dataImport"
-        android:title="导入" />
 
+    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
+    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
+   <PreferenceCategory
+       android:title="记录"
+       >
+
+       <SwitchPreference
+           android:title="加密文本"
+           android:defaultValue="false"
+           android:summaryOff="导出的文本明文可读"
+           android:summaryOn="导出的文本为密文"
+           />
+       <Preference
+           android:capitalize="words"
+           android:key="@string/dataFileName"
+           android:maxLines="1"
+           android:selectAllOnFocus="true"
+           android:singleLine="true"
+           android:title="导出所有记录" />
+
+       <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
+            dismiss it. -->
+       <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
+
+       <Preference
+           android:key="@string/dataImport"
+           android:title="导入记录项" />
+
+
+   </PreferenceCategory>
+
+
+    <PreferenceCategory
+        android:title="Catalogue"
+        android:icon="@drawable/ic_folder_special_indigo_700_24dp"
+        >
+        <Preference
+            android:key="@string/dataCatalogueExport"
+            android:title="导出目录"
+      />
+        <Preference
+            android:key="@string/dataCatalogueImport"
+            android:title="导入目录"
+            />
+
+    </PreferenceCategory>
 </PreferenceScreen>

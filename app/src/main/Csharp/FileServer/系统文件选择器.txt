@@ -1,20 +1,36 @@
 系统文件选择器
-12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao:   uri=   content://com.android.providers.media.documents/document/image%3A345518
-12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: com.android.providers.media.documents
-12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: /document/image:345518
-12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: content
-12-09 13:41:22.135 32765-32765/com.example.yanghang.myapplication V/nihao: [document, image:345518]
+12-09 13:41:22.135 [][]   uri=   content://com.android.providers.media.documents/document/image%3A345518
+12-09 13:41:22.135 [][] com.android.providers.media.documents
+12-09 13:41:22.135 [][] /document/image:345518
+12-09 13:41:22.135 [][] content
+12-09 13:41:22.135 [][] [document, image:345518]
 
 快图浏览
-12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao:   uri=   content://media/external/images/media/348350
-12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: media
-12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: /external/images/media/348350
-12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: content
-12-09 13:47:33.749 1186-1186/com.example.yanghang.myapplication V/nihao: [external, images, media, 348350]
+12-09 13:47:33.749 [][]   uri=   content://media/external/images/media/348350
+12-09 13:47:33.749 [][] media
+12-09 13:47:33.749 [][] /external/images/media/348350
+12-09 13:47:33.749 [][] content
+12-09 13:47:33.749 [][] [external, images, media, 348350]
 
 系统图片浏览器
-12-09 13:48:52.788 1186-1186/com.example.yanghang.myapplication V/nihao:   uri=   content://media/external/images/media/348350
-12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: media
-12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: /external/images/media/348350
-12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: content
-12-09 13:48:52.789 1186-1186/com.example.yanghang.myapplication V/nihao: [external, images, media, 348350]
+12-09 13:48:52.788 [][]   uri=   content://media/external/images/media/348350
+12-09 13:48:52.789 [][] media
+12-09 13:48:52.789 [][] /external/images/media/348350
+12-09 13:48:52.789 [][] content
+12-09 13:48:52.789 [][] [external, images, media, 348350]
+
+出错
+12-09 13:49:39.448 [][]   uri=   content://com.android.providers.media.documents/document/image%3A348350
+12-09 13:49:39.448 [][] com.android.providers.media.documents
+12-09 13:49:39.448 [][] /document/image:348350
+12-09 13:49:39.448 [][] content
+12-09 13:49:39.448 [][] [document, image:348350]
+
+正常
+12-09 13:52:48.408 [][]   uri=   content://com.android.externalstorage.documents/document/primary%3Aasynclog.file
+12-09 13:52:48.409 [][] com.android.externalstorage.documents
+12-09 13:52:48.409 [][] /document/primary:asynclog.file
+12-09 13:52:48.409 [][] content
+12-09 13:52:48.409 [][] [document, primary:asynclog.file]
+
+ 

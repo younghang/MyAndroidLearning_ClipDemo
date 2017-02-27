@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,19 +25,33 @@ namespace FileServer
         public MainWindow()
         {
             InitializeComponent();
-           
+
             serverThread = new Thread(new ThreadStart(RunServer));
             serverThread.Start();
 
         }
         Thread serverThread;
-        Server server;
+        Server server = null;
         public void RunServer()
         {
             Server server = new Server();
             server.UpdateMessage += SetString;
+            server.OnClientRequest += OnClientRequest;
             server.RunServer();
         }
+
+        private void OnClientRequest(Socket socket)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                ClientWindow cl = new ClientWindow();
+                cl.InitialPhoneServer(socket);
+                cl.Show();
+                cl.DealRequest();
+                cl.ConnectPhoneServer();
+            });
+        }
+
         public void SetString(string str)
         {
             this.richEdit.Dispatcher.Invoke(new Action<string>(AppendString), new object[] { str });
@@ -68,10 +83,52 @@ namespace FileServer
 
             Application.Current.Shutdown();
 
+        } 
+        void btnClose(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
 
 
 
 
+
+        void btnMininue(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = System.Windows.WindowState.Minimized;
+        }
+        //StackPanel 没办法MouseDown
+        void dragPanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+
+            DragMove();
+            e.Handled = true;
+
+        }
+
+        void window1_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            //			this.DragMove();
+            //			e.Handled=true;
+        }
+
+
     }
 }
+
+//		void dragPanel_MouseMove(object sender, MouseEventArgs e)
+//		{
+//			if (e.LeftButton == MouseButtonState.Pressed)
+//			{
+//				 	double x = e.GetPosition(dragPanel).X;
+//				double y = e.GetPosition(dragPanel).Y;
+//				this.Left +=( x - oldx);
+//				this.Top +=( y - oldy);}
+//			e.Handled=true;
+//		}
+//	 
+//		void dragPanel_MouseDown(object sender, MouseButtonEventArgs e)
+//		{
+//			oldx = e.GetPosition(dragPanel).X;
+//			oldy = e.GetPosition(dragPanel).Y;
+//		}

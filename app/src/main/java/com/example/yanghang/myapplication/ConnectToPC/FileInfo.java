@@ -6,6 +6,10 @@ package com.example.yanghang.myapplication.ConnectToPC;
 public class FileInfo {
     private String fileName;
     private long fileSize;
+    public FileInfo()
+    {
+
+    }
 
     public FileInfo(String fileName, long fileSize) {
         this.fileName = fileName;
