@@ -4,9 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+<FrameLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal|center_vertical"
+    >
 
-    <com.example.yanghang.myapplication.OthersView.CircleProgressBar
-        android:id="@+id/loadingProgressBar"
+
+    <com.example.yanghang.clipboard.OthersView.CircleProgressBar
+        android:id="@+id/loadingCircleProgressBar"
         android:layout_width="100dp"
         android:layout_height="100dp"
         app:ringColor="@color/colorPrimary"
@@ -14,4 +20,24 @@
         app:strokeWidth="5dp"
         android:layout_gravity="center_horizontal|center_vertical" />
 
+    <ProgressBar
+        style="?android:attr/progressBarStyle"
+        android:layout_width="100dp"
+        android:id="@+id/loadingProgressBar"
+        android:layout_height="100dp" />
+    <EditText
+
+        android:layout_margin="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:id="@+id/loadingEditText"
+        android:textColor="@color/red"
+        android:gravity="top|left"
+        android:inputType="textMultiLine"
+        android:textIsSelectable="true"
+        android:focusableInTouchMode="true"
+        android:scrollbars = "vertical"
+        android:textSize="20dp"/>
+</FrameLayout>
 </LinearLayout>

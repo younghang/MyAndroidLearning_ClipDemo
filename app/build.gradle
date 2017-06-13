@@ -7,7 +7,7 @@ android {
  
 
     defaultConfig {
-        applicationId "com.example.yanghang.myapplication"
+        applicationId "com.example.yanghang.clipboard"
         minSdkVersion 19
         targetSdkVersion 23
         versionCode 1

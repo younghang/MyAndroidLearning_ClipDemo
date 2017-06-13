@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="程序文件">
+        <Preference android:title="日志文件"
+            android:key="setting_about_log_file">
+        </Preference>
+        <Preference android:title="清除记录数据"
+            android:key="setting_about_delete_data_file">
+        </Preference>
+
+    </PreferenceCategory>
+    <PreferenceCategory android:title="关于">
+        <Preference android:title="author"
+            android:summary="yanghang"
+            />
+        <Preference android:title="source code"
+            android:summary="github.com/younghang/MyAndroidLearning_ClipDemo">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/younghang/MyAndroidLearning_ClipDemo" />
+        </Preference>
+
+    </PreferenceCategory>
+</PreferenceScreen>

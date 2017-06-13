@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_gray"
-    tools:context="com.example.yanghang.myapplication.ActivityMessage">
+    tools:context="com.example.yanghang.clipboard.ActivityPCMessage">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/messageToolbar"

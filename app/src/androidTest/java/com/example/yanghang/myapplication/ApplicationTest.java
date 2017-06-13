@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication;
+package com.example.yanghang.clipboard;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

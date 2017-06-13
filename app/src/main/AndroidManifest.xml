@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.yanghang.myapplication" >
+    package="com.example.yanghang.clipboard" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -8,21 +8,22 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".MyAppcation"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".ActivityConnect"
+            android:name="com.example.yanghang.clipboard.ActivityConnect"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name=".ActivityEditInfo"
+            android:name="com.example.yanghang.clipboard.ActivityEditInfo"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name=".MainFormActivity"
+            android:name="com.example.yanghang.clipboard.MainFormActivity"
 
             android:theme="@style/AppTheme.NoActionBar" >
             <intent-filter>
@@ -32,16 +33,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ActivityMessage"
+            android:name="com.example.yanghang.clipboard.ActivityPCMessage"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name="com.example.yanghang.clipboard.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:parentActivityName=".OthersView.swipebacklayout.lib.app.SwipeBackActivity" >
+            android:parentActivityName="com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.yanghang.myapplication.OthersView.swipebacklayout.lib.app.SwipeBackActivity" />
+                android:value="com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity" />
         </activity>
     </application>
 

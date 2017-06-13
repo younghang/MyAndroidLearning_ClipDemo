@@ -32,7 +32,7 @@
             android:textColor="@color/message_text"
             android:textSize="18sp" />
 
-        <com.example.yanghang.myapplication.ListPackage.ClipInfosList.AlwaysMarqueeTextView
+        <com.example.yanghang.clipboard.ListPackage.ClipInfosList.AlwaysMarqueeTextView
             android:id="@+id/tv_Remarks"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

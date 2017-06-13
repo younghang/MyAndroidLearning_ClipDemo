@@ -3,8 +3,11 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-        android:fragment="com.example.yanghang.myapplication.SettingsActivity$GeneralPreferenceFragment"
+        android:fragment="com.example.yanghang.clipboard.SettingsActivity$GeneralPreferenceFragment"
         android:icon="@drawable/ic_save_white_24dp"
         android:title="@string/pref_header_general" />
-
+    <header
+        android:fragment="com.example.yanghang.clipboard.SettingsActivity$AboutPreferenceFragment"
+        android:icon="@drawable/ic_info_24dp"
+        android:title="@string/pref_header_about" />
 </preference-headers>

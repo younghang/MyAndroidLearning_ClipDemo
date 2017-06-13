@@ -1,4 +1,4 @@
-package com.example.yanghang.myapplication;
+package com.example.yanghang.clipboard;
 
 import org.junit.Test;
 

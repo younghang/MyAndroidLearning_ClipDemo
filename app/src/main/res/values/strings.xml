@@ -70,4 +70,5 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="dataCatalogueExport">dataCatalogueExport</string>
     <string name="dataCatalogueImport">dataCatalogueImport</string>
+    <string name="pref_header_about">应用信息</string>
 </resources>
