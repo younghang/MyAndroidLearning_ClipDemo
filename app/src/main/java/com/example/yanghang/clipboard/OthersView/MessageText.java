@@ -111,26 +111,26 @@ public class MessageText extends TextView {
         Width = width;
         if (heightMode == MeasureSpec.EXACTLY) {
             Height = height;
-//            Log.v(MainFormActivity.MTTAG, "EXACTLY Height:" + Height);
+//            Log.v(MainFormActivity.TAG, "EXACTLY Height:" + Height);
         } else {
 
             //作为List 的Item控件的测量模式并非 EXACTLY 和AT_MOST 而是 UNSPECIFIED
                 TextPaint tpaint = new TextPaint();
                 tpaint.setTextSize(getTextSize());
-//                Log.v(MainFormActivity.MTTAG, "Measure text:" + getText().toString());
+//                Log.v(MainFormActivity.TAG, "Measure text:" + getText().toString());
                 float textWidth = tpaint.measureText(getText().toString());
                 int Lines = (int) (textWidth / (Width - paddingLeftForTriangle - paddingRightForTriangle - paddingInner - getPaddingLeft() - getPaddingRight()));
                 if (Lines > getMaxLines()) {
                     Lines = getMaxLines();
                 }
                 Height = (int) ((Lines + 1) * (getTextSize() + paddingInner / 2) + getPaddingBottom() + paddingTop + getTextSize() / 2);
-//                Log.v(MainFormActivity.MTTAG, "Measure Height:" + Height);
+//                Log.v(MainFormActivity.TAG, "Measure Height:" + Height);
 
         }
         if (Height < roundRectRadius * 2) {
             Height = (int) roundRectRadius * 3;
         }
-//        Log.v(MainFormActivity.MTTAG, "set Height:" + Height);
+//        Log.v(MainFormActivity.TAG, "set Height:" + Height);
         setMeasuredDimension(Width, Height);
 
     }
@@ -148,7 +148,7 @@ public class MessageText extends TextView {
         }
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-//                Log.v(MainFormActivity.MTTAG, "按下");
+//                Log.v(MainFormActivity.TAG, "按下");
                 bgcolor = afterColor;
                 postInvalidate();
                 break;
@@ -167,8 +167,8 @@ public class MessageText extends TextView {
     private void drawBackground(Canvas canvas) {
         width = getWidth();
         height = getHeight();
-//        Log.v(MainFormActivity.MTTAG, "draw Height:" + getHeight());
-//        Log.v(MainFormActivity.MTTAG, "bgcolor:  " + bgcolor);
+//        Log.v(MainFormActivity.TAG, "draw Height:" + getHeight());
+//        Log.v(MainFormActivity.TAG, "bgcolor:  " + bgcolor);
         mPaint.setColor(bgcolor);
         mPaint.setStyle(Paint.Style.FILL);
 
@@ -208,12 +208,12 @@ public class MessageText extends TextView {
             endings = "....";
         }
 
-//        Log.v(MainFormActivity.MTTAG, " Lines: " + Lines);
+//        Log.v(MainFormActivity.TAG, " Lines: " + Lines);
         for (int i = 0; i < Lines; i++) {
             canvas.drawText(getText().toString(), i * singleLineCount, (1 + i) * singleLineCount, getPaddingLeft() + paddingLeftForTriangle, paddingTop + getTextSize() / 2 + getTextSize() * i + paddingInner / 2 * i, tpaint);
         }
 //        int top = (int) (paddingTop + getTextSize() / 2 + getTextSize() * 1 + paddingInner / 2 * 1);
-//        Log.v(MainFormActivity.MTTAG, " marginTop: " + top);
+//        Log.v(MainFormActivity.TAG, " marginTop: " + top);
         canvas.drawText(getText().toString(), Lines * singleLineCount, end, paddingLeftForTriangle + getPaddingLeft(), paddingTop + getTextSize() / 2 + getTextSize() * Lines + paddingInner / 2 * Lines, tpaint);
         canvas.drawText(endings, 0, endings.length(), paddingLeftForTriangle + getPaddingLeft() + singleLineCount * singleWidth, paddingTop + getTextSize() / 2 + getTextSize() * (Lines - 1) + paddingInner / 2 * (Lines), tpaint);
     }

@@ -82,15 +82,15 @@ public class PhoneServer {
             switch (receiveType[0])
             {
                 case (byte)0xfc:
-                    Log.v(MainFormActivity.MTTAG,"PhoneServer  receiveData: closeType");
+                    Log.v(MainFormActivity.TAG,"PhoneServer  receiveData: closeType");
                     close();
                     break;
                 case (byte)0x66:
-                    Log.v(MainFormActivity.MTTAG,"PhoneServer  receiveData: fileType");
+                    Log.v(MainFormActivity.TAG,"PhoneServer  receiveData: fileType");
                     receiveFile();
                     break;
                 case (byte)0x60:
-                    Log.v(MainFormActivity.MTTAG,"PhoneServer  receiveData: messageType");
+                    Log.v(MainFormActivity.TAG,"PhoneServer  receiveData: messageType");
                     receiveMessage();
                     break;
 
@@ -131,7 +131,7 @@ public class PhoneServer {
         try {
             outPutString=bas.toString("utf-8");
             updateMessage.updateMessage(outPutString);
-            Log.v(MainFormActivity.MTTAG,"PhoneServer  receiveMessage:  "+outPutString);
+            Log.v(MainFormActivity.TAG,"PhoneServer  receiveMessage:  "+outPutString);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
@@ -155,7 +155,7 @@ public class PhoneServer {
         {
             filePath = context.getExternalFilesDir(null).getAbsolutePath();
         }
-        Log.v(MainFormActivity.MTTAG,"PhoneServer- receiveFile -filePath:"+ filePath);
+        Log.v(MainFormActivity.TAG,"PhoneServer- receiveFile -filePath:"+ filePath);
 
         int c=0;
         int tol=0;
@@ -178,7 +178,7 @@ public class PhoneServer {
         }
         try {
             String fileInfoJson=bas.toString("utf-8");
-            Log.v(MainFormActivity.MTTAG, "PhoneServer receiceFile: fileInfo" + fileInfoJson);
+            Log.v(MainFormActivity.TAG, "PhoneServer receiceFile: fileInfo" + fileInfoJson);
 //            String fileInfoJson=new String(buffer,0,c,"utf-8");
             fileInfo =  JSON.parseObject(fileInfoJson,FileInfo.class);
         } catch (UnsupportedEncodingException e) {

@@ -56,7 +56,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
         if (widthMode == MeasureSpec.EXACTLY || widthMode == MeasureSpec.AT_MOST) {
             width = widthSize;
         }
-//        Log.v(MainFormActivity.MTTAG,"  onMeasure width: "+width);
+//        Log.v(MainFormActivity.TAG,"  onMeasure width: "+width);
         super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), heightMeasureSpec);
     }
 
@@ -67,7 +67,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
         text = getText().toString();
         textLength = paint.measureText(text);
 
-//        Log.v(MainFormActivity.MTTAG,"init  viewWidth: "+viewWidth);
+//        Log.v(MainFormActivity.TAG,"init  viewWidth: "+viewWidth);
 //        if (viewWidth == 0) {
 //            if (windowManager != null) {
 //                Point p = new Point();
@@ -109,7 +109,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
     }
 
     public void startScroll() {
-//        Log.v(MainFormActivity.MTTAG,"  startScroll: viewWidth"+viewWidth);
+//        Log.v(MainFormActivity.TAG,"  startScroll: viewWidth"+viewWidth);
         if (textLength < getWidth())
             return;
         if (isStarting) {
@@ -139,7 +139,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
 
     @Override
     public void onDraw(Canvas canvas) {
-//        Log.v(MainFormActivity.MTTAG,"  onDraw viewWidth: "+viewWidth);
+//        Log.v(MainFormActivity.TAG,"  onDraw viewWidth: "+viewWidth);
         if (textLength < getWidth()) {
             canvas.drawText(text, 0, y, paint);
             return;

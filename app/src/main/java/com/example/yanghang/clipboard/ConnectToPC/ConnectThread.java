@@ -33,7 +33,7 @@ public class ConnectThread extends Thread {
         super.run();
 
         if (strMessage != null) {
-//            Log.v(MainFormActivity.MTTAG, "send message:" + strMessage.Message);
+//            Log.v(MainFormActivity.TAG, "send message:" + strMessage.Message);
             SendMessage();
         }
 
@@ -52,11 +52,11 @@ public class ConnectThread extends Thread {
             onConnect.OnSuccess();
 
         } catch (ConnectException e) {
-            Log.v(MainFormActivity.MTTAG, "连接失败");
+            Log.v(MainFormActivity.TAG, "连接失败");
             onConnect.OnFail("连接失败");
         } catch (Exception e) {
             // TODO Auto-generated catch block
-            Log.v(MainFormActivity.MTTAG, "发送失败");
+            Log.v(MainFormActivity.TAG, "发送失败");
             onConnect.OnFail("发送失败");
             e.printStackTrace();
         }

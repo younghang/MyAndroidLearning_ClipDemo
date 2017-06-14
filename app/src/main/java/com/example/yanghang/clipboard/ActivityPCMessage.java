@@ -68,10 +68,10 @@ public class ActivityPCMessage extends SwipeBackActivity {
             super.handleMessage(msg);
             Bundle data = msg.getData();
             int percent=data.getInt(SEND_MESSAGE_PROGRESS, -1);
-            Log.v(MainFormActivity.MTTAG, "handle message:percent= " + percent);
+            Log.v(MainFormActivity.TAG, "handle message:percent= " + percent);
             if (percent>=0&& circleLoadingProgress !=null)
             {
-                Log.v(MainFormActivity.MTTAG, "loadingBar percent= " + percent);
+                Log.v(MainFormActivity.TAG, "loadingBar percent= " + percent);
                 circleLoadingProgress.setProgress(percent);
             }
             int val = data.getInt(SEND_MESSAGE,0);
@@ -283,7 +283,7 @@ public class ActivityPCMessage extends SwipeBackActivity {
                     Message msg = new Message();
                     Bundle data = new Bundle();
                     data.putInt(SEND_MESSAGE_PROGRESS,percent);
-                    Log.v(MainFormActivity.MTTAG, "percent= " + percent);
+                    Log.v(MainFormActivity.TAG, "percent= " + percent);
                     msg.setData(data);
                     handler.sendMessage(msg);
                     currentProgress=percent;
@@ -315,7 +315,7 @@ public class ActivityPCMessage extends SwipeBackActivity {
         super.onDestroy();
 
         try {
-            Log.v(MainFormActivity.MTTAG, "onStop send disconnect");
+            Log.v(MainFormActivity.TAG, "onStop send disconnect");
             bo.write(0xfc);
             bo.flush();
             ConnectThread.socket.close();

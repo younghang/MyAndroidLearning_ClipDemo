@@ -6,11 +6,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.method.KeyListener;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -143,16 +141,16 @@ public class FragmentEditInfo extends FragmentEditAbstract {
     public String getString()
     {
         String info=editInfo.getText().toString();
-        Log.v(MainFormActivity.MTTAG, "getString called in FragmentEditInfo :"+info);
+        Log.v(MainFormActivity.TAG, "getString called in FragmentEditInfo :"+info);
         return info;
     }
     public void enableEdit() {
-        Log.v(MainFormActivity.MTTAG, "enableEdit called in FragmentEditInfo");
+        Log.v(MainFormActivity.TAG, "enableEdit called in FragmentEditInfo");
 
         editInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Log.v(MainFormActivity.MTTAG, "EditInfo Activity EditText click");
+//                Log.v(MainFormActivity.TAG, "EditInfo Activity EditText click");
                 editInfo.requestFocus();
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.showSoftInput(editInfo, InputMethodManager.HIDE_IMPLICIT_ONLY);

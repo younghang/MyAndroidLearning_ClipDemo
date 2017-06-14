@@ -14,9 +14,10 @@
 
        <SwitchPreference
            android:title="加密文本"
+           android:key="encodePreference"
            android:defaultValue="false"
-           android:summaryOff="导出的文本明文可读"
-           android:summaryOn="导出的文本为密文"
+           android:summaryOff="导出的记录文本明文可读"
+           android:summaryOn="导出的记录文本为密文"
            />
        <Preference
            android:capitalize="words"

@@ -15,16 +15,16 @@ import android.os.Message;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.preference.SwitchPreference;
 import android.support.v7.app.ActionBar;
-import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
@@ -33,6 +33,7 @@ import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.Log.CrashHandler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,7 +53,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         return (context.getResources().getConfiguration().screenLayout
                 & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
-
 
 
     @Override
@@ -154,34 +154,35 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName)||
+                || GeneralPreferenceFragment.class.getName().equals(fragmentName) ||
                 AboutPreferenceFragment.class.getName().equals(fragmentName);
 
     }
-    public static class AboutPreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener{
+
+    public static class AboutPreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener {
         private Preference deleteFilePreference;
         private Preference logFilePreference;
         AlertDialog loadingDialog;
         File file;
+
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_about);
-            file=new File(getActivity().getCacheDir().getAbsolutePath()+CrashHandler.FileName);
-            deleteFilePreference=findPreference("setting_about_delete_data_file");
-            logFilePreference=findPreference("setting_about_log_file");
-            deleteFilePreference.setOnPreferenceClickListener( this);
+            file = new File(getActivity().getCacheDir().getAbsolutePath() + CrashHandler.FileName);
+            deleteFilePreference = findPreference("setting_about_delete_data_file");
+            logFilePreference = findPreference("setting_about_log_file");
+            deleteFilePreference.setOnPreferenceClickListener(this);
             logFilePreference.setOnPreferenceClickListener(this);
 
             logFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(file.getAbsolutePath()));
-            deleteFilePreference.setSummary( FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath()));
+            deleteFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath()));
 
         }
 
         @Override
         public boolean onPreferenceClick(Preference preference) {
-            if (preference==deleteFilePreference)
-            {
+            if (preference == deleteFilePreference) {
                 showFileDeleteDialog();
                 return true;
             }
@@ -196,7 +197,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.loading, null);
             final EditText editText = (EditText) view.findViewById(R.id.loadingEditText);
-            final ProgressBar progress= (ProgressBar) view.findViewById((R.id.loadingProgressBar));
+            final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
 //          去掉即可复制，用于解决textView不能滑动的问题
 //            editText.setMovementMethod(new ScrollingMovementMethod());
             loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
@@ -207,7 +208,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             editText.setVisibility(View.GONE);
                             progress.setVisibility(View.VISIBLE);
                             file.delete();
-                            Toast.makeText(getActivity().getApplicationContext(),"日志已删除",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity().getApplicationContext(), "日志已删除", Toast.LENGTH_SHORT).show();
                             loadingDialog.dismiss();
                         }
                     })
@@ -217,12 +218,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String line = "";
-                while((line = br.readLine())!=null){
+                while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }
                 br.close();
-            }catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             editText.setText(sb.toString());
@@ -230,8 +230,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             editText.setBackground(null);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 editText.setTextColor(getActivity().getColor(R.color.message_text));
-            }
-            else{
+            } else {
                 editText.setTextColor(getResources().getColor(R.color.message_text));
             }
             editText.setTextSize(15);
@@ -242,7 +241,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         private void showFileDeleteDialog() {
             View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.loading, null);
             final EditText editText = (EditText) view.findViewById(R.id.loadingEditText);
-            final ProgressBar progress= (ProgressBar) view.findViewById((R.id.loadingProgressBar));
+            final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
 
             loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
                     .setTitle("文件删除操作")
@@ -252,7 +251,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             editText.setVisibility(View.GONE);
                             progress.setVisibility(View.VISIBLE);
                             new DBListInfoManager(getActivity()).deleteDatabase();
-                            Toast.makeText(getActivity().getApplicationContext(),"数据已删除",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity().getApplicationContext(), "数据已删除", Toast.LENGTH_SHORT).show();
                             loadingDialog.dismiss();
                         }
                     })
@@ -286,6 +285,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         private static final int MSG_LOADING_FILE_FAILED = 99;
         AlertDialog loadingDialog;
         private Preference filePathPreference;
+        SwitchPreference encodePreference;
 
         private Preference fileNamePreference;
         private Preference catalogueNamePreference;
@@ -299,7 +299,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 switch (msgLoading) {
                     case MSG_SAVING_FILE_FINISH:
                         loadingDialog.dismiss();
-                        Toast.makeText(getActivity(), "文件保存在" + filePathPreference.getSummary() + "/" + fileNamePreference.getSummary() + ".json", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "文件保存在" + filePathPreference.getSummary() + "/" + fileNamePreference.getSummary() + (encodePreference.isChecked()?".sphykey":".json"), Toast.LENGTH_SHORT).show();
                         break;
                     case MSG_SAVING_CATALOGUE_FINISH:
                         loadingDialog.dismiss();
@@ -315,7 +315,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         break;
                     case MSG_LOADING_FILE_FAILED:
                         loadingDialog.dismiss();
-                        Toast.makeText(getActivity(), "数据加载失败，请检查数据是否正确或访问存储权限", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "数据加载失败，请检查密码是否正确或访问存储权限", Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -332,6 +332,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             filePathPreference = findPreference(getResources().getString(R.string.dataFilePath));
             catalogueNamePreference = findPreference(getResources().getString(R.string.dataCatalogueExport));
             catalogueImportPreference = findPreference(getResources().getString(R.string.dataCatalogueImport));
+            encodePreference = (SwitchPreference) findPreference("encodePreference");
             fileImport = findPreference(getResources().getString(R.string.dataImport));
 
             fileImport.setOnPreferenceClickListener(this);
@@ -366,8 +367,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 showDialog(fileNamePreference);
                 return true;
             }
-            if (preference==catalogueNamePreference)
-            {
+            if (preference == catalogueNamePreference) {
                 showDialog(catalogueNamePreference);
                 return true;
             }
@@ -381,8 +381,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return true;
 
             }
-            if (preference== catalogueImportPreference)
-            {
+            if (preference == catalogueImportPreference) {
                 Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -398,6 +397,49 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return false;
         }
+        private void loadClipsJson(final String filePath, final boolean encoded)
+        {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Message msg = new Message();
+                    Bundle data = new Bundle();
+                    List<ListData> listsNew = new ArrayList<ListData>();
+                    try {
+                        List<ListData> lists = FileUtils.loadListDatas(filePath,encoded);
+                        List<CatalogueInfos> catalogue = FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
+                        DBListInfoManager dbListInfoManager = new DBListInfoManager(getActivity());
+                        CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());
+                        List<ListData> listsOrigin = dbListInfoManager.getDatas("");
+                        for (int i = 0; i < lists.size(); i++) {
+                            ListData ld = lists.get(i);
+                            boolean IsItemAdd = true;
+                            if (!catalogueAdapter.contains(ld.getCatalogue())) {
+                                catalogueAdapter.addItem(new CatalogueInfos(ld.getCatalogue(), ""));
+                            }
+                            for (int j = 0; j < listsOrigin.size(); j++) {
+                                if (listsOrigin.get(j).getContent().equals(ld.getContent())) {
+                                    IsItemAdd = false;
+//                                        Log.v(MainFormActivity.TAG,"导入记录SettingActivity ：条目"+ld.getContent()+"已经存在，不再添加" ) ;
+                                    break;
+                                }
+                            }
+                            if (IsItemAdd) {
+                                listsNew.add(ld);
+                            }
+                        }
+                        FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), true, "");
+                        dbListInfoManager.insertDatas(listsNew);
+                        data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
+                    } catch (Exception e) {
+                        data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);
+                        e.printStackTrace();
+                    }
+                    msg.setData(data);
+                    handler.sendMessage(msg);
+                }
+            }).start();
+        }
 
         @Override
         public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -406,65 +448,68 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
                 filePathPreference.setSummary(file);
                 PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(filePathPreference.getKey(), file).apply();
-            } else
-            if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_FILE) {
+            } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_FILE) {
                 Uri uri = data.getData();
                 final String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
                 PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(fileImport.getKey(), file).apply();
                 fileImport.setSummary(file);
-                loadingDialog = new AlertDialog.Builder(getActivity()).setView(LayoutInflater.from(getActivity().getApplicationContext())
-                        .inflate(R.layout.loading, null))
-                        .setTitle("Loading")
-                        .setCancelable(false).show();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Message msg = new Message();
-                        Bundle data = new Bundle();
-                        List<ListData> listsNew = new ArrayList<ListData>();
-                        try {
-                            List<ListData> lists = FileUtils.loadListDatas(file);
-                            List<CatalogueInfos> catalogue=FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
-                            DBListInfoManager dbListInfoManager =new DBListInfoManager(getActivity());
-                            CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());
-                            List<ListData> listsOrigin =dbListInfoManager.getDatas("");
-                            for (int i=0;i<lists.size();i++)
-                            {
-                                ListData ld=lists.get(i);
-                                boolean IsItemAdd=true;
-                                if (!catalogueAdapter.contains(ld.getCatalogue()))
-                                {
-                                    catalogueAdapter.addItem(new CatalogueInfos(ld.getCatalogue(),""));
-                                }
-                                for (int j=0;j<listsOrigin.size();j++)
-                                {
-                                    if (listsOrigin.get(j).getContent().equals(ld.getContent()))
-                                    {
-                                        IsItemAdd=false;
-//                                        Log.v(MainFormActivity.MTTAG,"导入记录SettingActivity ：条目"+ld.getContent()+"已经存在，不再添加" ) ;
-                                        break;
-                                    }
-                                }
-                                if (IsItemAdd)
-                                {
-                                    listsNew.add(ld);
-                                }
-                            }
-                            FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(),catalogueAdapter.getDatas(),true,"");
-                            dbListInfoManager.insertDatas(listsNew);
-                            data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
-                        } catch (Exception e) {
-                            data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);
-                            e.printStackTrace();
-                        }
-                        msg.setData(data);
-                        handler.sendMessage(msg);
-                    }
-                }).start();
+                File fileImport = new File(file);
+                String[] suf = fileImport.getName().split("\\.");
+                String suffix="";
+                if (suf.length>1)
+                {
+                    suffix=suf[1];
+                }
+                View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.loading, null);
+                final EditText codeText = (EditText) view.findViewById(R.id.loadingEditText);
+                final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
+                final String []seed=new String[1];
+                    if (suffix.equals("json")){
+                        loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
+                                .setTitle("Loading")
+                                .setCancelable(false).create();
 
-            }
-            else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_CATALOGUE)
-            {
+                        codeText.setVisibility(View.GONE);
+                        loadingDialog.show();
+                        loadClipsJson(file,false);
+                    }else if (suffix.equals("sphykey")){
+                        loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
+                                .setTitle("输入解密密码")
+                                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        codeText.setVisibility(View.GONE);
+                                        progress.setVisibility(View.VISIBLE);
+                                        seed[0] = codeText.getText().toString();
+                                        FileUtils.SEED = seed[0];
+                                        loadClipsJson(file,true);
+                                    }}).setNegativeButton("取消", null).create();
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            codeText.setTextColor(getActivity().getColor(R.color.message_text));
+                        } else {
+                            codeText.setTextColor(getResources().getColor(R.color.message_text));
+                        }
+                        codeText.requestFocus();
+                        codeText.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                codeText.requestFocus();
+                                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                                imm.showSoftInput(codeText, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                            }
+                        });
+                        codeText.requestFocus();
+                        progress.setVisibility(View.INVISIBLE);
+                        loadingDialog.show();
+
+                    }else {
+                        Toast.makeText(getActivity(),"文本类型错误，加载失败", Toast.LENGTH_SHORT).show();
+
+                    }
+
+
+
+            } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_CATALOGUE) {
                 Uri uri = data.getData();
                 final String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
                 //存储设置值和读取设置值，需要手动完成不具备自动关联
@@ -482,20 +527,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                         try {
                             List<CatalogueInfos> lists = FileUtils.loadCatalogueFromDisk(file);
-                            List<CatalogueInfos> catalogue=FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
+                            List<CatalogueInfos> catalogue = FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
 
                             CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());
 
-                            for (int i=0;i<lists.size();i++)
-                            {
-                                CatalogueInfos ld=lists.get(i);
-                                if (!catalogueAdapter.contains(ld.getCatalogue()))
-                                {
+                            for (int i = 0; i < lists.size(); i++) {
+                                CatalogueInfos ld = lists.get(i);
+                                if (!catalogueAdapter.contains(ld.getCatalogue())) {
                                     catalogueAdapter.addItem(ld);
                                 }
 
                             }
-                            FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(),catalogueAdapter.getDatas(),true,"");
+                            FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), true, "");
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
                         } catch (Exception e) {
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);
@@ -521,16 +564,79 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         public void onClick(DialogInterface dialog, int which) {
 
                             String str = editText.getText().toString();
+                            final String[] seed = new String[1];
                             if (str != null && !new File(filePathPreference.getSummary().toString()).exists()) {
                                 Toast.makeText(getActivity(), "请先选择正确的保存路径", Toast.LENGTH_SHORT).show();
                                 return;
                             }
                             PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(preference.getKey(), str).apply();
                             preference.setSummary(str);
-                            loadingDialog = new AlertDialog.Builder(getActivity()).setView(LayoutInflater.from(getActivity().getApplicationContext())
-                                    .inflate(R.layout.loading, null))
-                                    .setTitle("Loading")
-                                    .setCancelable(false).show();
+
+                            View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.loading, null);
+                            final EditText codeText = (EditText) view.findViewById(R.id.loadingEditText);
+                            final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
+                            if (encodePreference.isChecked() && preference == fileNamePreference) {
+                                loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
+                                        .setTitle("输入加密密码")
+                                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                codeText.setVisibility(View.GONE);
+                                                progress.setVisibility(View.VISIBLE);
+                                                seed[0] = codeText.getText().toString();
+                                                new Thread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        Message msg = new Message();
+                                                        Bundle data = new Bundle();
+                                                        try {
+
+                                                            FileUtils.SEED = seed[0];
+                                                            boolean re = FileUtils.saveListData(new DBListInfoManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString(), true);
+                                                            if (re)
+                                                                data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
+                                                            else
+                                                                data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+
+
+                                                        } catch (Exception e) {
+                                                            data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+                                                        }
+                                                        msg.setData(data);
+                                                        handler.sendMessage(msg);
+                                                    }
+                                                }).start();
+                                                return;
+                                            }
+                                        })
+                                        .setNegativeButton("取消", null).create();
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                    codeText.setTextColor(getActivity().getColor(R.color.message_text));
+                                } else {
+                                    codeText.setTextColor(getResources().getColor(R.color.message_text));
+                                }
+                                codeText.requestFocus();
+                                codeText.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+
+                                        codeText.requestFocus();
+                                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                                        imm.showSoftInput(codeText, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                                    }
+                                });
+                                codeText.requestFocus();
+                                progress.setVisibility(View.INVISIBLE);
+                                loadingDialog.show();
+
+                            } else {
+                                loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
+                                        .setTitle("Loading")
+                                        .setCancelable(false).create();
+
+                                codeText.setVisibility(View.GONE);
+                                loadingDialog.show();
+
                             new Thread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -538,19 +644,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                     Bundle data = new Bundle();
                                     try {
                                         Thread.sleep(500);
-
-                                        if (preference==fileNamePreference) {
-                                            boolean re = FileUtils.saveListData(new DBListInfoManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString());
+                                        if (preference == fileNamePreference) {
+                                            boolean re = FileUtils.saveListData(new DBListInfoManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString(), false);
                                             if (re) data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
                                             else data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+
+                                        } else if (preference == catalogueNamePreference) {
+                                            boolean re = FileUtils.saveCatalogue(filePathPreference.getSummary().toString(), FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath()), false, catalogueNamePreference.getSummary().toString());
+                                            if (re)
+                                                data.putInt(MSG_FILE, MSG_SAVING_CATALOGUE_FINISH);
+                                            else data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
                                         }
-                                        else
-                                            if (preference==catalogueNamePreference)
-                                            {
-                                                boolean re = FileUtils.saveCatalogue(filePathPreference.getSummary().toString(),FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath()) , false,catalogueNamePreference.getSummary().toString() );
-                                                if (re) data.putInt(MSG_FILE, MSG_SAVING_CATALOGUE_FINISH);
-                                                else data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
-                                            }
 
                                     } catch (Exception e) {
                                         data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
@@ -559,6 +663,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                     handler.sendMessage(msg);
                                 }
                             }).start();
+                        }
                         }
                     })
                     .setNegativeButton("取消", null)
@@ -569,7 +674,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         @Override
         public boolean onPreferenceChange(Preference preference, Object newValue) {
             String stringValue = newValue.toString();
-//            Log.v(MainFormActivity.MTTAG,"Preference Changed:"+ stringValue);
+//            Log.v(MainFormActivity.TAG,"Preference Changed:"+ stringValue);
             //不会调用的，需要自己手动改
             preference.setSummary(stringValue);
             return true;

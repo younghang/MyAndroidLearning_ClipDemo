@@ -156,7 +156,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
     }
 
     public List<CatalogueInfos> getCatalogue() {
-        return FileUtils.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
+        return FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
     }
 
     @Override

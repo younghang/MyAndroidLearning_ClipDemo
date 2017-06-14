@@ -9,7 +9,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
-import com.example.yanghang.clipboard.DBClipInfos.ListInfoDB;
+import com.example.yanghang.clipboard.EncodeFile.AESUtils;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.MainFormActivity;
@@ -27,6 +27,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.crypto.BadPaddingException;
+
 /**
  * Created by yanghang on 2016/12/6.
  */
@@ -38,9 +40,14 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
     private static String CATALOGUE_DESCRIPTION="catalogue_description";
     private static String LISTDATA_CLIPS_NAME = "clips";
     private static String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
-    private static String SAVE_FILE_CATALOGUE_BAK_SUFFIX = ".sphykey";
+    private static String SAVE_FILE_CATALOGUE_ENCODE_SUFFIX = ".sphykey";
+    public static String SEED="";
 
-    public static boolean saveListData(List<ListData> mData, String filePath, String fileName) {
+
+    public static boolean saveListData(List<ListData> mData, String filePath, String fileName,boolean encoded) {
+        if (encoded){
+            fileName = fileName + SAVE_FILE_CATALOGUE_ENCODE_SUFFIX;
+        }else
         fileName = fileName + SAVE_FILE_CATALOGUE_JSON_SUFFIX;
         File file = createFile(fileName, filePath);
         if (file == null)
@@ -66,16 +73,18 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return saveJsonObjectToDisk(file, jsonObject);
+        return saveJsonObjectToDisk(file, jsonObject,encoded);
 
 
     }
 
-    public static List<ListData> loadListDatas(String fileName) {
+    public static List<ListData> loadListDatas(String fileName,boolean encoded) throws Exception{
         List<ListData> listDatas = new ArrayList<>();
         File file = new File(fileName);
+
+        JSONObject json;
         if (file.exists()) {
-            JSONObject json = loadJsonFromDisk(file);
+                json= loadJsonFromDisk(file,encoded);
             try {
                 JSONArray array = json.getJSONArray(LISTDATA_CLIPS_NAME);
                 for (int i = array.length()-1; i >-1; i--) {
@@ -86,6 +95,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
             } catch (JSONException e) {
                 e.printStackTrace();
+                throw new Exception("文本类型或密码不正确");
             }
         }
 
@@ -93,12 +103,18 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
     }
 
-    private static boolean saveJsonObjectToDisk(File file, JSONObject jsonObject) {
+    private static boolean saveJsonObjectToDisk(File file, JSONObject jsonObject,boolean encoded) {
         FileOutputStream fileOutputStream;
         try {
 
             fileOutputStream = new FileOutputStream(file, false);
-            ByteArrayInputStream bis = new ByteArrayInputStream(jsonObject.toString().getBytes("utf-8"));
+            ByteArrayInputStream bis;
+            if (encoded) {
+                bis= new ByteArrayInputStream(AESUtils.encrypt(SEED,jsonObject.toString()).getBytes("utf-8"));
+            }else
+            {
+                bis= new ByteArrayInputStream(jsonObject.toString().getBytes("utf-8"));
+            }
             byte[] buffer = new byte[1024];
             int c = 0;
             while ((c = bis.read(buffer, 0, buffer.length)) != -1) {
@@ -113,7 +129,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         return true;
     }
 
-    private static JSONObject loadJsonFromDisk(File file) {
+    private static JSONObject loadJsonFromDisk(File file,boolean encoded) throws BadPaddingException {
         if (file == null)
             return null;
         FileInputStream fileInputStream;
@@ -127,9 +143,16 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             }
             bos.close();
             fileInputStream.close();
-            JSONObject json = new JSONObject(bos.toString("utf-8"));
+            JSONObject json;
+            if (encoded)
+            {
+                json = new JSONObject(AESUtils.decrypt(FileUtils.SEED,bos.toString("utf-8")));
+            }else
+                json = new JSONObject(bos.toString("utf-8"));
             return json;
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
         return null;
@@ -139,7 +162,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         if (!new File(filePath).exists()) {
             boolean dirCreate = new File(filePath).mkdirs();
             if (!dirCreate) {
-                Log.v(MainFormActivity.MTTAG, "create file dirs failed");
+                Log.v(MainFormActivity.TAG, "create file dirs failed");
                 return null;
             }
         }
@@ -158,18 +181,17 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
     }
     public static List<CatalogueInfos> loadCatalogueFromDisk(String fileAbsoluteName)
     {
-        List<CatalogueInfos> lists  ;
+        List<CatalogueInfos> lists=null  ;
         File file = new File(fileAbsoluteName);
         lists = loadCatalogueFile(file);
-
         return lists;
     }
 
-    public static List<CatalogueInfos> loadCatalogue(String filePath) {
+    public static List<CatalogueInfos> loadCatalogue(String filePath)  {
 
 
         List<CatalogueInfos> mList ;
-        File file = new File(filePath + "/" + CATALOGUE_NEW_FILE_NAME);
+        File file = new File(filePath + "/" + CATALOGUE_NEW_FILE_NAME+SAVE_FILE_CATALOGUE_JSON_SUFFIX);
 
         if (file.exists()) {
             mList = loadCatalogueFile(file);
@@ -177,7 +199,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         }
         else {
             try {
-                file= new File(filePath + "/" + CATALOGUE_FILE_NAME);
+                file= new File(filePath + "/" + CATALOGUE_FILE_NAME+SAVE_FILE_CATALOGUE_JSON_SUFFIX);
                 if (!file.exists())
                 {
                     file.createNewFile();
@@ -195,7 +217,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         List<CatalogueInfos> mList = new ArrayList<>();
         JSONArray jsonArray=null;
         try {
-            JSONObject json = loadJsonFromDisk(file);
+            JSONObject json = loadJsonFromDisk(file,false);
             if (json==null)
             {
                 return mList;
@@ -218,17 +240,19 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
                 ea.printStackTrace();
             }
             e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
         }
         return mList;
     }
 
     public static boolean saveCatalogue(String filePath, List<CatalogueInfos> mList, boolean newFile,String fileName)  {
-        //此为保存到其他位置，另存为，并非加载储存在默认位置的目录
-        if (fileName.equals(""))
+        //此为判断是否保存到其他位置，另存为，并非加载储存在默认位置的目录
+        if (fileName.equals(""))//默认位置
         {
 
             if (newFile)
-            {//因为退出的时候会直接保存为加载之前的目录，覆盖掉加载后的目录文件
+            {//因为正常退出的时候会直接保存内存中即加载之前的目录（目录只是文件改变，内存中未改变）
                 fileName=CATALOGUE_NEW_FILE_NAME;
             }
             else{
@@ -238,7 +262,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         fileName = fileName + SAVE_FILE_CATALOGUE_JSON_SUFFIX;
         File file = createFile(fileName, filePath);
         if (file == null) {
-            Log.v(MainFormActivity.MTTAG, "saveCatalogue: file is null");
+            Log.v(MainFormActivity.TAG, "saveCatalogue: file is null");
             return false;
         }
         JSONObject json = new JSONObject();
@@ -257,7 +281,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         }
         try {
             json.put(CATALOGUE_JSON_NAME, jsonArray);
-            return saveJsonObjectToDisk(file, json);
+            return saveJsonObjectToDisk(file, json,false);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -266,11 +290,11 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
 
     public static String getFilePathFromContentUri(Context context, Uri selectedVideoUri) {
-        Log.v(MainFormActivity.MTTAG, "  uri=   " + selectedVideoUri.toString());
-        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getAuthority());
-        Log.v(MainFormActivity.MTTAG, "   path=  " + selectedVideoUri.getPath());
-        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getScheme());
-        Log.v(MainFormActivity.MTTAG, selectedVideoUri.getPathSegments().toString());
+        Log.v(MainFormActivity.TAG, "  uri=   " + selectedVideoUri.toString());
+        Log.v(MainFormActivity.TAG, selectedVideoUri.getAuthority());
+        Log.v(MainFormActivity.TAG, "   path=  " + selectedVideoUri.getPath());
+        Log.v(MainFormActivity.TAG, selectedVideoUri.getScheme());
+        Log.v(MainFormActivity.TAG, selectedVideoUri.getPathSegments().toString());
 
         String filePath;
         String authority = selectedVideoUri.getAuthority();
@@ -279,12 +303,12 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             String[] ls = Path.split(":");
             if (ls[0].contains("primary")) {
                 filePath = Environment.getExternalStorageDirectory() + "/" + ls[1];
-//                Log.v(MainFormActivity.MTTAG, filePath);
+//                Log.v(MainFormActivity.TAG, filePath);
                 return filePath;
             } else {
                 String s = ls[0].split("/")[2];
                 filePath = "/storage" + "/" + s + "/" + ls[1];
-//                Log.v(MainFormActivity.MTTAG, filePath);
+//                Log.v(MainFormActivity.TAG, filePath);
                 return filePath;
             }
         } else if (authority.equals("com.android.providers.media.documents")) {
@@ -296,7 +320,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             final String[] selectionArgs = new String[]{
                     split[1]
             };
-            Log.v(MainFormActivity.MTTAG, "id=" + split[1]);
+            Log.v(MainFormActivity.TAG, "id=" + split[1]);
             final String column = "_data";
             final String[] projection = {
                     column
@@ -319,7 +343,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
         int columnIndex = cursor.getColumnIndexOrThrow(filePathColumn[0]);
         String filePath = cursor.getString(columnIndex);
-        Log.v(MainFormActivity.MTTAG, "index " + columnIndex + "   filePath=  " + filePath);
+        Log.v(MainFormActivity.TAG, "index " + columnIndex + "   filePath=  " + filePath);
         cursor.close();
         return filePath;
     }

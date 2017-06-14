@@ -144,7 +144,7 @@ public class DBListInfoManager {
 
                 int order = cursor.getInt(orderIdIndex);
                 int id = cursor.getInt(idIndex);
-                Log.v(MainFormActivity.MTTAG, "db cancle delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
+                Log.v(MainFormActivity.TAG, "db cancle delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
                 ContentValues args = new ContentValues();
                 order = order + 1;
                 args.put(KEY_ORDERID, order);
@@ -164,10 +164,10 @@ public class DBListInfoManager {
         open();
         int result = mSQLiteDatabase.delete(DB_TABLE, KEY_ORDERID + "=" + orderID, null);
         if (result == 0) {
-            Log.v(MainFormActivity.MTTAG, "找不到orderid=" + orderID + "没有删除任何东西");
+            Log.v(MainFormActivity.TAG, "找不到orderid=" + orderID + "没有删除任何东西");
             return;
         }
-        Log.v(MainFormActivity.MTTAG, "删除orderid:" + orderID);
+        Log.v(MainFormActivity.TAG, "删除orderid:" + orderID);
         Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + ">=" + orderID, null, null, null, KEY_ORDERID);
         if (cursor.moveToFirst()) {
 
@@ -176,7 +176,7 @@ public class DBListInfoManager {
             while (!cursor.isAfterLast()) {
                 int order = cursor.getInt(orderIdIndex);
                 int id = cursor.getInt(idIndex);
-                Log.v(MainFormActivity.MTTAG, "db delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
+                Log.v(MainFormActivity.TAG, "db delete :" + orderID + " 查询到大于该orderid 的 orderid=" + order + "  id=" + id);
                 ContentValues args = new ContentValues();
                 order = order - 1;
                 args.put(KEY_ORDERID, order);
@@ -228,7 +228,7 @@ public class DBListInfoManager {
                     String datetime = cursor.getString(datetimeIndex);
                     int orderID = cursor.getInt(orderIdIndex);
                     String catalogue = cursor.getString(catalogueIndex);
-//                    Log.v(MTTAG, "GetData : content=" + content + "  catalogue=" + catalogue);
+//                    Log.v(TAG, "GetData : content=" + content + "  catalogue=" + catalogue);
                     ListData listData = new ListData(remark, content, datetime, orderID, catalogue);
                     mDatas.add(listData);
                     cursor.moveToNext();
@@ -243,7 +243,7 @@ public class DBListInfoManager {
 
     public boolean updateDataOrder(int OldOrderID, int newOrderId) {
         open();
-        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "   newid=" + newOrderId);
+        Log.v(MainFormActivity.TAG, "update: oldid=" + OldOrderID + "   newid=" + newOrderId);
         ContentValues args = new ContentValues();
         args.put(KEY_ORDERID, newOrderId);
         int count = mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID, null);
@@ -252,7 +252,7 @@ public class DBListInfoManager {
     }
 
     public boolean updateDataOrder(int OldOrderID, ListData newData) {
-        Log.v(MainFormActivity.MTTAG, "update: oldid=" + OldOrderID + "  newdata: orderid=" + newData.getOrderID() + "  catalogue=" + newData.getCatalogue());
+        Log.v(MainFormActivity.TAG, "update: oldid=" + OldOrderID + "  newdata: orderid=" + newData.getOrderID() + "  catalogue=" + newData.getCatalogue());
         ContentValues args = new ContentValues();
         args.put(KEY_DATETIME, newData.getCreateDate());
         args.put(KEY_CONTENT, newData.getContent());
@@ -283,7 +283,7 @@ public class DBListInfoManager {
     public void changeCatalogue(String oldCatalogue, String newCatalogue) {
         open();
         Cursor cursor = fetchAllDataByCatalogue(oldCatalogue);
-//        Log.v(MainFormActivity.MTTAG, "DB: oldCatalogue=" + oldCatalogue);
+//        Log.v(MainFormActivity.TAG, "DB: oldCatalogue=" + oldCatalogue);
         if (cursor.moveToFirst()) {
             int idIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ID);
             int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
@@ -293,7 +293,7 @@ public class DBListInfoManager {
                 ContentValues args = new ContentValues();
                 args.put(KEY_CATALOGUE, newCatalogue);
                 mSQLiteDatabase.update(DB_TABLE, args, KEY_ID + "=" + id, null);
-//                Log.v(MainFormActivity.MTTAG, "DB: oldCatalogue=" + oldCatalogue + "   newCatalogue=" + newCatalogue+"  content="+content);
+//                Log.v(MainFormActivity.TAG, "DB: oldCatalogue=" + oldCatalogue + "   newCatalogue=" + newCatalogue+"  content="+content);
                 cursor.moveToNext();
             }
         }

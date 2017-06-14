@@ -120,7 +120,7 @@ public class FragmentDiary extends FragmentEditAbstract {
         FragmentEditInfo fragmentEditInfo1 = FragmentEditInfo.newInstance(morningDiary, isEdit);
         FragmentEditInfo fragmentEditInfo2 = FragmentEditInfo.newInstance(afternoonDiary, isEdit);
         FragmentEditInfo fragmentEditInfo3 = FragmentEditInfo.newInstance(eveningDiary, isEdit);
-        Log.v(MainFormActivity.MTTAG, "    EditText  "+(fragmentEditInfo1.editInfo==fragmentEditInfo2.editInfo));
+        Log.v(MainFormActivity.TAG, "    EditText  "+(fragmentEditInfo1.editInfo==fragmentEditInfo2.editInfo));
         fragmentEditInfos.add(fragmentEditInfo1);
         fragmentEditInfos.add(fragmentEditInfo2);
         fragmentEditInfos.add(fragmentEditInfo3);
@@ -188,8 +188,8 @@ public class FragmentDiary extends FragmentEditAbstract {
         afternoonDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(1)).getString().replace("@#@", "*#*");
         eveningDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(2)).getString().replace("@#@", "*#*");
         str=morningDiary+"@#@"+afternoonDiary+"@#@"+eveningDiary;
-        Log.v(MainFormActivity.MTTAG, "getString called in FragmentDiary :morning= " + morningDiary);
-        Log.v(MainFormActivity.MTTAG, "getString called in FragmentDiary :afternoon= " + afternoonDiary);
+        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :morning= " + morningDiary);
+        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :afternoon= " + afternoonDiary);
         return str;
     }
 

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_test"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.yanghang.clipboard.TestActivity"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:layout_centerInParent="true"
+
+    >
+
+    <EditText
+        android:id="@+id/test_edit_origin"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:hint="原始字符"/>
+
+    <EditText
+        android:id="@+id/test_edit_encode"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_below="@+id/test_edit_origin"
+        android:hint="加密字符"
+        />
+
+    <EditText
+        android:id="@+id/test_edit_decode"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
+        android:layout_below="@+id/test_edit_encode"
+        android:hint="解密字符"/>
+
+    <Button
+        android:id="@+id/test_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/test_edit_decode"
+
+        android:text="测试" />
+</RelativeLayout>

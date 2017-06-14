@@ -66,7 +66,7 @@ public class MainFormActivity extends AppCompatActivity {
     private static final int MSG_FINISH_SORTING_DATA = 123;
     private static final String MSG_SORTING_DATA = "finish_sorting_listdata";
     public static boolean IsEdite = false;
-    public static String MTTAG = "nihao";
+    public static String TAG = "nihao";
     public static boolean IsDelete = false;
 
     DBListInfoManager DBListInfoManager;
@@ -102,7 +102,7 @@ public class MainFormActivity extends AppCompatActivity {
     SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextSubmit(final String query) {
-//            Log.v(MTTAG, "开始查询");
+//            Log.v(TAG, "开始查询");
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -255,7 +255,7 @@ public class MainFormActivity extends AppCompatActivity {
         listClipInfoAdapter.setOnItemClickListener(new ListClipInfoAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-//                Log.v(MTTAG, "ItemClick orderid=" + listClipInfoAdapter.getItemData(position).getOrderID());
+//                Log.v(TAG, "ItemClick orderid=" + listClipInfoAdapter.getItemData(position).getOrderID());
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
                 cm.setText(listDatas.get(position).getContent());
@@ -269,7 +269,7 @@ public class MainFormActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
-//                Log.v(MTTAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
+//                Log.v(TAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
                 return true;
             }
@@ -293,12 +293,12 @@ public class MainFormActivity extends AppCompatActivity {
     private void InitLeftDrawerView() {
         catalogueRecycler = (RecyclerView) findViewById(R.id.rv_catalogue);
         try {
-            catalogues = FileUtils.loadCatalogue(getApplicationContext().getFilesDir().getAbsolutePath());
+            catalogues = FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
 
         }
         catch (Exception e)
         {
-            catalogues = FileUtils.loadCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath());
+            catalogues = FileUtils.loadCatalogue(getExternalFilesDir(null).getAbsolutePath());
 
         }
         // 设置布局，否则无法正常使用
@@ -337,7 +337,7 @@ public class MainFormActivity extends AppCompatActivity {
                     }
                 }).start();
 
-//                Log.v(MTTAG, "ItemClick:  catalogue=" + catlogue);
+//                Log.v(TAG, "ItemClick:  catalogue=" + catlogue);
 
                 toolbar.setTitle(catalogueAdapter.getItem(position).getCatalogue());
                 currentCatalogue = catlogue;
@@ -348,7 +348,7 @@ public class MainFormActivity extends AppCompatActivity {
             @Override
             public boolean OnItemLongClick(View v, int position) {
                 String catlogue = catalogueAdapter.getItem(position).getCatalogue();
-//                Log.v(MTTAG, "ItemLongClick:  catalogue=" + catlogue);
+//                Log.v(TAG, "ItemLongClick:  catalogue=" + catlogue);
                 showPopWindow(catlogue);
                 return true;
             }
@@ -365,7 +365,7 @@ public class MainFormActivity extends AppCompatActivity {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
                     int pos = data.getIntExtra(LIST_DATA_POS, 0);
 //
-//                    Log.v(MTTAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
+//                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
                     listClipInfoAdapter.editItem(pos, listData);
                     DBListInfoManager.updateData(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
 
@@ -393,7 +393,7 @@ public class MainFormActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.add_info:
                 int orderid = DBListInfoManager.getDataCount();
-//                Log.v(MTTAG, "新建 orderid=" + orderid);
+//                Log.v(TAG, "新建 orderid=" + orderid);
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, new ListData("", "", orderid, currentCatalogue));
                 intent.putExtra(LIST_DATA_POS, -1);
@@ -529,7 +529,7 @@ public class MainFormActivity extends AppCompatActivity {
                     index = catalogueAdapter.indexOf(catalogueName);
                     if (index == -1)
                         return;
-//                    Log.v(MTTAG, "change catalogue: index" + index + "  catalogue=" + catalogueName);
+//                    Log.v(TAG, "change catalogue: index" + index + "  catalogue=" + catalogueName);
                     setCatalogueChanged(catalogueName, catalogueNewName);
                     catalogueAdapter.set(index, catalogueNewName);
                     catalogueAdapter.notifyItemChanged(index);

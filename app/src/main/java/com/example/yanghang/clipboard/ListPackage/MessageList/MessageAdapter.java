@@ -74,7 +74,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
-        Log.v(MainFormActivity.MTTAG, "onBind set text:" + mDatas.get(position).getMessageText());
+        Log.v(MainFormActivity.TAG, "onBind set text:" + mDatas.get(position).getMessageText());
         if (holder instanceof MessagePCHolder) {
             ((MessagePCHolder) holder).messageText.setText(mDatas.get(position).getMessageText());
             ((MessagePCHolder) holder).messageText.setOnClickListener(new View.OnClickListener() {
