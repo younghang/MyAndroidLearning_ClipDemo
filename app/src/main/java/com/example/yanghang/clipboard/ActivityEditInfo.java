@@ -19,6 +19,7 @@ import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentDiary;
 import com.example.yanghang.clipboard.Fragment.FragmentEditAbstract;
 import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
+import com.example.yanghang.clipboard.Fragment.FragmentToDo;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 
@@ -79,13 +80,23 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
         else
             isEdit = false;
 
+        String catalogueName=listData.getCatalogue();
+        notShowSpinner = true;
+        switch(catalogueName)
+        {
+            case "日记":
+                fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
+//                notShowSpinner=true;//不仅修改的时候不能出现，而且新建的时候也不能出现
+                break;
+            case "待办事项":
+                fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
+                break;
+            default:
+                fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
+                notShowSpinner=false;
 
-        if (!listData.getCatalogue().equals("日记")) {
-            fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
-        } else {
-            fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
-            notShowSpinner = true;
         }
+
 
         setFragment(fragment);
         editRemark = (EditText) findViewById(R.id.edit_remark);

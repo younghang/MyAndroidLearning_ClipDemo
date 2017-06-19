@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/corner_background"
+    android:background="@drawable/corner_background_dark"
     android:orientation="vertical">
 
     <EditText

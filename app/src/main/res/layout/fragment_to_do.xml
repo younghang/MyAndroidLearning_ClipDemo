@@ -1,0 +1,60 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.yanghang.clipboard.Fragment.FragmentToDo">
+
+    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginLeft="20dp"
+                android:text="2017-06-18"
+                android:id="@+id/fragment_todo_choose_date_tv"
+                android:textSize="20sp" />
+
+            <Switch
+                android:id="@+id/fragment_todo_finished_switch"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginLeft="40dp"
+                android:layout_marginRight="20dp"
+                android:textColor="@color/colorPrimary"
+                android:text="事项完成"
+                android:textSize="16sp"
+                android:paddingLeft="40dp"
+
+                  />
+
+        </LinearLayout>
+
+        <View
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="10dp"
+            android:background="@color/cardview_shadow_start_color"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp" />
+
+        <FrameLayout
+            android:id="@+id/fragment_todo_editInfo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </FrameLayout>
+
+
+    </LinearLayout>
+</FrameLayout>

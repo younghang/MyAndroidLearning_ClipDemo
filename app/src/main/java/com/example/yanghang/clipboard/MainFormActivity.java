@@ -6,9 +6,11 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -17,15 +19,18 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +40,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.PopupWindow;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
@@ -45,7 +52,11 @@ import com.example.yanghang.clipboard.ListPackage.CatalogueList.SimpleItemTouchH
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdapter;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
+import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,15 +68,17 @@ import permissions.dispatcher.PermissionRequest;
 import permissions.dispatcher.RuntimePermissions;
 
 @RuntimePermissions
-public class MainFormActivity extends AppCompatActivity {
+public class MainFormActivity extends AppCompatActivity implements ListClipInfoAdapter.IonSlidingViewClickListener {
 
-    private static final String DONT_ASK_AGAIN="dont_ask_again";
+    private static final String DONT_ASK_AGAIN = "dont_ask_again";
     public static final int REQUEST_TEXT_EDITE_BACK = 0;
     public static final String LIST_DATA = "listdataToEdite";
     public static final String LIST_DATA_POS = "listdataToEditePos";
     private static final int MSG_FINISH_SORTING_DATA = 123;
-    private static final String MSG_SORTING_DATA = "finish_sorting_listdata";
+    private static final String MSG_SEARCH_DATA = "finish_sorting_listdata";
+    private static final int MSG_FINISH_CHECK_TODO_DATA = 456;
     public static boolean IsEdite = false;
+
     public static String TAG = "nihao";
     public static boolean IsDelete = false;
 
@@ -83,11 +96,12 @@ public class MainFormActivity extends AppCompatActivity {
     private CatalogueAdapter catalogueAdapter;
     private DrawerLayout mDrawerLayout;
     private List<ListData> listDatas;
+    private String messageToDoList;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            int msgLoading = msg.getData().getInt(MSG_SORTING_DATA);
+            int msgLoading = msg.getData().getInt(MSG_SEARCH_DATA);
             switch (msgLoading) {
                 case MSG_FINISH_SORTING_DATA:
                     refreshLayout.setRefreshing(false);
@@ -95,6 +109,29 @@ public class MainFormActivity extends AppCompatActivity {
                     listClipInfoAdapter.notifyDataSetChanged();
                     recyclerView.setLayoutManager(new LinearLayoutManager(MainFormActivity.this, LinearLayoutManager.VERTICAL, false)); // 设置布局，否则无法正常使用
                     recyclerView.setAdapter(listClipInfoAdapter);
+                    break;
+                case MSG_FINISH_CHECK_TODO_DATA:
+                    View view = LayoutInflater.from(MainFormActivity.this.getApplicationContext()).inflate(R.layout.loading, null);
+                    final EditText editText = (EditText) view.findViewById(R.id.loadingEditText);
+                    final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
+
+                    final AlertDialog loadingDialog = new AlertDialog.Builder(MainFormActivity.this).setView(view)
+                            .setTitle("待办事项").create();
+
+                    editText.setText(MainFormActivity.this.messageToDoList);
+                    editText.setKeyListener(null);
+                    editText.setBackground(null);
+                    editText.setSingleLine(false);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        editText.setTextColor(getColor(R.color.message_text));
+                    } else {
+                        editText.setTextColor(getResources().getColor(R.color.message_text));
+                    }
+                    editText.setTextSize(18);
+                    progress.setVisibility(View.INVISIBLE);
+                    if (messageToDoList.trim().equals(""))
+                        return;
+                    loadingDialog.show();
                     break;
             }
         }
@@ -109,7 +146,7 @@ public class MainFormActivity extends AppCompatActivity {
                     listDatas = DBListInfoManager.searchData(query);
                     Message msg = new Message();
                     Bundle data = new Bundle();
-                    data.putInt(MSG_SORTING_DATA, MSG_FINISH_SORTING_DATA);
+                    data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
                     msg.setData(data);
                     handler.sendMessage(msg);
                 }
@@ -137,7 +174,7 @@ public class MainFormActivity extends AppCompatActivity {
 //    private Cursor cursor;
     private List<String> mCatalogue;
     private String currentCatalogue = "";
-    private String currentCatalogueDetail="";
+    private String currentCatalogueDetail = "";
     private PopupWindow popupWindow;
 
     //    private DaoSession session;
@@ -164,21 +201,7 @@ public class MainFormActivity extends AppCompatActivity {
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle("ClipBoard");
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(MainFormActivity.this)
-                        .setTitle("目录说明").setMessage(currentCatalogueDetail)
-                        .setPositiveButton("修改", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                showCatalogueAlter();
-                            }
-                        })
-                        .setNegativeButton("取消",null)
-                        .create().show();
-            }
-        });
+
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -193,10 +216,10 @@ public class MainFormActivity extends AppCompatActivity {
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
+                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
                 if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                         || !Environment.isExternalStorageRemovable()) {
-                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
+                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
                 }
             }
 
@@ -210,7 +233,7 @@ public class MainFormActivity extends AppCompatActivity {
         mDrawerToggle.syncState();
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-
+//不是兼容包
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -242,10 +265,10 @@ public class MainFormActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                listDatas  = DBListInfoManager.getDatas("");
+                listDatas = DBListInfoManager.getDatas("");
                 Message msg = new Message();
                 Bundle data = new Bundle();
-                data.putInt(MSG_SORTING_DATA, MSG_FINISH_SORTING_DATA);
+                data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
                 msg.setData(data);
                 handler.sendMessage(msg);
             }
@@ -275,6 +298,7 @@ public class MainFormActivity extends AppCompatActivity {
             }
         });
         recyclerView.setAdapter(listClipInfoAdapter);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
         new ItemTouchHelper(new MyItemTouchHelperCallBack(recyclerView, listClipInfoAdapter, DBListInfoManager))
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
@@ -284,8 +308,18 @@ public class MainFormActivity extends AppCompatActivity {
             public void run() {
                 InitLeftDrawerView();
             }
-        },1000);
-
+        }, 300);
+        new TaskShowToDoList(MainFormActivity.this, new TaskShowToDoList.IShowToDoList() {
+            @Override
+            public void showToDoList(String messageToDoList) {
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                MainFormActivity.this.messageToDoList=messageToDoList;
+                data.putInt(MSG_SEARCH_DATA, MSG_FINISH_CHECK_TODO_DATA);
+                msg.setData(data);
+                handler.sendMessage(msg);
+            }
+        }).runToDoListCheck();
 
 
     }
@@ -295,9 +329,7 @@ public class MainFormActivity extends AppCompatActivity {
         try {
             catalogues = FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
 
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             catalogues = FileUtils.loadCatalogue(getExternalFilesDir(null).getAbsolutePath());
 
         }
@@ -306,7 +338,7 @@ public class MainFormActivity extends AppCompatActivity {
 
         catalogueAdapter = new CatalogueAdapter(catalogues, MainFormActivity.this);
         if (!catalogueAdapter.contains("default")) {
-             catalogueAdapter.addItem(new CatalogueInfos("default",""));
+            catalogueAdapter.addItem(new CatalogueInfos("default", ""));
         }
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdapter);
 
@@ -330,7 +362,7 @@ public class MainFormActivity extends AppCompatActivity {
                         listDatas = DBListInfoManager.getDatas(catlogue);
                         Message msg = new Message();
                         Bundle data = new Bundle();
-                        data.putInt(MSG_SORTING_DATA, MSG_FINISH_SORTING_DATA);
+                        data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
                         msg.setData(data);
                         handler.sendMessage(msg);
 
@@ -341,7 +373,7 @@ public class MainFormActivity extends AppCompatActivity {
 
                 toolbar.setTitle(catalogueAdapter.getItem(position).getCatalogue());
                 currentCatalogue = catlogue;
-                currentCatalogueDetail=catalogueAdapter.getItem(position).getCatalogueDescription();
+                currentCatalogueDetail = catalogueAdapter.getItem(position).getCatalogueDescription();
                 mDrawerLayout.closeDrawer(Gravity.LEFT);
             }
 
@@ -406,13 +438,19 @@ public class MainFormActivity extends AppCompatActivity {
                 else
                     item.setIcon(R.drawable.ic_edit_white_24dp);
                 break;
-            case R.id.del_info:
+            case R.id.about_info:
                 IsDelete = !IsDelete;
-                if (IsDelete)
-                    item.setIcon(R.drawable.ic_delete_active_24dp);
-                else
-                    item.setIcon(R.drawable.ic_delete_inactive_24dp);
-                break;
+                new AlertDialog.Builder(MainFormActivity.this)
+                        .setTitle("目录说明").setMessage(currentCatalogueDetail)
+                        .setPositiveButton("修改", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                showCatalogueAlter();
+                            }
+                        })
+                        .setNegativeButton("取消", null)
+                        .create().show();
+
             case R.id.menu_main_search:
                 break;
             case R.id.add_catalogue:
@@ -429,13 +467,12 @@ public class MainFormActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+
     private void showCatalogueAlter() {
         View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.dialog_modify_catalogue, null);
         final EditText edCatalogueName = (EditText) view.findViewById(R.id.dialogue_catalogue_name);
-        final EditText edCatalogueDescription= ((EditText) view.findViewById(R.id.dialogue_catalogue_description));
-        edCatalogueDescription.setText(currentCatalogueDetail);
-        edCatalogueDescription.setHint("目录详情");
-        edCatalogueName.setText(currentCatalogue);
+        final EditText edCatalogueDescription = ((EditText) view.findViewById(R.id.dialogue_catalogue_description));
+
         AlertDialog alertDialog = new AlertDialog.Builder(MainFormActivity.this)
                 .setTitle("修改目录")
                 .setView(view)
@@ -443,17 +480,25 @@ public class MainFormActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         String description = edCatalogueDescription.getText().toString();
-                         String name=edCatalogueName.getText().toString();
-                        catalogueAdapter.set(catalogueAdapter.indexOf(currentCatalogue),new CatalogueInfos(name,description));
-                        currentCatalogueDetail=description;
-                        setCatalogueChanged(currentCatalogue , name);
-                        currentCatalogue=name;
+                        String name = edCatalogueName.getText().toString();
+                        catalogueAdapter.set(catalogueAdapter.indexOf(currentCatalogue), new CatalogueInfos(name, description));
+                        currentCatalogueDetail = description;
+                        setCatalogueChanged(currentCatalogue, name);
+                        currentCatalogue = name;
                         toolbar.setTitle(currentCatalogue);
                     }
                 })
                 .setNegativeButton("取消", null)
                 .create();
+
+
+        edCatalogueName.setText(currentCatalogue);
         alertDialog.show();
+        if (currentCatalogueDetail.equals("")) {
+            edCatalogueDescription.setHint("目录描述");
+            Log.d(TAG, "showCatalogueAlter: catalogueDescriptionDetail=empty");
+        } else
+            edCatalogueDescription.setText(currentCatalogueDetail);
     }
 
     @Override
@@ -463,7 +508,7 @@ public class MainFormActivity extends AppCompatActivity {
         menu.findItem(R.id.settings).setVisible(isSettingShow);
         menu.findItem(R.id.add_info).setVisible(!isSettingShow);
 //        if (currentCatalogue.equals(""))
-        menu.findItem(R.id.del_info).setVisible(!isSettingShow);
+        menu.findItem(R.id.about_info).setVisible(!isSettingShow);
 //        else {
 //            menu.findItem(R.id.del_info).setVisible(false);
 //            IsDelete = false;
@@ -482,6 +527,18 @@ public class MainFormActivity extends AppCompatActivity {
         if (searchView != null) {
 //            Toast.makeText(MainFormActivity.this, "null searchview", Toast.LENGTH_SHORT).show();
             searchView.setOnQueryTextListener(onQueryTextListener);
+            SearchView.SearchAutoComplete textView = (SearchView.SearchAutoComplete) searchView
+                    .findViewById(
+                            android.support.v7.appcompat.R.id.search_src_text
+                    );
+            textView.setTextColor(Color.WHITE);
+            try {
+                Field mCursorDrawableRes=TextView.class.getDeclaredField("mCursorDrawableRes");
+                mCursorDrawableRes.setAccessible(true);
+                mCursorDrawableRes.set(textView, R.drawable.cursor_color);
+            } catch (Exception e){
+
+            }
         }
 
         return super.onCreateOptionsMenu(menu);
@@ -516,13 +573,13 @@ public class MainFormActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String catalogueNewName = editText.getText().toString();
-                if (catalogueAdapter.contains(catalogueNewName) ) {
+                if (catalogueAdapter.contains(catalogueNewName)) {
                     Toast.makeText(MainFormActivity.this, catalogueNewName + "已经存在", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 //新建目录
                 if (catalogueName.equals("")) {
-                    catalogueAdapter.addItem(new CatalogueInfos(catalogueNewName,""));
+                    catalogueAdapter.addItem(new CatalogueInfos(catalogueNewName, ""));
 
                 } else {
                     int index = 0;
@@ -533,7 +590,7 @@ public class MainFormActivity extends AppCompatActivity {
                     setCatalogueChanged(catalogueName, catalogueNewName);
                     catalogueAdapter.set(index, catalogueNewName);
                     catalogueAdapter.notifyItemChanged(index);
-                    currentCatalogue=catalogueNewName;
+                    currentCatalogue = catalogueNewName;
                     toolbar.setTitle(currentCatalogue);
                 }
                 popupWindow.dismiss();
@@ -563,10 +620,10 @@ public class MainFormActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
+        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
                 || !Environment.isExternalStorageRemovable()) {
-            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(),false,"");
+            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
         }
     }
 
@@ -580,7 +637,7 @@ public class MainFormActivity extends AppCompatActivity {
      * 申请全局都需要的权限,如读写权限,这些权限是进入app就需要的,拒绝则警告用户程序可能会崩溃
      */
     private void initGlobalPer() {
-         MainFormActivityPermissionsDispatcher.sucessWithCheck(this);
+        MainFormActivityPermissionsDispatcher.sucessWithCheck(this);
     }
 
     @Override
@@ -602,12 +659,13 @@ public class MainFormActivity extends AppCompatActivity {
 
     @OnPermissionDenied(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     void onCameraDenied() {//被拒绝
-        Toast.makeText(MainFormActivity.this,"您拒绝了权限，可能会导致该应用内部发生错误,请尽快授权",Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainFormActivity.this, "您拒绝了权限，可能会导致该应用内部发生错误,请尽快授权", Toast.LENGTH_SHORT).show();
     }
 
     @OnNeverAskAgain(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     void onCameraNeverAskAgain() {//被拒绝并且勾选了不再提醒
-        if (!  PreferenceManager.getDefaultSharedPreferences(MainFormActivity.this).getBoolean(DONT_ASK_AGAIN, false) ) AskForPermission();
+        if (!PreferenceManager.getDefaultSharedPreferences(MainFormActivity.this).getBoolean(DONT_ASK_AGAIN, false))
+            AskForPermission();
     }
 
     /**
@@ -641,7 +699,7 @@ public class MainFormActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        Toast.makeText(MainFormActivity.this,"您拒绝了权限，可能会导致该应用无法使用,请尽快授权",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainFormActivity.this, "您拒绝了权限，可能会导致该应用无法使用,请尽快授权", Toast.LENGTH_SHORT).show();
 
                     }
                 })
@@ -649,7 +707,7 @@ public class MainFormActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         PreferenceManager.getDefaultSharedPreferences(MainFormActivity.this).edit().putBoolean(DONT_ASK_AGAIN, true).commit();
-                        Toast.makeText(MainFormActivity.this,"将不再提醒请求基础权限,建议尽快授权",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainFormActivity.this, "将不再提醒请求基础权限,建议尽快授权", Toast.LENGTH_SHORT).show();
 
                     }
                 }).setPositiveButton("设置", new DialogInterface.OnClickListener() {
@@ -660,6 +718,27 @@ public class MainFormActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }).create().show();
+    }
+
+    @Override
+    public void onDeleteBtnCilck(View view, int position) {
+
+        // 将数据集中的数据移除
+        final int pos = position;
+        ListData listDatatemp = listClipInfoAdapter.getItemData(pos);
+        final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
+
+        listClipInfoAdapter.deleteItem(pos);
+        DBListInfoManager.deleteDataByOrderID(listData.getOrderID());
+        Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listClipInfoAdapter.addItem(listData, pos);
+
+                DBListInfoManager.cancelDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+
+            }
+        }).setDuration(Snackbar.LENGTH_LONG).show();
     }
 /*<========================================================================================>*/
 

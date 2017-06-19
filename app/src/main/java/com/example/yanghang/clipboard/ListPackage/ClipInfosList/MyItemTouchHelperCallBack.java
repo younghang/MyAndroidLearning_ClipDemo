@@ -11,6 +11,7 @@ import android.view.animation.DecelerateInterpolator;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.R;
+import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdapter.ClipInfoViewHolder;
 
 import java.util.Collections;
 
@@ -48,8 +49,8 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
         int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
         // 滑动的标记，这里允许左右滑动
         int swipeFlags = 0;
-        if (MainFormActivity.IsDelete)
-            swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+//        if (MainFormActivity.IsDelete)
+//            swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
         return makeMovementFlags(dragFlags, swipeFlags);
 
     }
@@ -102,21 +103,21 @@ public class MyItemTouchHelperCallBack extends ItemTouchHelper.Callback {
     @Override
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
         // 将数据集中的数据移除
-        final int pos = viewHolder.getLayoutPosition();
-        ListData listDatatemp = messageAdapter.getItemData(pos);
-        final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
-
-        messageAdapter.deleteItem(pos);
-        DBListInfoManager.deleteDataByOrderID(listData.getOrderID());
-        Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                messageAdapter.addItem(listData, pos);
-
-                DBListInfoManager.cancelDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
-
-            }
-        }).setDuration(Snackbar.LENGTH_LONG).show();
+//        final int pos = viewHolder.getLayoutPosition();
+//        ListData listDatatemp = messageAdapter.getItemData(pos);
+//        final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
+//
+//        messageAdapter.deleteItem(pos);
+//        DBListInfoManager.deleteDataByOrderID(listData.getOrderID());
+//        Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                messageAdapter.addItem(listData, pos);
+//
+//                DBListInfoManager.cancelDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+//
+//            }
+//        }).setDuration(Snackbar.LENGTH_LONG).show();
     }
 
     /*

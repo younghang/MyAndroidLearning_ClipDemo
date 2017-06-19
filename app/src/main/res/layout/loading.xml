@@ -25,6 +25,12 @@
         android:layout_width="100dp"
         android:id="@+id/loadingProgressBar"
         android:layout_height="100dp" />
+    <ScrollView
+
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:focusable="false"
+        >
     <EditText
 
         android:layout_margin="15dp"
@@ -40,5 +46,6 @@
         android:focusableInTouchMode="true"
         android:scrollbars = "vertical|horizontal"
         android:textSize="20dp"/>
+    </ScrollView>
 </FrameLayout>
 </LinearLayout>

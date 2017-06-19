@@ -162,6 +162,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
     public static class AboutPreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener {
         private Preference deleteFilePreference;
         private Preference logFilePreference;
+        private Preference specialCataloguePreference;
         AlertDialog loadingDialog;
         File file;
 
@@ -172,8 +173,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             file = new File(getActivity().getCacheDir().getAbsolutePath() + CrashHandler.FileName);
             deleteFilePreference = findPreference("setting_about_delete_data_file");
             logFilePreference = findPreference("setting_about_log_file");
+            specialCataloguePreference = findPreference("setting_about_special_catalogue");
+
             deleteFilePreference.setOnPreferenceClickListener(this);
             logFilePreference.setOnPreferenceClickListener(this);
+            specialCataloguePreference.setOnPreferenceClickListener(this);
 
             logFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(file.getAbsolutePath()));
             deleteFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath()));
@@ -190,7 +194,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 showLogFileDialog();
                 return true;
             }
+            if (preference == specialCataloguePreference) {
+                showSpecialCatalogueNames();
+            }
             return false;
+        }
+
+        private void showSpecialCatalogueNames() {
+            new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称")
+                    .setMessage("日记， 待办事项 ").setCancelable(true).show();
         }
 
         private void showLogFileDialog() {
@@ -228,6 +240,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             editText.setText(sb.toString());
             editText.setKeyListener(null);
             editText.setBackground(null);
+            editText.setSingleLine(false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 editText.setTextColor(getActivity().getColor(R.color.message_text));
             } else {

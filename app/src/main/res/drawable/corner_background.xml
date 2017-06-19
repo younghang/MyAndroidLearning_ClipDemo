@@ -1,16 +1,16 @@
-<?xml version="1.0" encoding="utf-8"?><!-- 带圆角 白色背景 灰色边框 长方体 -->
+<?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
+    <!-- 灰色阴影 -->
+     <!-- 白色前景 -->
+    <item
+        android:bottom="4dp"
+        android:right="2dp">
         <shape>
-            <solid android:color="@color/light_gray" />
-            <corners
-                android:bottomLeftRadius="5dp"
-                android:bottomRightRadius="5dp"
-                android:topLeftRadius="5dp"
-                android:topRightRadius="5dp" />
-
-
+            <solid android:color="@color/white"/>
+            <corners android:radius="20dp" />
         </shape>
     </item>
+
+
 
 </layer-list>

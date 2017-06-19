@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
- 
+
     compileSdkVersion 24
     buildToolsVersion '24.0.3'
- 
+
 
     defaultConfig {
         applicationId "com.example.yanghang.clipboard"
@@ -19,7 +19,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile 'com.android.support:design:24.2.1'
     compile 'com.android.support:recyclerview-v7:24.2.1'
@@ -27,6 +26,7 @@ dependencies {
     compile 'com.android.support:support-v4:24.2.1'
     compile 'com.alibaba:fastjson:1.2.21'
     compile 'com.github.hotchemi:permissionsdispatcher:2.3.1'
-    annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.3.1'
     compile 'org.bouncycastle:bcprov-jdk15on:1.57'
+    testCompile 'junit:junit:4.12'
+    annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.3.1'
 }

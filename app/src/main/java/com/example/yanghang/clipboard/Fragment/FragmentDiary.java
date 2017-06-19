@@ -30,15 +30,13 @@ import java.util.List;
 public class FragmentDiary extends FragmentEditAbstract {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_INFO = "information";
-    private static final String ARG_EDIT = "isedit";
+
     String morningDiary;
     String afternoonDiary;
     String eveningDiary;
     private View mView;
     // TODO: Rename and change types of parameters
-    private String infoEdit;
-    private boolean isEdit = false;
+
     TabLayout mTabLayout;
     ViewPager mViewPager;
     List<FragmentEditInfo> fragmentEditInfos = new ArrayList<FragmentEditInfo>();
@@ -58,10 +56,7 @@ public class FragmentDiary extends FragmentEditAbstract {
     // TODO: Rename and change types and number of parameters
     public static FragmentDiary newInstance(String information, boolean isEdit) {
         FragmentDiary fragment = new FragmentDiary();
-        Bundle args = new Bundle();
-        args.putString(ARG_INFO, information);
-        args.putBoolean(ARG_EDIT, isEdit);
-        fragment.setArguments(args);
+        newInstance(fragment, information, isEdit);
         return fragment;
     }
 
@@ -73,10 +68,7 @@ public class FragmentDiary extends FragmentEditAbstract {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            infoEdit = getArguments().getString(ARG_INFO);
-            isEdit = getArguments().getBoolean(ARG_EDIT);
-        }
+        onICreate();
     }
 
     @Override
@@ -120,7 +112,7 @@ public class FragmentDiary extends FragmentEditAbstract {
         FragmentEditInfo fragmentEditInfo1 = FragmentEditInfo.newInstance(morningDiary, isEdit);
         FragmentEditInfo fragmentEditInfo2 = FragmentEditInfo.newInstance(afternoonDiary, isEdit);
         FragmentEditInfo fragmentEditInfo3 = FragmentEditInfo.newInstance(eveningDiary, isEdit);
-        Log.v(MainFormActivity.TAG, "    EditText  "+(fragmentEditInfo1.editInfo==fragmentEditInfo2.editInfo));
+//        Log.v(MainFormActivity.TAG, "    EditText  "+(fragmentEditInfo1.editInfo==fragmentEditInfo2.editInfo));
         fragmentEditInfos.add(fragmentEditInfo1);
         fragmentEditInfos.add(fragmentEditInfo2);
         fragmentEditInfos.add(fragmentEditInfo3);
@@ -188,8 +180,8 @@ public class FragmentDiary extends FragmentEditAbstract {
         afternoonDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(1)).getString().replace("@#@", "*#*");
         eveningDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(2)).getString().replace("@#@", "*#*");
         str=morningDiary+"@#@"+afternoonDiary+"@#@"+eveningDiary;
-        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :morning= " + morningDiary);
-        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :afternoon= " + afternoonDiary);
+//        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :morning= " + morningDiary);
+//        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :afternoon= " + afternoonDiary);
         return str;
     }
 

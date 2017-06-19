@@ -27,16 +27,12 @@ import com.example.yanghang.clipboard.R;
  * create an instance of this fragment.
  */
 public class FragmentEditInfo extends FragmentEditAbstract {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_INFO = "information";
-    private static final String ARG_EDIT = "isedit";
 
-    // TODO: Rename and change types of parameters
-    private String infoEdit;
+
+
     EditText editInfo;
     PerformEdit mPerformEdit;
-    private boolean isEdit = false;
+
     private OnFragmentInteractionListener mListener;
 
     //very important
@@ -54,10 +50,7 @@ public class FragmentEditInfo extends FragmentEditAbstract {
     // TODO: Rename and change types and number of parameters
     public static FragmentEditInfo newInstance(String information, boolean isEdit) {
         FragmentEditInfo fragment = new FragmentEditInfo();
-        Bundle args = new Bundle();
-        args.putString(ARG_INFO, information);
-        args.putBoolean(ARG_EDIT, isEdit);
-        fragment.setArguments(args);
+        newInstance(fragment, information, isEdit);
         return fragment;
     }
 
@@ -70,10 +63,7 @@ public class FragmentEditInfo extends FragmentEditAbstract {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            infoEdit = getArguments().getString(ARG_INFO);
-            isEdit = getArguments().getBoolean(ARG_EDIT);
-        }
+        onICreate();
     }
 
     @Override

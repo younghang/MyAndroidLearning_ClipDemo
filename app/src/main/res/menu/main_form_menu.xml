@@ -4,10 +4,10 @@
     tools:context=".MainActivity" >
 
     <item
-        android:id="@+id/del_info"
-        android:icon="@drawable/ic_delete_inactive_24dp"
+        android:id="@+id/about_info"
+        android:icon="@drawable/ic_bookmark_border_white_24dp"
         android:orderInCategory="80"
-        android:title="删除"
+        android:title="详情"
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/add_info"
@@ -27,7 +27,7 @@
         android:orderInCategory="86"
         android:title="搜索"
         app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/add_catalogue"
         android:icon="@drawable/ic_add_white_24dp"

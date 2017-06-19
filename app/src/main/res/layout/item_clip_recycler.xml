@@ -1,63 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.example.yanghang.clipboard.OthersView.SlidingButtonView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/messageCardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
-    android:clickable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:minHeight="80dp"
-    app:cardElevation="1dp">
+
+   >
 
     <RelativeLayout
-
-        android:id="@+id/layout_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/tv_Message"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_marginBottom="15dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="5dp"
-            android:ellipsize="end"
-            android:maxLines="8"
-            android:text="内容"
-            android:textColor="@color/message_text"
-            android:textSize="18sp" />
-
-        <com.example.yanghang.clipboard.ListPackage.ClipInfosList.AlwaysMarqueeTextView
-            android:id="@+id/tv_Remarks"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tv_Message"
-
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="100dp"
-            android:ellipsize="marquee"
-            android:singleLine="true"
-            android:text="备注"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/tv_infoDate"
+            android:layout_marginTop="8dp"
+            android:id="@+id/tv_delete"
             android:layout_width="100dp"
+            android:minHeight="80dp"
+            android:layout_height="match_parent"
+            android:layout_toRightOf="@+id/item_clip_layout_main_content"
+            android:background="@color/red"
+            android:gravity="center"
+            android:text="删 除"
+            android:textSize="18sp"
+            android:textColor="#DDFFFFFF" />
+    <RelativeLayout
+        android:id="@+id/item_clip_layout_main_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <android.support.v7.widget.CardView
+            android:id="@+id/messageCardView"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_below="@+id/tv_Message"
-            android:layout_marginBottom="5dp"
-            android:layout_marginRight="5dp"
-            android:gravity="right"
-            android:hint="2016-11-23"
-            android:textSize="12sp" />
+            android:layout_marginTop="8dp"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:minHeight="80dp"
+            app:cardElevation="2dp">
+
+            <RelativeLayout
+
+                android:id="@+id/layout_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tv_Message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginBottom="15dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginTop="5dp"
+                    android:ellipsize="end"
+                    android:maxLines="8"
+                    android:text="内容"
+                    android:textColor="@color/message_text"
+                    android:textSize="18sp" />
+
+                <com.example.yanghang.clipboard.ListPackage.ClipInfosList.AlwaysMarqueeTextView
+                    android:id="@+id/tv_Remarks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/tv_Message"
+
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="100dp"
+                    android:ellipsize="marquee"
+                    android:singleLine="true"
+                    android:text="备注"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tv_infoDate"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_below="@+id/tv_Message"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginRight="5dp"
+                    android:gravity="right"
+                    android:hint="2016-11-23"
+                    android:textSize="12sp" />
+            </RelativeLayout>
+
+
+        </android.support.v7.widget.CardView>
+    </RelativeLayout>
     </RelativeLayout>
 
-
-</android.support.v7.widget.CardView>
+</com.example.yanghang.clipboard.OthersView.SlidingButtonView>

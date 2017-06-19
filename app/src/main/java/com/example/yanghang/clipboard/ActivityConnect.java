@@ -77,6 +77,7 @@ public class ActivityConnect extends SwipeBackActivity {
     void Initial() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.connect_toolbar);
         toolbar.setTitle("ConnectPC");
+        toolbar.setTitleTextColor(getColor(R.color.white));
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -128,6 +129,8 @@ public class ActivityConnect extends SwipeBackActivity {
             @Override
             public void onClick(View v) {
                 progressBar.setVisibility(View.VISIBLE);
+
+                btnConnect.setBackground(getDrawable(R.drawable.corner_background_green_dark));
                 btnConnect.setEnabled(false);
                 tvProgressInfo.setText("连接发送中");
                 ConnectThread connectThread=new ConnectThread(onConnect);
