@@ -18,22 +18,13 @@ import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.OthersView.PerformEdit;
 import com.example.yanghang.clipboard.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link FragmentEditInfo.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link FragmentEditInfo#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class FragmentEditInfo extends FragmentEditAbstract {
 
 
 
     EditText editInfo;
     PerformEdit mPerformEdit;
-
-    private OnFragmentInteractionListener mListener;
 
     //very important
     private View mView;
@@ -86,40 +77,30 @@ public class FragmentEditInfo extends FragmentEditAbstract {
                 super.onTextChanged(s);
             }
         };
-        editInfo.requestFocus();
 
-
-//        editInfo.setFocusableInTouchMode(isEdit);
-//        editInfo.setKeyListener(null);
-//        editInfo.setFocusable(isEdit);
-
-        if (!isEdit)
+        if (!isEdit)//修改的时候
         {
             keyListener=editInfo.getKeyListener();
             inputType=editInfo.getInputType();
 
             editInfo.setKeyListener(null);
         }
+        else {//新建的时候
+            editInfo.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    editInfo.requestFocus();
+                    InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.showSoftInput(editInfo, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                }
+            });
+            editInfo.requestFocus();
+
+        }
         editInfo.setText(infoEdit);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
     public void undo()
     {
         mPerformEdit.undo();
@@ -131,11 +112,11 @@ public class FragmentEditInfo extends FragmentEditAbstract {
     public String getString()
     {
         String info=editInfo.getText().toString();
-        Log.v(MainFormActivity.TAG, "getString called in FragmentEditInfo :"+info);
+//        Log.v(MainFormActivity.TAG, "getString called in FragmentEditInfo :"+info);
         return info;
     }
     public void enableEdit() {
-        Log.v(MainFormActivity.TAG, "enableEdit called in FragmentEditInfo");
+//        Log.v(MainFormActivity.TAG, "enableEdit called in FragmentEditInfo");
 
         editInfo.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,6 +124,7 @@ public class FragmentEditInfo extends FragmentEditAbstract {
 //                Log.v(MainFormActivity.TAG, "EditInfo Activity EditText click");
                 editInfo.requestFocus();
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                //用HIDE_IMPLICIT_ONLY当Activity退出的时候，会自动收起键盘，SHOW_FORCED 不会
                 imm.showSoftInput(editInfo, InputMethodManager.HIDE_IMPLICIT_ONLY);
             }
         });
@@ -156,7 +138,6 @@ public class FragmentEditInfo extends FragmentEditAbstract {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
     @Override
     public void setMenuVisibility(boolean menuVisible) {
@@ -165,19 +146,6 @@ public class FragmentEditInfo extends FragmentEditAbstract {
             this.getView().setVisibility(menuVisible ? View.VISIBLE : View.GONE);
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
+
 
 }

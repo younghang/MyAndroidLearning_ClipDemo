@@ -5,11 +5,18 @@ package com.example.yanghang.clipboard.Fragment.JsonData;
  */
 
 public class ToDoData {
+    public ToDoData(String content, String endTime, boolean isFinished, boolean isCurrentDay) {
+        this.content = content;
+        this.endTime = endTime;
+        this.isFinished = isFinished;
+        this.isCurrentDay = isCurrentDay;
+    }
     public ToDoData(boolean isFinished, String content, String endTime) {
         this.isFinished = isFinished;
         this.content = content;
         this.endTime = endTime;
     }
+
     public ToDoData()
     {
 
@@ -31,6 +38,13 @@ public class ToDoData {
         this.endTime = endTime;
     }
 
+    public boolean isCurrentDay() {
+        return isCurrentDay;
+    }
+
+    public void setCurrentDay(boolean currentDay) {
+        isCurrentDay = currentDay;
+    }
 
     public boolean isFinished() {
         return isFinished;
@@ -43,6 +57,8 @@ public class ToDoData {
     private String content;
     private String endTime;
     private boolean isFinished;
+    //是否仅当日显示
+    private boolean isCurrentDay;
 
 }
 

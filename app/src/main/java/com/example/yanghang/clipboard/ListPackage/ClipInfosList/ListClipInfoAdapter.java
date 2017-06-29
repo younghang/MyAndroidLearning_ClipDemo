@@ -56,49 +56,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
     public void onBindViewHolder(final ClipInfoViewHolder holder, final int position) {
         String strMessage="";
         String catalogueName=mDatas.get(position).getCatalogue();
-
-        switch(catalogueName)
-        {
-            case "日记":
-                strMessage=mDatas.get(position).getContent().replaceAll("@#@","||");
-
-                break;
-            case "待办事项":
-                strMessage=mDatas.get(position).getContent();
-                String endDate="";
-                ToDoData toDoData =null;
-                try {
-                    toDoData= JSON.parseObject(strMessage, ToDoData.class);
-                }
-                catch (JSONException e)
-                {
-                    e.printStackTrace();
-                }
-                if (toDoData!=null)
-                {
-
-                    strMessage=toDoData.getContent();
-                    endDate=toDoData.getEndTime();
-                }
-                else
-                {
-
-                    strMessage=mDatas.get(position).getContent();
-                    SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    String date = sDateFormat.format(new java.util.Date());
-                    endDate=date;
-                }
-                strMessage=strMessage+"\n截止日期["+endDate+"]";
-                break;
-            default:
-                strMessage=mDatas.get(position).getContent();
-
-        }
-
-
-
-
-
+        strMessage=mDatas.get(position).getSimpleContent();
 
         holder.layoutContent.getLayoutParams().width = Utils.getScreenWidth(mContext);
         holder.tvMessage.setText(strMessage);

@@ -1,16 +1,21 @@
 package com.example.yanghang.clipboard.Task;
 
 import android.content.Context;
+import android.text.format.DateFormat;
+import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 /**
  * Created by young on 2017/6/19.
@@ -36,7 +41,14 @@ public class TaskShowToDoList {
             public void run() {
                 List<ListData> listDatas=new DBListInfoManager(context).getDatas("待办事项");
                 SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Date currentDate= Calendar.getInstance().getTime();
+                Date nowDate= Calendar.getInstance().getTime();
+                String time = DateFormat.format("yyyy-MM-dd", nowDate).toString();
+                Date currentDate= null;
+                try {
+                    currentDate = sDateFormat.parse(time);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 for (int i=0;i<listDatas.size();i++)
                 {
                     ToDoData toDoData=null;
@@ -60,9 +72,29 @@ public class TaskShowToDoList {
                     if (endDate == null) {
                         continue;
                     }
-                    if (endDate.after(currentDate)&&!toDoData.isFinished())
+                    if (!endDate.before(currentDate)&&!toDoData.isFinished())
                     {
-                        stringBuilder.append("["+toDoData.getEndTime()+"]:"+toDoData.getContent()+"\n");
+                        Log.d(TAG, "run: endDate"+endDate.toString()+"   current:"+currentDate.toString());
+                        if (endDate.toString().equals(currentDate.toString())) {
+
+                            if (toDoData.isCurrentDay()) {
+                                stringBuilder.append("[今日提醒]:" + toDoData.getContent() + "\n");
+                            }
+                            else
+                            {
+                                stringBuilder.append("[今日任务]:" + toDoData.getContent() + "\n");
+                            }
+                        }
+                        else {
+                            if (toDoData.isCurrentDay())
+                            {
+                                continue;
+                            }
+                            else
+                                stringBuilder.append("["+toDoData.getEndTime()+"]:"+toDoData.getContent()+"\n");
+                        }
+
+
                     }
 
 

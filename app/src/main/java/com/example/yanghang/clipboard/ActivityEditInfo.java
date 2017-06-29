@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,17 +17,19 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.FragmentDiary;
 import com.example.yanghang.clipboard.Fragment.FragmentEditAbstract;
 import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
 import com.example.yanghang.clipboard.Fragment.FragmentToDo;
+import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ActivityEditInfo extends AppCompatActivity implements FragmentEditInfo.OnFragmentInteractionListener,FragmentDiary.OnFragmentInteractionListener{
+public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary.OnFragmentInteractionListener{
     public static int RESULT_ADD_NEW = 345;
     public static int RESULT_NOTHING_NEW = 678;
 
@@ -82,12 +85,26 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
 
         String catalogueName=listData.getCatalogue();
         notShowSpinner = true;
+        editRemark = (EditText) findViewById(R.id.edit_remark);
+
+        editRemark.setText(listData.getRemarks());
+        editRemark.setFocusable(isEdit);
         switch(catalogueName)
         {
-            case "日记":
-                fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
+            case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
+                editRemark.setFocusable(false);
+                switch (listData.getRemarks())
+                {
+                    case "diary":
+                        fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
 //                notShowSpinner=true;//不仅修改的时候不能出现，而且新建的时候也不能出现
+                        break;
+                    default:
+                        fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
+                }
                 break;
+
+
             case "待办事项":
                 fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
                 break;
@@ -133,6 +150,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
             case R.id.menu_checked:
                 listData.setContent(fragment.getString());
                 listData.setRemarks(editRemark.getText().toString());
+                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
                 listData.setCatalogue(spinner.getSelectedItem().toString());
                 Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
                 intent.putExtra(MainFormActivity.LIST_DATA, listData);
@@ -154,9 +172,13 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentEditI
                 break;
             case R.id.menu_editable:
                 isEdit = true;
-                editRemark.setFocusable(true);
-                editRemark.requestFocus();
-                editRemark.setFocusableInTouchMode(true);
+                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
+                {
+                    editRemark.setFocusable(true);
+                    editRemark.requestFocus();
+                    editRemark.setFocusableInTouchMode(true);
+                }
+
                 fragment.enableEdit();
                 if (!notShowSpinner)
                 spinner.setVisibility(View.VISIBLE);

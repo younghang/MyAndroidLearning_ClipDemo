@@ -12,7 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.ActivityEditInfo;
+import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
 import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.R;
 
@@ -31,9 +33,9 @@ public class FragmentDiary extends FragmentEditAbstract {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
-    String morningDiary;
-    String afternoonDiary;
-    String eveningDiary;
+    String morningDiary="";
+    String afternoonDiary="";
+    String eveningDiary="";
     private View mView;
     // TODO: Rename and change types of parameters
 
@@ -82,29 +84,18 @@ public class FragmentDiary extends FragmentEditAbstract {
 
     private void initView()
     {
+        DiaryData diaryData=null;
         try {
-            morningDiary=infoEdit.split("@#@")[0];
-        }
-        catch (Exception e)
+            diaryData = JSON.parseObject(infoEdit, DiaryData.class);
+
+        }catch (Exception e)
         {
             e.printStackTrace();
-            morningDiary="";
         }
-        try {
-            afternoonDiary=infoEdit.split("@#@")[1];
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            afternoonDiary="";
-        }
-        try {
-            eveningDiary=infoEdit.split("@#@")[2];
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            eveningDiary="";
+        if (diaryData != null) {
+            morningDiary=diaryData.getMorningString();
+            afternoonDiary = diaryData.getAfternoonString();
+            eveningDiary = diaryData.getEveningString();
         }
 
         mTabLayout = (TabLayout) mView.findViewById(R.id.id_tabLayout);
@@ -134,8 +125,8 @@ public class FragmentDiary extends FragmentEditAbstract {
             }
 
         };
-        mViewPager.setAdapter(fragmentPagerAdapter);
         mViewPager.setOffscreenPageLimit(mTitles.length);
+        mViewPager.setAdapter(fragmentPagerAdapter);
         mTabLayout.setupWithViewPager(mViewPager);
     }
     // TODO: Rename method, update argument and hook method into UI event
@@ -176,10 +167,10 @@ public class FragmentDiary extends FragmentEditAbstract {
     @Override
     public String getString() {
         String str="";
-        morningDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(0)).getString().replace("@#@", "*#*");
-        afternoonDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(1)).getString().replace("@#@", "*#*");
-        eveningDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(2)).getString().replace("@#@", "*#*");
-        str=morningDiary+"@#@"+afternoonDiary+"@#@"+eveningDiary;
+        morningDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(0)).getString();
+        afternoonDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(1)).getString();
+        eveningDiary=((FragmentEditAbstract)fragmentPagerAdapter.getItem(2)).getString();
+        str =JSON.toJSONString( new DiaryData(morningDiary, afternoonDiary, eveningDiary));
 //        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :morning= " + morningDiary);
 //        Log.v(MainFormActivity.TAG, "getString called in FragmentDiary :afternoon= " + afternoonDiary);
         return str;

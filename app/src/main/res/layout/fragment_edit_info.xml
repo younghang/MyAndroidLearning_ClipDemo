@@ -2,19 +2,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.yanghang.clipboard.Fragment.FragmentEditInfo">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-        <ScrollView
-            android:minHeight="200dp"
+        <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-          >
-
+            android:paddingRight="0dp"
+            android:overScrollMode="never"
+            >
         <EditText
             android:layout_margin="10dp"
             android:minHeight="200dp"
@@ -22,15 +18,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/catalogue_spinner"
-
             android:background="@null"
             android:editable="true"
             android:focusableInTouchMode="true"
             android:gravity="top|left"
-
             android:inputType="textMultiLine"
             android:scrollbars="vertical"
             android:textIsSelectable="true" />
-        </ScrollView>
-    </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>>
+
 </FrameLayout>

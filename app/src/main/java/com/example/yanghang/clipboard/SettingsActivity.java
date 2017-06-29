@@ -217,14 +217,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     .setPositiveButton("删除", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            loadingDialog.setCancelable(false);
+                            preventDismissDialog(loadingDialog);
                             editText.setVisibility(View.GONE);
                             progress.setVisibility(View.VISIBLE);
                             file.delete();
                             Toast.makeText(getActivity().getApplicationContext(), "日志已删除", Toast.LENGTH_SHORT).show();
-                            loadingDialog.dismiss();
+                            dismissDialog(loadingDialog);
                         }
                     })
-                    .setNegativeButton("取消", null).create();
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismissDialog(loadingDialog);
+                        }
+                    }) .create();
             StringBuffer sb = new StringBuffer();
             try {
 
@@ -261,14 +268,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     .setPositiveButton("删除", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
+                            loadingDialog.setCancelable(false);
+                            preventDismissDialog(loadingDialog);
                             editText.setVisibility(View.GONE);
                             progress.setVisibility(View.VISIBLE);
                             new DBListInfoManager(getActivity()).deleteDatabase();
                             Toast.makeText(getActivity().getApplicationContext(), "数据已删除", Toast.LENGTH_SHORT).show();
-                            loadingDialog.dismiss();
+                            dismissDialog(loadingDialog);
                         }
                     })
-                    .setNegativeButton("取消", null).create();
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismissDialog(loadingDialog);
+                        }
+                    }).create();
             editText.setText("确定删除所有记录项?");
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);
@@ -311,7 +325,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 int msgLoading = msg.getData().getInt(MSG_FILE);
                 switch (msgLoading) {
                     case MSG_SAVING_FILE_FINISH:
-                        loadingDialog.dismiss();
+                        dismissDialog(loadingDialog);
                         Toast.makeText(getActivity(), "文件保存在" + filePathPreference.getSummary() + "/" + fileNamePreference.getSummary() + (encodePreference.isChecked()?".sphykey":".json"), Toast.LENGTH_SHORT).show();
                         break;
                     case MSG_SAVING_CATALOGUE_FINISH:
@@ -319,15 +333,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Toast.makeText(getActivity(), "文件保存在" + filePathPreference.getSummary() + "/" + catalogueNamePreference.getSummary() + ".json", Toast.LENGTH_SHORT).show();
                         break;
                     case MSG_SAVING_FILE_FAILED:
-                        loadingDialog.dismiss();
+                        dismissDialog(loadingDialog);
                         Toast.makeText(getActivity(), "文件保存失败，或没有权限访问外置存储卡", Toast.LENGTH_SHORT).show();
                         break;
                     case MSG_LOADING_FILE_FINISH:
-                        loadingDialog.dismiss();
+//                        loadingDialog.dismiss();
+                        dismissDialog(loadingDialog);
                         Toast.makeText(getActivity(), "加载完成，请关闭本程序，重新打开.", Toast.LENGTH_SHORT).show();
                         break;
                     case MSG_LOADING_FILE_FAILED:
-                        loadingDialog.dismiss();
+//                        loadingDialog.dismiss();
+                        dismissDialog(loadingDialog);
                         Toast.makeText(getActivity(), "数据加载失败，请检查密码是否正确或访问存储权限", Toast.LENGTH_SHORT).show();
                         break;
                 }
@@ -491,12 +507,19 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
+                                        loadingDialog.setCancelable(false);
+                                        preventDismissDialog(loadingDialog);
                                         codeText.setVisibility(View.GONE);
                                         progress.setVisibility(View.VISIBLE);
                                         seed[0] = codeText.getText().toString();
                                         FileUtils.SEED = seed[0];
                                         loadClipsJson(file,true);
-                                    }}).setNegativeButton("取消", null).create();
+                                    }}).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dismissDialog(loadingDialog);
+                                    }
+                                }).create();
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                             codeText.setTextColor(getActivity().getColor(R.color.message_text));
                         } else {
@@ -594,6 +617,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                         .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialog, int which) {
+                                                loadingDialog.setCancelable(false);
+                                                preventDismissDialog(loadingDialog);
                                                 codeText.setVisibility(View.GONE);
                                                 progress.setVisibility(View.VISIBLE);
                                                 seed[0] = codeText.getText().toString();
@@ -622,7 +647,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                                 return;
                                             }
                                         })
-                                        .setNegativeButton("取消", null).create();
+                                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                dismissDialog(loadingDialog);
+                                            }
+                                        }).create();
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                                     codeText.setTextColor(getActivity().getColor(R.color.message_text));
                                 } else {
@@ -691,6 +721,32 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             //不会调用的，需要自己手动改
             preference.setSummary(stringValue);
             return true;
+        }
+    }
+    /**
+     * 关闭对话框
+     */
+    private static void dismissDialog(AlertDialog alertDialog) {
+        try {
+            Field field = alertDialog.getClass().getSuperclass().getDeclaredField("mShowing");
+            field.setAccessible(true);
+            field.set(alertDialog, true);
+        } catch (Exception e) {
+        }
+        alertDialog.dismiss();
+    }
+
+    /**
+     * 通过反射 阻止关闭对话框
+     */
+    private  static void preventDismissDialog(AlertDialog alertDialog) {
+        try {
+            Field field = alertDialog.getClass().getSuperclass().getDeclaredField("mShowing");
+            field.setAccessible(true);
+            //设置mShowing值，欺骗android系统
+            field.set(alertDialog, false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

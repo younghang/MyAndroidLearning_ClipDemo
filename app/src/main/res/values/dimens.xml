@@ -10,4 +10,13 @@
     <dimen name="round_rect_corner">20dp</dimen>
     <dimen name="pop_window_width">250dp</dimen>
     <dimen name="pop_window_height">120dp</dimen>
+    <dimen name="app_bar_height">200dp</dimen>
+    <dimen name="item_width">200dp</dimen>
+    <dimen name="text_margin">16dp</dimen>
+
+
+    <dimen name="pulldown_trigger_refresh_height">50dip</dimen>
+    <dimen name="pulldown_header_height">50dip</dimen>
+    <dimen name="create_mode_marign">15dp</dimen>
+    <dimen name="loading_footer_height">50dip</dimen>
 </resources>

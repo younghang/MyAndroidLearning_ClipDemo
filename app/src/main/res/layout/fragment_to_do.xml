@@ -25,17 +25,26 @@
                 android:text="2017-06-18"
                 android:id="@+id/fragment_todo_choose_date_tv"
                 android:textSize="20sp" />
+            <Switch
+                android:id="@+id/fragment_todo_current_day_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:textColor="@color/colorPrimary"
+                android:text="当天显示"
+                android:textSize="16sp"
+                android:paddingLeft="20dp"
+
+                />
 
             <Switch
                 android:id="@+id/fragment_todo_finished_switch"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
-                android:layout_marginLeft="40dp"
-                android:layout_marginRight="20dp"
+
                 android:textColor="@color/colorPrimary"
-                android:text="事项完成"
+                android:text="完成"
                 android:textSize="16sp"
-                android:paddingLeft="40dp"
+                android:paddingLeft="20dp"
 
                   />
 

@@ -7,7 +7,7 @@
 <FrameLayout
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal|center_vertical"
+    android:layout_gravity="center_horizontal"
     >
 
 
@@ -25,26 +25,24 @@
         android:layout_width="100dp"
         android:id="@+id/loadingProgressBar"
         android:layout_height="100dp" />
-    <ScrollView
 
-        android:layout_width="wrap_content"
+    <ScrollView
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:focusable="false"
+        android:fastScrollEnabled="true"
+
         >
     <EditText
-
-        android:layout_margin="15dp"
+        android:layout_margin="10dp"
         android:minWidth="220dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/loadingEditText"
         android:textColor="@color/red"
-        android:gravity="top|left"
         android:inputType="textMultiLine"
         android:textIsSelectable="true"
         android:focusableInTouchMode="true"
-        android:scrollbars = "vertical|horizontal"
+        android:scrollbars = "vertical"
         android:textSize="20dp"/>
     </ScrollView>
 </FrameLayout>

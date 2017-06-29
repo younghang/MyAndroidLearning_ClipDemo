@@ -1,0 +1,33 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.yanghang.clipboard.Fragment.FragmentCalendar">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="match_parent">
+        <!--为了让菜单项点击的时候变成白色的底色-->
+        <android.support.design.widget.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+
+    <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/calendar_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize">
+
+
+    </android.support.v7.widget.Toolbar>
+        </android.support.design.widget.AppBarLayout>
+    <com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarListView
+        android:id="@+id/fragment_calendar_listview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarListView>
+    </LinearLayout>
+</FrameLayout>

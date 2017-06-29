@@ -30,7 +30,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,8 +43,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
+import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
@@ -54,8 +56,6 @@ import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdap
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
 import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,13 +82,14 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     public static String TAG = "nihao";
     public static boolean IsDelete = false;
 
-    DBListInfoManager DBListInfoManager;
+    DBListInfoManager dbListInfoManager;
     Toolbar toolbar;
     SearchView searchView;
     List<CatalogueInfos> catalogues;
     EditText editText;
     Button btnOK;
     Button btnCancle;
+    Button btnCalendar;
     private RecyclerView recyclerView;
     private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
@@ -120,8 +121,8 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
                     editText.setText(MainFormActivity.this.messageToDoList);
                     editText.setKeyListener(null);
+
                     editText.setBackground(null);
-                    editText.setSingleLine(false);
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         editText.setTextColor(getColor(R.color.message_text));
                     } else {
@@ -143,7 +144,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    listDatas = DBListInfoManager.searchData(query);
+                    listDatas = dbListInfoManager.searchData(query);
                     Message msg = new Message();
                     Bundle data = new Bundle();
                     data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
@@ -191,7 +192,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     }
 
     private void InitialView() {
-        DBListInfoManager = new DBListInfoManager(MainFormActivity.this.getApplicationContext());
+        dbListInfoManager = new DBListInfoManager(MainFormActivity.this.getApplicationContext());
 //        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
 //        db = helper.getWritableDatabase();
 //        master = new DaoMaster(db);
@@ -265,7 +266,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         new Thread(new Runnable() {
             @Override
             public void run() {
-                listDatas = DBListInfoManager.getDatas("");
+                listDatas = dbListInfoManager.getDatas("");
                 Message msg = new Message();
                 Bundle data = new Bundle();
                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
@@ -281,7 +282,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //                Log.v(TAG, "ItemClick orderid=" + listClipInfoAdapter.getItemData(position).getOrderID());
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
-                cm.setText(listDatas.get(position).getContent());
+                cm.setText(listDatas.get(position).getSimpleContent());
                 Toast.makeText(MainFormActivity.this, "复制到粘贴板", Toast.LENGTH_LONG).show();
             }
 
@@ -299,7 +300,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         });
         recyclerView.setAdapter(listClipInfoAdapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        new ItemTouchHelper(new MyItemTouchHelperCallBack(recyclerView, listClipInfoAdapter, DBListInfoManager))
+        new ItemTouchHelper(new MyItemTouchHelperCallBack(recyclerView, listClipInfoAdapter, dbListInfoManager))
                 .attachToRecyclerView(recyclerView);
         IsDelete = false;
         IsEdite = false;
@@ -314,12 +315,21 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             public void showToDoList(String messageToDoList) {
                 Message msg = new Message();
                 Bundle data = new Bundle();
-                MainFormActivity.this.messageToDoList=messageToDoList;
+                MainFormActivity.this.messageToDoList = messageToDoList;
                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_CHECK_TODO_DATA);
                 msg.setData(data);
                 handler.sendMessage(msg);
             }
         }).runToDoListCheck();
+
+        btnCalendar = (Button) findViewById(R.id.main_activity_form_btn_calendar);
+        btnCalendar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(MainFormActivity.this,ActivityCalendar.class);
+                startActivity(intent);
+            }
+        });
 
 
     }
@@ -354,27 +364,31 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         catalogueAdapter.setOnItemClickListener(new CatalogueAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-                final String catlogue = catalogueAdapter.getItem(position).getCatalogue();
-                refreshLayout.setRefreshing(true);
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        listDatas = DBListInfoManager.getDatas(catlogue);
-                        Message msg = new Message();
-                        Bundle data = new Bundle();
-                        data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
-                        msg.setData(data);
-                        handler.sendMessage(msg);
+                final String catalogue = catalogueAdapter.getItem(position).getCatalogue();
+                switch (catalogue) {
+                    case "test":
+                        Intent testIntent = new Intent(MainFormActivity.this, TestActivity.class);
+                        startActivity(testIntent);
+                        break;
+                    default:
+                        refreshLayout.setRefreshing(true);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                listDatas = dbListInfoManager.getDatas(catalogue);
+                                Message msg = new Message();
+                                Bundle data = new Bundle();
+                                data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
+                                msg.setData(data);
+                                handler.sendMessage(msg);
 
-                    }
-                }).start();
-
-//                Log.v(TAG, "ItemClick:  catalogue=" + catlogue);
-
-                toolbar.setTitle(catalogueAdapter.getItem(position).getCatalogue());
-                currentCatalogue = catlogue;
-                currentCatalogueDetail = catalogueAdapter.getItem(position).getCatalogueDescription();
-                mDrawerLayout.closeDrawer(Gravity.LEFT);
+                            }
+                        }).start();
+                        toolbar.setTitle(catalogueAdapter.getItem(position).getCatalogue());
+                        currentCatalogue = catalogue;
+                        currentCatalogueDetail = catalogueAdapter.getItem(position).getCatalogueDescription();
+                        mDrawerLayout.closeDrawer(Gravity.LEFT);
+                }
             }
 
             @Override
@@ -399,14 +413,14 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //
 //                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
                     listClipInfoAdapter.editItem(pos, listData);
-                    DBListInfoManager.updateData(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
+                    dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
 
                 }
                 if (resultCode == ActivityEditInfo.RESULT_ADD_NEW) {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
                     int pos = 0;
 //                    Log.v("TEM", pos + listData.getContent());
-                    long result = DBListInfoManager.insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+                    long result = dbListInfoManager.insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
 
                     if (result == -1)
                         Toast.makeText(MainFormActivity.this, "存储该行数据出错", Toast.LENGTH_SHORT).show();
@@ -424,7 +438,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
         switch (item.getItemId()) {
             case R.id.add_info:
-                int orderid = DBListInfoManager.getDataCount();
+                int orderid = dbListInfoManager.getDataCount();
 //                Log.v(TAG, "新建 orderid=" + orderid);
                 Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, new ListData("", "", orderid, currentCatalogue));
@@ -496,7 +510,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         alertDialog.show();
         if (currentCatalogueDetail.equals("")) {
             edCatalogueDescription.setHint("目录描述");
-            Log.d(TAG, "showCatalogueAlter: catalogueDescriptionDetail=empty");
+//            Log.d(TAG, "showCatalogueAlter: catalogueDescriptionDetail=empty");
         } else
             edCatalogueDescription.setText(currentCatalogueDetail);
     }
@@ -533,10 +547,10 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                     );
             textView.setTextColor(Color.WHITE);
             try {
-                Field mCursorDrawableRes=TextView.class.getDeclaredField("mCursorDrawableRes");
+                Field mCursorDrawableRes = TextView.class.getDeclaredField("mCursorDrawableRes");
                 mCursorDrawableRes.setAccessible(true);
                 mCursorDrawableRes.set(textView, R.drawable.cursor_color);
-            } catch (Exception e){
+            } catch (Exception e) {
 
             }
         }
@@ -628,7 +642,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     }
 
     private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {
-        DBListInfoManager.changeCatalogue(oldCatalogue, newCatalogue);
+        dbListInfoManager.changeCatalogue(oldCatalogue, newCatalogue);
     }
 
     /*<=======================================全局基础权限申请=================================================>*/
@@ -729,18 +743,84 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
 
         listClipInfoAdapter.deleteItem(pos);
-        DBListInfoManager.deleteDataByOrderID(listData.getOrderID());
+        dbListInfoManager.deleteDataByOrderID(listData.getOrderID());
         Snackbar.make(recyclerView, "确定删除？", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 listClipInfoAdapter.addItem(listData, pos);
 
-                DBListInfoManager.cancelDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+                dbListInfoManager.cancelDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
 
             }
         }).setDuration(Snackbar.LENGTH_LONG).show();
     }
 /*<========================================================================================>*/
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                List<ListData> listDatas=dbListInfoManager.getDatas("日记");
+//                for (int i=0;i<listDatas.size();i++)
+//                {
+//                    ListData listData = listDatas.get(i);
+//                    listData.setRemarks("diary");
+//                    String content=listData.getContent();
+//                    String morningDiary="";
+//                    String afternoonDiary="";
+//                    String eveningDiary="";
+//                    try {
+//                        morningDiary=content.split("@#@")[0];
+//                    }
+//                    catch (Exception e)
+//                    {
+//                        e.printStackTrace();
+//                        morningDiary="";
+//                    }
+//                    try {
+//                        afternoonDiary=content.split("@#@")[1];
+//                    }
+//                    catch (Exception e)
+//                    {
+//                        e.printStackTrace();
+//                        afternoonDiary="";
+//                    }
+//                    try {
+//                        eveningDiary=content.split("@#@")[2];
+//                    }
+//                    catch (Exception e)
+//                    {
+//                        e.printStackTrace();
+//                        eveningDiary="";
+//                    }
+//                    listData.setContent(JSON.toJSONString(new DiaryData(morningDiary, afternoonDiary, eveningDiary)));
+//
+//                    dbListInfoManager.updateDataByOrderId(listData.getOrderID(), FragmentCalendar.CALENDAR_CATALOGUE_NAME,listData.getRemarks(),listData.getContent(),listData.getCreateDate());
+//                }
+//            }
+//        }).start();
+//        new Thread(new Runnable() {
+//        @Override
+//        public void run() {
+//            List<ListData> listDatas=dbListInfoManager.getDatas("luser");
+//            for (int i=0;i<listDatas.size();i++)
+//            {
+//                ListData listData = listDatas.get(i);
+//                listData.setRemarks("luser");
+//                dbListInfoManager.updateDataByOrderId(listData.getOrderID(), FragmentCalendar.CALENDAR_CATALOGUE_NAME,listData.getRemarks(),listData.getContent(),listData.getCreateDate());
+//            }
+//        }
+//    }).start();
+//        new Thread(new Runnable() {
+//        @Override
+//        public void run() {
+//            List<ListData> listDatas=dbListInfoManager.getDatas("体重");
+//            for (int i=0;i<listDatas.size();i++)
+//            {
+//                ListData listData = listDatas.get(i);
+//                listData.setRemarks("weight");
+//                dbListInfoManager.updateDataByOrderId(listData.getOrderID(), FragmentCalendar.CALENDAR_CATALOGUE_NAME,listData.getRemarks(),listData.getContent(),listData.getCreateDate());
+//            }
+//        }
+//    }).start();
 
 
 }

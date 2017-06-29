@@ -99,7 +99,7 @@
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:layout_width="match_parent"
-
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_height="60dp"
                 android:layout_marginTop="24dp"
                 android:background="@drawable/button_background"

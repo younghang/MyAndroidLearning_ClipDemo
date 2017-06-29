@@ -1,6 +1,6 @@
 package com.example.yanghang.clipboard;
 
-import android.os.Environment;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +12,10 @@ import android.widget.Toast;
 import com.example.yanghang.clipboard.EncodeFile.AES;
 import com.example.yanghang.clipboard.EncodeFile.AESKeyModel;
 import com.example.yanghang.clipboard.EncodeFile.AESUtils;
+import com.example.yanghang.clipboard.Test.FullscreenActivity;
+import com.example.yanghang.clipboard.Test.ItemListActivity;
+import com.example.yanghang.clipboard.Test.MainActivity;
+import com.example.yanghang.clipboard.Test.ScrollingActivity;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,7 +24,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.security.Key;
 
-public class TestActivity extends AppCompatActivity {
+public class TestActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "mytag";
     EditText origin;
@@ -32,6 +36,11 @@ public class TestActivity extends AppCompatActivity {
     File encodeFile;
     File decodeFile;
 
+
+    Button fullScreenButton;
+    Button masterItemButton;
+    Button scrollingButton;
+    Button buttonNavigationButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +61,15 @@ public class TestActivity extends AppCompatActivity {
 
             }
         });
+        scrollingButton = (Button) findViewById(R.id.test_button_scrolling);
+        fullScreenButton = (Button) findViewById(R.id.test_button_fullScreen);
+        masterItemButton = (Button) findViewById(R.id.test_button_masterItem);
+        buttonNavigationButton = (Button) findViewById(R.id.test_button_buttonNavigation);
+
+        scrollingButton.setOnClickListener(this);
+        fullScreenButton.setOnClickListener(this);
+        masterItemButton.setOnClickListener(this);
+        buttonNavigationButton.setOnClickListener(this);
     }
 
     private void doAESUtils() {
@@ -167,6 +185,30 @@ public class TestActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        Intent intent;
+        switch (v.getId()) {
+            case R.id.test_button_scrolling:
+                intent= new Intent(TestActivity.this, ScrollingActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.test_button_buttonNavigation:
+                intent= new Intent(TestActivity.this, MainActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.test_button_fullScreen:
+                intent= new Intent(TestActivity.this, FullscreenActivity.class);
+                startActivity(intent);
+                break;
+            case R.id.test_button_masterItem:
+                intent= new Intent(TestActivity.this, ItemListActivity.class);
+                startActivity(intent);
+                break;
+
         }
     }
 }

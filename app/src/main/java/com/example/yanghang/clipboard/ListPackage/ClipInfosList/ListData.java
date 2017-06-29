@@ -1,5 +1,11 @@
 package com.example.yanghang.clipboard.ListPackage.ClipInfosList;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONException;
+import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
+import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
+import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 
@@ -70,6 +76,66 @@ public class ListData implements Serializable {
     public String getContent() {
         return Content;
     }
+    public String getSimpleContent()
+    {
+        String strMessage=Content;
+        switch (Catalogue)
+        {
+            case "待办事项":
+                String endDate="";
+                ToDoData toDoData =null;
+                try {
+                    toDoData= JSON.parseObject(strMessage, ToDoData.class);
+                }
+                catch (JSONException e)
+                {
+                    e.printStackTrace();
+                }
+                if (toDoData!=null)
+                {
+
+                    strMessage=toDoData.getContent();
+                    endDate=toDoData.getEndTime();
+                }
+                else
+                {
+                    SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    String date = sDateFormat.format(new java.util.Date());
+                    endDate=date;
+                }
+                strMessage=strMessage+"\n截止日期["+endDate+"]";
+                break;
+            case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
+                switch (Remarks){
+                    case "diary":
+                        String morningDiary="";
+                        String afternoonDiary="";
+                        String eveningDiary="";
+                        DiaryData diaryData=null;
+                        try {
+                            diaryData = JSON.parseObject(strMessage, DiaryData.class);
+
+                        }catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                        if (diaryData != null) {
+                            morningDiary=diaryData.getMorningString();
+                            afternoonDiary = diaryData.getAfternoonString();
+                            eveningDiary = diaryData.getEveningString();
+                        }
+                        strMessage="morning:"+morningDiary+
+                                "afternoon:"+afternoonDiary+
+                                "evening:"+eveningDiary;
+                        break;
+                }
+                break;
+
+        }
+        return strMessage;
+
+    }
+
 
     public void setContent(String content) {
         Content = content;

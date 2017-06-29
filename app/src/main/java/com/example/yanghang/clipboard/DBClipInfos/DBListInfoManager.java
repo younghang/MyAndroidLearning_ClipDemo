@@ -68,6 +68,34 @@ public class DBListInfoManager {
         close();
         return count;
     }
+    public List<ListData> searchDataByDate(String date)
+    {
+        open();
+        String queryStr = "select * from " + DB_TABLE + " where " + KEY_DATETIME + " like '" + date + "%'"  + " order by " + KEY_ORDERID + " desc";
+
+        Cursor cursor=mSQLiteDatabase.rawQuery(queryStr, null);
+        List<ListData> mDatas = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            int remarkIndex = cursor.getColumnIndex(DBListInfoManager.KEY_REMARK);
+            int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
+            int datetimeIndex = cursor.getColumnIndex(DBListInfoManager.KEY_DATETIME);
+            int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+            int catalogueIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CATALOGUE);
+            while (!cursor.isAfterLast()) {
+                String remark = cursor.getString(remarkIndex);
+                String content = cursor.getString(contentIndex);
+                String datetime = cursor.getString(datetimeIndex);
+                String catalogue = cursor.getString(catalogueIndex);
+                int orderID = cursor.getInt(orderIdIndex);
+                ListData listData = new ListData(remark, content, datetime, orderID, catalogue);
+                mDatas.add(listData);
+                cursor.moveToNext();
+            }
+        }
+        cursor.close();
+        close();
+        return mDatas;
+    }
 
     public List<ListData> searchData(String query) {
         open();
@@ -261,7 +289,7 @@ public class DBListInfoManager {
         return mSQLiteDatabase.update(DB_TABLE, args, KEY_ORDERID + "=" + OldOrderID, null) > 0;
     }
 
-    public boolean updateData(int OrderID, String catalogue, String remark, String content, String datetime) {
+    public boolean updateDataByOrderId(int OrderID, String catalogue, String remark, String content, String datetime) {
         open();
         ContentValues args = new ContentValues();
         args.put(KEY_REMARK, remark);

@@ -15,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -246,6 +247,8 @@ public class ActivityPCMessage extends SwipeBackActivity {
         View view=LayoutInflater.from(getApplicationContext()).inflate(R.layout.loading, null);
         circleLoadingProgress = (CircleProgressBar) view.findViewById(R.id.loadingCircleProgressBar);
         ProgressBar loadingProgressBar = (ProgressBar) view.findViewById(R.id.loadingProgressBar);
+        EditText editeText = (EditText) view.findViewById(R.id.loadingEditText);
+        editeText.setVisibility(View.GONE);
         loadingProgressBar.setVisibility(View.GONE);
         loadingDialog = new AlertDialog.Builder(ActivityPCMessage.this).setView(view)
                 .setTitle("Loading")

@@ -1,24 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:theme="@style/AppTheme.AppBarOverlay"
     tools:context="com.example.yanghang.clipboard.ActivityEditInfo">
 
-    <include layout="@layout/toolbar_edit_info" />
 
-    <Spinner
-        android:id="@+id/catalogue_spinner"
+    <android.support.design.widget.AppBarLayout
+
+        app:elevation="0dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/edit_toolbar"
-        android:layout_marginTop="5dp"></Spinner>
-    <FrameLayout android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:theme="@style/AppTheme.AppBarOverlay">
+        <!--标题栏-->
+        <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/edit_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+
+            app:layout_scrollFlags="scroll|enterAlways|snap"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
+            <EditText
+                android:id="@+id/edit_remark"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:focusableInTouchMode="true"
+                android:hint="备注"
+                android:singleLine="true"
+                android:text="" />
+
+        </android.support.v7.widget.Toolbar>
+
+        <!--大图-->
+        <Spinner
+            app:layout_scrollFlags="scroll|snap|enterAlways"
+            android:id="@+id/catalogue_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+
+            />
+        <!--选项卡-->
+
+    </android.support.design.widget.AppBarLayout>
+
+
+    <FrameLayout
+        android:id="@+id/mainFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/catalogue_spinner"
-        android:id="@+id/mainFragment"/>
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
 
+</android.support.design.widget.CoordinatorLayout>
 
-</RelativeLayout>
+

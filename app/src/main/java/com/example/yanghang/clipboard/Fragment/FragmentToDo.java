@@ -32,8 +32,10 @@ public class FragmentToDo extends FragmentEditAbstract {
     private String informationEdited;
     private String endDate;
     private boolean isFinished;
+    private boolean isCurrentDay;
 
     private Switch finishSwitch;
+    private Switch currentDaySwitch;
     private TextView endDateTextView;
 
 
@@ -71,12 +73,14 @@ public class FragmentToDo extends FragmentEditAbstract {
         if (toDoData!=null)
         {
             isFinished=toDoData.isFinished();
+            isCurrentDay=toDoData.isCurrentDay();
             informationEdited=toDoData.getContent();
             endDate=toDoData.getEndTime();
         }
         else
         {
-            isFinished=true;
+            isFinished=false;
+            isCurrentDay=false;
             informationEdited=infoEdit;
             SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String date = sDateFormat.format(new java.util.Date());
@@ -90,8 +94,12 @@ public class FragmentToDo extends FragmentEditAbstract {
         fragmentTransaction.commit();
         finishSwitch = (Switch)mView.findViewById(R.id.fragment_todo_finished_switch);
         endDateTextView = (TextView) mView.findViewById(R.id.fragment_todo_choose_date_tv);
+        currentDaySwitch = (Switch)mView.findViewById(R.id.fragment_todo_current_day_switch);
 
         finishSwitch.setChecked(isFinished);
+        finishSwitch.setEnabled(isEdit);
+        currentDaySwitch.setChecked(isCurrentDay);
+        currentDaySwitch.setEnabled(isEdit);
         endDateTextView.setText(endDate);
 
 
@@ -142,13 +150,16 @@ public class FragmentToDo extends FragmentEditAbstract {
     @Override
     public String getString() {
         isFinished=finishSwitch.isChecked();
-        ToDoData toDoData = new ToDoData(isFinished, fragmentEditInfo.getString(), endDateTextView.getText().toString());
+        isCurrentDay=currentDaySwitch.isChecked();
+        ToDoData toDoData = new ToDoData( fragmentEditInfo.getString(), endDateTextView.getText().toString(),isFinished,isCurrentDay);
         return JSON.toJSONString(toDoData);
     }
 
     @Override
     public void enableEdit() {
         fragmentEditInfo.enableEdit();
+        finishSwitch.setEnabled(true);
+        currentDaySwitch.setEnabled(true);
 
     }
 

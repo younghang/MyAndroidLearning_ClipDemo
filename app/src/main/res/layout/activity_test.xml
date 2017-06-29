@@ -4,10 +4,10 @@
     android:id="@+id/activity_test"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.yanghang.clipboard.TestActivity"
     android:layout_centerHorizontal="true"
-    android:layout_centerVertical="true"
     android:layout_centerInParent="true"
+    android:layout_centerVertical="true"
+    tools:context="com.example.yanghang.clipboard.TestActivity"
 
     >
 
@@ -15,28 +15,60 @@
         android:id="@+id/test_edit_origin"
         android:layout_width="200dp"
         android:layout_height="60dp"
-        android:hint="原始字符"/>
+        android:hint="原始字符" />
 
     <EditText
         android:id="@+id/test_edit_encode"
         android:layout_width="200dp"
         android:layout_height="60dp"
         android:layout_below="@+id/test_edit_origin"
-        android:hint="加密字符"
-        />
+        android:hint="加密字符" />
 
     <EditText
         android:id="@+id/test_edit_decode"
         android:layout_width="200dp"
         android:layout_height="60dp"
         android:layout_below="@+id/test_edit_encode"
-        android:hint="解密字符"/>
+        android:hint="解密字符" />
 
     <Button
         android:id="@+id/test_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/test_edit_decode"
+        android:layout_toRightOf="@+id/test_edit_decode"
 
         android:text="测试" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/test_edit_decode"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:text="ScrollingActivity"
+            android:id="@+id/test_button_scrolling"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:id="@+id/test_button_masterItem"
+            android:text="Master/ItemActivity"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:id="@+id/test_button_fullScreen"
+            android:text="FullScreenActivity"/>
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:id="@+id/test_button_buttonNavigation"
+            android:text="ButtonNavigationActivity"/>
+
+    </LinearLayout>
 </RelativeLayout>
