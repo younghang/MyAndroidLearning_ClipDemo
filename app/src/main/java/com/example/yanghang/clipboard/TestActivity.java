@@ -12,10 +12,6 @@ import android.widget.Toast;
 import com.example.yanghang.clipboard.EncodeFile.AES;
 import com.example.yanghang.clipboard.EncodeFile.AESKeyModel;
 import com.example.yanghang.clipboard.EncodeFile.AESUtils;
-import com.example.yanghang.clipboard.Test.FullscreenActivity;
-import com.example.yanghang.clipboard.Test.ItemListActivity;
-import com.example.yanghang.clipboard.Test.MainActivity;
-import com.example.yanghang.clipboard.Test.ScrollingActivity;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -193,20 +189,16 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent;
         switch (v.getId()) {
             case R.id.test_button_scrolling:
-                intent= new Intent(TestActivity.this, ScrollingActivity.class);
-                startActivity(intent);
+
                 break;
             case R.id.test_button_buttonNavigation:
-                intent= new Intent(TestActivity.this, MainActivity.class);
-                startActivity(intent);
+
                 break;
             case R.id.test_button_fullScreen:
-                intent= new Intent(TestActivity.this, FullscreenActivity.class);
-                startActivity(intent);
+
                 break;
             case R.id.test_button_masterItem:
-                intent= new Intent(TestActivity.this, ItemListActivity.class);
-                startActivity(intent);
+
                 break;
 
         }

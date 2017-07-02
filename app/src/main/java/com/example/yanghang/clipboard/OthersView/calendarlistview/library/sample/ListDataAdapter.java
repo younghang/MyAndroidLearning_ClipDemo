@@ -15,6 +15,7 @@ import com.example.yanghang.clipboard.OthersView.calendarlistview.library.Calend
 import com.example.yanghang.clipboard.R;
 
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -34,8 +35,24 @@ public class ListDataAdapter extends BaseCalendarListAdapter<ListData> {
     }
     public void addDataItem(String date,ListData data)
     {
-        dateDataMap.get(date).add(data);
-        notifyDataSetChanged();
+        if  (dateDataMap.get(date)==null)
+        {
+            List<ListData> listDatas = new ArrayList<>();
+            listDatas.add(data);
+            dateDataMap.put(date, listDatas);
+            //解决一个问题notifyDataSetChanged时indexOutOfRange的问题
+            //因为有个List保存了Map的key,却不能同步更新，只能设置setDateDataMap的时候才行
+            setDateDataMap(dateDataMap);
+            notifyDataSetChanged();
+
+        }
+        else
+        {
+            dateDataMap.get(date).add(data);
+            notifyDataSetChanged();
+        }
+
+
     }
 
 

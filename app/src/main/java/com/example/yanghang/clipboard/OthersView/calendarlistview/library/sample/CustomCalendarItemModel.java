@@ -24,6 +24,8 @@ public class CustomCalendarItemModel  extends BaseCalendarItemModel{
     private boolean isLike;
     private boolean isRest;
     private boolean isStar;
+    private boolean isCode;
+    private boolean isPaint;
 
     public int imageCount=0;
     public List<String> pics = new ArrayList<>();
@@ -36,6 +38,27 @@ public class CustomCalendarItemModel  extends BaseCalendarItemModel{
             pics.add("star");
         }
         isStar = star;
+    }
+
+
+
+    public void setCode(boolean code) {
+        if (code==true&&isCode==false)
+        {
+            imageCount++;
+            pics.add("code");
+        }
+        isCode = code;
+    }
+
+
+    public void setPaint(boolean paint) {
+        if (paint==true&&isPaint==false)
+        {
+            imageCount++;
+            pics.add("paint");
+        }
+        isPaint = paint;
     }
 
     public void setCheck(boolean check) {

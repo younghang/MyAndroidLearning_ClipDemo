@@ -2,6 +2,7 @@ package com.example.yanghang.clipboard.Fragment;
 
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,6 +45,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static android.app.Activity.RESULT_OK;
 import static com.example.yanghang.clipboard.MainFormActivity.LIST_DATA;
@@ -61,8 +63,7 @@ public class FragmentCalendar extends Fragment {
         // Required empty public constructor
     }
 
-    //key:date "yyyy-mm-dd" format.
-    private TreeMap<String, List<ListData>> listTreeMap = new TreeMap<>();
+
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -70,7 +71,7 @@ public class FragmentCalendar extends Fragment {
             int msgLoading = msg.getData().getInt(MSG_LOAD_DB_INFO);
             if (msgLoading == LOAD_DB_FINISHED) {
                 Log.d(TAG, "handleMessage: Calendar load finished");
-                listDataAdapter.setDateDataMap(listTreeMap);
+                listDataAdapter.setDateDataMap(activityCalendar.listTreeMap);
                 listDataAdapter.notifyDataSetChanged();
 //                calendarAdapter.notifyDataSetChanged();
 
@@ -84,8 +85,8 @@ public class FragmentCalendar extends Fragment {
     private ListDataAdapter listDataAdapter;
     private CalendarItemAdapter calendarAdapter;
     public static final String CALENDAR_CATALOGUE_NAME = "collect_calendar_catalogue";
-    AlertDialog loadingDialog;
-    DBListInfoManager dbListInfoManager;
+    private AlertDialog loadingDialog;
+    private DBListInfoManager dbListInfoManager;
 
     public static final SimpleDateFormat DAY_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
     public static final SimpleDateFormat YEAR_MONTH_FORMAT = new SimpleDateFormat("yyyy-MM");
@@ -108,6 +109,14 @@ public class FragmentCalendar extends Fragment {
 
         return mView;
     }
+    ActivityCalendar activityCalendar;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activityCalendar= (ActivityCalendar) context;
+
+    }
 
     private void initialCalendarItem() {
         View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.calendar_add_item, null);
@@ -118,11 +127,14 @@ public class FragmentCalendar extends Fragment {
         lists.add(new CalendarItemsData("体重", "weight"));
         lists.add(new CalendarItemsData("luser", "luser"));
         lists.add(new CalendarItemsData("日语", "jp"));
+        lists.add(new CalendarItemsData("编程", "code"));
+        lists.add(new CalendarItemsData("画画", "paint"));
         lists.add(new CalendarItemsData("懒惰","rest"));
         lists.add(new CalendarItemsData("火焰", "fire"));
         lists.add(new CalendarItemsData("爱心", "like"));
         lists.add(new CalendarItemsData("完成", "check"));
         lists.add(new CalendarItemsData("标记", "star"));
+
         CalendarAddItemsAdapter calendarItemAdapter = new CalendarAddItemsAdapter(lists, getActivity());
         calendarItemAdapter.setOnItemClickListener(new CalendarAddItemsAdapter.OnItemClickListener() {
             @Override
@@ -139,8 +151,9 @@ public class FragmentCalendar extends Fragment {
                     case "fire":
                     case "star":
                     case "check":
+                    case "paint":
+                    case "code":
                         addCalendarItem(remarkName);
-
                         break;
 
                     default:
@@ -159,21 +172,24 @@ public class FragmentCalendar extends Fragment {
         loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
                 .setTitle("新建记录" + DAY_FORMAT.format(Calendar.getInstance().getTime())).create();
     }
-    public void addCalendarItem(String strName)
+    private void addCalendarItem(String strName)
     {
-        List<ListData> todayLists=listTreeMap.get(DAY_FORMAT.format(Calendar.getInstance().getTime()));
-        for(int i=0;i<todayLists.size();i++)
-        {
-            if (todayLists.get(i).getRemarks().equals(strName)&&todayLists.get(i).getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
+        List<ListData> todayLists=activityCalendar.listTreeMap.get(DAY_FORMAT.format(Calendar.getInstance().getTime()));
+        if (todayLists!=null){
+            for(int i=0;i<todayLists.size();i++)
             {
-                Intent intent = new Intent(getActivity(), ActivityEditInfo.class);
-                intent.putExtra(LIST_DATA_POS, i);
-                intent.putExtra(LIST_DATA, todayLists.get(i));
-                startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
-                loadingDialog.dismiss();
-                return;
+                if (todayLists.get(i).getRemarks().equals(strName)&&todayLists.get(i).getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
+                {
+                    Intent intent = new Intent(getActivity(), ActivityEditInfo.class);
+                    intent.putExtra(LIST_DATA_POS, i);
+                    intent.putExtra(LIST_DATA, todayLists.get(i));
+                    startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
+                    loadingDialog.dismiss();
+                    return;
+                }
             }
         }
+
         int orderid =dbListInfoManager.getDataCount();
         Intent intent = new Intent(getActivity(), ActivityEditInfo.class);
         intent.putExtra(LIST_DATA_POS, -1);
@@ -283,14 +299,13 @@ public class FragmentCalendar extends Fragment {
     private void initialCalendarView() {
         // set start time,just for test.
         Calendar calendar = Calendar.getInstance();
-
         loadNewList(DAY_FORMAT.format(calendar.getTime()));
         loadCalendarData(YEAR_MONTH_FORMAT.format(calendar.getTime()));
         toolbar.setTitle(YEAR_MONTH_YUE_FORMAT.format(calendar.getTime()));
 
         // deal with refresh and load more event.
         calendarGridView.setOnListPullListener(new CalendarListView.onListPullListener() {
-            //就是这个傻逼害老子弄了好久
+            //就是这个弄了好久好久
             @Override
             public void onRefresh() {
                 String date = calendarGridView.getCurrentSelectedDate();
@@ -351,12 +366,13 @@ public class FragmentCalendar extends Fragment {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        Random random = new Random();
-                        for (String d : listTreeMap.keySet()) {
+
+                        for (String d : activityCalendar.listTreeMap.keySet()) {
+                            Log.d(TAG, "FragmentCalendar loadCalendarData run: currentDatekey"+d);
                             if (date.equals(d.substring(0, 7))) {
                                 CustomCalendarItemModel itemCalendarModel = calendarAdapter.getDayModelList().get(d);
                                 if (itemCalendarModel != null) {
-                                    List<ListData> currentDayLists=listTreeMap.get(d);
+                                    List<ListData> currentDayLists=activityCalendar.listTreeMap.get(d);
                                     itemCalendarModel.setNewsCount(currentDayLists.size());
                                     for (int i=0;i<currentDayLists.size();i++)
                                     {
@@ -369,39 +385,36 @@ public class FragmentCalendar extends Fragment {
                                         {
                                             case "luser":
                                                 itemCalendarModel.setLuser(true);
-
                                                 break;
                                             case "diary":
                                                 itemCalendarModel.setDiary(true);
-
                                                 break;
                                             case "weight":
                                                 itemCalendarModel.setWeight(true);
-
                                                 break;
                                             case "jp":
                                                 itemCalendarModel.setJP(true);
-
                                                 break;
                                             case "rest":
                                                 itemCalendarModel.setRest(true);
-
                                                 break;
                                             case "star":
                                                 itemCalendarModel.setStar(true);
-
                                                 break;
                                             case "like":
                                                 itemCalendarModel.setLike(true);
-
                                                 break;
                                             case "check":
                                                 itemCalendarModel.setCheck(true);
-
                                                 break;
                                             case "fire":
                                                 itemCalendarModel.setFire(true);
-
+                                                break;
+                                            case "paint":
+                                                itemCalendarModel.setPaint(true);
+                                                break;
+                                            case "code":
+                                                itemCalendarModel.setCode(true);
                                                 break;
 
                                         }
@@ -427,45 +440,7 @@ public class FragmentCalendar extends Fragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-
-                SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                Calendar calendar = Calendar.getInstance();
-                try {
-                    calendar.setTime(sDateFormat.parse(date));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                Date nowDate = Calendar.getInstance().getTime();
-                String nowDateString = DateFormat.format("yyyy-MM-dd", nowDate).toString();
-                try {
-                    nowDate = sDateFormat.parse(nowDateString);
-
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-                Date currentDate = null;
-                calendar.add(Calendar.DAY_OF_MONTH, -30);
-                for (int i = -30; i <= 30; i++) {
-                    calendar.add(Calendar.DAY_OF_MONTH, +1);
-                    String key = sDateFormat.format(calendar.getTime());
-                    try {
-                        currentDate = sDateFormat.parse(key);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                    if (currentDate.after(nowDate)) {
-                        continue;
-                    }
-                    if (listTreeMap.containsKey(key)) {
-                        continue;
-                    }
-                    List<ListData> listDatas = dbListInfoManager.searchDataByDate(key);
-//                    Log.d(TAG, "loadNewList: date=" + key + "  items=" + listDatas.size());
-                    if (listDatas.size() == 0) {
-                        continue;
-                    }
-                    listTreeMap.put(key, listDatas);
-                }
+                activityCalendar.loadDBToDataTree(date);
                 Message msg = new Message();
                 Bundle data = new Bundle();
                 data.putInt(MSG_LOAD_DB_INFO, LOAD_DB_FINISHED);
@@ -477,5 +452,7 @@ public class FragmentCalendar extends Fragment {
 
 
     }
+
+
 
 }

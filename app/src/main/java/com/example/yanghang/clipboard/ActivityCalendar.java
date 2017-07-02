@@ -11,14 +11,33 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.format.DateFormat;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendarItem;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendarTimeline;
+import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static com.example.yanghang.clipboard.Fragment.FragmentCalendar.DAY_FORMAT;
+import static com.example.yanghang.clipboard.Fragment.FragmentCalendar.YEAR_MONTH_FORMAT;
 
 public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnPageChangeListener {
+
+
+    //key:date "yyyy-mm-dd" format.
+    public TreeMap<String, List<ListData>> listTreeMap = new TreeMap<>();
+
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -67,11 +86,16 @@ public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnP
 
 
     private void initialView() {
+        //把初始化加载放在这个地方，就能够避免两个Fragment线程冲突，导致加载出来的 List 数据错乱
+        //但是会非常卡。所以我又把它去掉了
+//        loadDBToDataTree(DAY_FORMAT.format(Calendar.getInstance().getTime()));
+
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         viewPager = (ViewPager) findViewById(R.id.calendar_viewPager);
         viewPager.addOnPageChangeListener(this);
         viewPager.setAdapter(new ViewPageAdapter(getSupportFragmentManager()));
+        viewPager.setOffscreenPageLimit(3);
     }
 
     @Override
@@ -96,13 +120,11 @@ public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnP
 
     @Override
     public void onPageScrollStateChanged(int state) {
-
     }
-
 
     public class ViewPageAdapter extends FragmentPagerAdapter {
 
-        private Fragment[] fragments = new Fragment[]{new FragmentCalendar(), new FragmentCalendarTimeline(),
+        public Fragment[] fragments = new Fragment[]{new FragmentCalendar(), new FragmentCalendarTimeline(),
                 new FragmentCalendarItem()};
 
         public ViewPageAdapter(FragmentManager fm) {
@@ -117,6 +139,47 @@ public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnP
         @Override
         public int getCount() {
             return fragments.length;
+        }
+    }
+    //do it in a thread
+    public void loadDBToDataTree(String date) {
+        SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar = Calendar.getInstance();
+        try {
+            calendar.setTime(sDateFormat.parse(date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Date nowDate = Calendar.getInstance().getTime();
+        String nowDateString = DateFormat.format("yyyy-MM-dd", nowDate).toString();
+        try {
+            nowDate = sDateFormat.parse(nowDateString);
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        Date currentDate = null;
+        calendar.add(Calendar.DAY_OF_MONTH, -30);
+        for (int i = -30; i <= 30; i++) {
+            calendar.add(Calendar.DAY_OF_MONTH, +1);
+            String key = sDateFormat.format(calendar.getTime());
+            try {
+                currentDate = sDateFormat.parse(key);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            if (currentDate.after(nowDate)) {
+                continue;
+            }
+            if (listTreeMap.containsKey(key)) {
+                continue;
+            }
+            List<ListData> listDatas = new DBListInfoManager(this).searchDataByDate(key);
+//                    Log.d(TAG, "loadNewList: date=" + key + "  items=" + listDatas.size());
+            if (listDatas.size() == 0) {
+                continue;
+            }
+            listTreeMap.put(key, listDatas);
         }
     }
 }

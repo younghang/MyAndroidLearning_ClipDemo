@@ -90,6 +90,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     Button btnOK;
     Button btnCancle;
     Button btnCalendar;
+    public static int TotalDataCount=0;
     private RecyclerView recyclerView;
     private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
@@ -267,6 +268,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             @Override
             public void run() {
                 listDatas = dbListInfoManager.getDatas("");
+                TotalDataCount=listDatas.size();
                 Message msg = new Message();
                 Bundle data = new Bundle();
                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.yanghang.clipboard">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -8,6 +9,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        tools:replace="android:icon"
         android:name=".Log.MyAppcation"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -38,26 +40,9 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme" />
-        <activity
-            android:name=".Test.ItemListActivity"
-            android:label="@string/title_item_list"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".Test.ItemDetailActivity"
-            android:label="@string/title_item_detail"
-            android:parentActivityName=".Test.ItemListActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.yanghang.clipboard.Test.ItemListActivity" />
-        </activity>
-        <activity
-            android:name=".Test.MainActivity"
-            android:label="@string/title_activity_main" />
-        <activity
-            android:name=".Test.ScrollingActivity"
-            android:label="@string/title_activity_scrolling"
-            android:theme="@style/AppTheme.NoActionBar" />
+
+
+
         <activity
             android:name=".ActivityCalendar"
             android:theme="@style/AppTheme.NoActionBar">

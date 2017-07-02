@@ -15,6 +15,7 @@ import com.example.yanghang.clipboard.R;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by kelin on 16-7-22.

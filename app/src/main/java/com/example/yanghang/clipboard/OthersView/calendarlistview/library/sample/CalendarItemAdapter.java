@@ -99,7 +99,7 @@ public class CalendarItemAdapter extends BaseCalendarItemAdapter<CustomCalendarI
     }
     private  void setImage(ImageView imageView,String pic)
     {
-        Log.d(TAG, "setImage: pic="+pic);
+//        Log.d(TAG, "setImage: pic="+pic);
          
         switch (pic)
         {
@@ -129,6 +129,12 @@ public class CalendarItemAdapter extends BaseCalendarItemAdapter<CustomCalendarI
                 break;
             case "rest":
                 imageView.setImageResource(R.drawable.rest);
+                break;
+            case "code":
+                imageView.setImageResource(R.drawable.code);
+                break;
+            case "paint":
+                imageView.setImageResource(R.drawable.paint);
                 break;
             default:
                 imageView.setImageResource(R.drawable.ic_star);

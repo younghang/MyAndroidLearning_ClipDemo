@@ -34,4 +34,6 @@
     <color name="black_80000000">#80000000</color>
 
     <color name="Bg_Calendar_ListView_Header">#e9e9e9</color>
+
+    <color name="bgColor">#F9F9F9</color>
 </resources>

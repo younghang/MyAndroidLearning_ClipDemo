@@ -84,38 +84,8 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
             isEdit = false;
 
         String catalogueName=listData.getCatalogue();
-        notShowSpinner = true;
-        editRemark = (EditText) findViewById(R.id.edit_remark);
+        Log.d(MainFormActivity.TAG, "Initial: catalogueName="+catalogueName);
 
-        editRemark.setText(listData.getRemarks());
-        editRemark.setFocusable(isEdit);
-        switch(catalogueName)
-        {
-            case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
-                editRemark.setFocusable(false);
-                switch (listData.getRemarks())
-                {
-                    case "diary":
-                        fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
-//                notShowSpinner=true;//不仅修改的时候不能出现，而且新建的时候也不能出现
-                        break;
-                    default:
-                        fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
-                }
-                break;
-
-
-            case "待办事项":
-                fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
-                break;
-            default:
-                fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
-                notShowSpinner=false;
-
-        }
-
-
-        setFragment(fragment);
         editRemark = (EditText) findViewById(R.id.edit_remark);
 
         editRemark.setText(listData.getRemarks());
@@ -140,7 +110,39 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
             spinner.setSelection(index, true);
         else spinner.setSelection(0, true);
 
+        notShowSpinner = true;
+        switch(catalogueName)
+        {
+            case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
+                editRemark.setFocusable(false);
+                switch (listData.getRemarks())
+                {
+                    case "diary":
+                        fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
+//                notShowSpinner=true;//不仅修改的时候不能出现，而且新建的时候也不能出现
+                        break;
+                    default:
+                        fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
+                }
+                break;
+
+
+            case "待办事项":
+                fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
+                break;
+            default:
+                if (catalogueName.equals(""))
+                {
+                    catalogueName=spinner.getSelectedItem().toString();
+                    listData.setCatalogue(catalogueName);
+                }
+
+                fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
+                notShowSpinner=false;
+
+        }
         spinner.setVisibility(notShowSpinner||!isEdit ? View.GONE : View.VISIBLE);
+        setFragment(fragment);
 
     }
 

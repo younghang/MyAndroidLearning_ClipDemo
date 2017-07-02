@@ -72,6 +72,12 @@ public class CalendarAddItemsAdapter extends RecyclerView.Adapter<CalendarAddIte
             case "jp":
                 holder.imgItemPic.setImageResource(R.drawable.jp_learn);
                 break;
+            case "paint":
+                holder.imgItemPic.setImageResource(R.drawable.paint);
+                break;
+            case "code":
+                holder.imgItemPic.setImageResource(R.drawable.code);
+                break;
             case "like":
                 holder.imgItemPic.setImageResource(R.mipmap.ic_like_normal);
                 break;

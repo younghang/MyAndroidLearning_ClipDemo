@@ -30,6 +30,7 @@ import android.widget.Toast;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.DBClipInfos.ListInfoDB;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
@@ -180,7 +181,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             specialCataloguePreference.setOnPreferenceClickListener(this);
 
             logFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(file.getAbsolutePath()));
-            deleteFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath()));
+            deleteFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath())+"  共"+MainFormActivity.TotalDataCount+"条记录");
 
         }
 
@@ -202,7 +203,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         private void showSpecialCatalogueNames() {
             new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称")
-                    .setMessage("日记， 待办事项 ").setCancelable(true).show();
+                    .setMessage("待办事项, collect_calendar_catalogue[diary luser weight] ").setCancelable(true).show();
         }
 
         private void showLogFileDialog() {
@@ -444,6 +445,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             ListData ld = lists.get(i);
                             boolean IsItemAdd = true;
                             if (!catalogueAdapter.contains(ld.getCatalogue())) {
+                                if (!ld.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
                                 catalogueAdapter.addItem(new CatalogueInfos(ld.getCatalogue(), ""));
                             }
                             for (int j = 0; j < listsOrigin.size(); j++) {
@@ -548,7 +550,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_CATALOGUE) {
                 Uri uri = data.getData();
                 final String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
-                //存储设置值和读取设置值，需要手动完成不具备自动关联
+                //存储设置值和读取设置值，需要手动完成,不具备自动关联
                 PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(catalogueImportPreference.getKey(), file).apply();
                 catalogueImportPreference.setSummary(file);
                 loadingDialog = new AlertDialog.Builder(getActivity()).setView(LayoutInflater.from(getActivity().getApplicationContext())
@@ -567,7 +569,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                             CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());
 
-                            for (int i = 0; i < lists.size(); i++) {
+                            for (int i = lists.size()-1; i>=0 ; i--) {
                                 CatalogueInfos ld = lists.get(i);
                                 if (!catalogueAdapter.contains(ld.getCatalogue())) {
                                     catalogueAdapter.addItem(ld);

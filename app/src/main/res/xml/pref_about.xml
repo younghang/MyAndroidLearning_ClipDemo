@@ -23,6 +23,10 @@
             android:summary="special catalogue name"
             android:key="setting_about_special_catalogue"
             />
+        <Preference android:title="reference"
+            android:summary="SwipebackLayout CalendarListView DataChooseWheelViewDialog NiMinBan"
+
+            />
 
     </PreferenceCategory>
 </PreferenceScreen>
