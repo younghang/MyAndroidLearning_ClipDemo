@@ -49,46 +49,55 @@ public class CalendarAddItemsAdapter extends RecyclerView.Adapter<CalendarAddIte
         holder.tvItemName.setText(lists.get(position).getCalendarItemName());
         holder.itemView.setTag(position);
         String pic = lists.get(position).getCalendarItemPic();
+        setImageSource(holder.imgItemPic,pic);
+    }
+    public static void setImageSource(ImageView imageView,String pic){
         switch (pic)
         {
             case "luser":
-                holder.imgItemPic.setImageResource(R.drawable.toilet_paper);
+                imageView.setImageResource(R.drawable.toilet_paper);
                 break;
             case "diary":
-                holder.imgItemPic.setImageResource(R.drawable.diary1);
+                imageView.setImageResource(R.drawable.diary1);
                 break;
             case "weight":
-                holder.imgItemPic.setImageResource(R.drawable.weight_scale);
+                imageView.setImageResource(R.drawable.weight_scale);
                 break;
             case "star":
-                holder.imgItemPic.setImageResource(R.drawable.ic_star);
+                imageView.setImageResource(R.drawable.ic_star);
                 break;
             case "fire":
-                holder.imgItemPic.setImageResource(R.drawable.ic_fire);
+                imageView.setImageResource(R.drawable.ic_fire);
                 break;
             case "check":
-                holder.imgItemPic.setImageResource(R.drawable.ic_green_check);
+                imageView.setImageResource(R.drawable.ic_green_check);
                 break;
             case "jp":
-                holder.imgItemPic.setImageResource(R.drawable.jp_learn);
-                break;
-            case "paint":
-                holder.imgItemPic.setImageResource(R.drawable.paint);
-                break;
-            case "code":
-                holder.imgItemPic.setImageResource(R.drawable.code);
+                imageView.setImageResource(R.drawable.jp_learn);
                 break;
             case "like":
-                holder.imgItemPic.setImageResource(R.mipmap.ic_like_normal);
+                imageView.setImageResource(R.mipmap.ic_like_normal);
                 break;
             case "rest":
-                holder.imgItemPic.setImageResource(R.drawable.rest);
+                imageView.setImageResource(R.drawable.rest);
                 break;
-
+            case "code":
+                imageView.setImageResource(R.drawable.code);
+                break;
+            case "paint":
+                imageView.setImageResource(R.drawable.paint);
+                break;
+            case "cost":
+                imageView.setImageResource(R.drawable.spendmoney);
+                break;
+            case "income":
+                imageView.setImageResource(R.drawable.addmoney);
+                break;
             default:
-                holder.imgItemPic.setImageResource(R.drawable.ic_star);
+                imageView.setImageResource(R.drawable.ic_star);
         }
     }
+
     public void setOnItemClickListener(OnItemClickListener listener) {
         if (listener != null) {
             mItemClickListener = listener;

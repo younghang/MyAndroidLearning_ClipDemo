@@ -130,6 +130,10 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
             case "待办事项":
                 fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
                 break;
+            case "番剧":
+                fragment = FragmentEditInfo.newInstance(listData.getContent(), false);
+
+                break;
             default:
                 if (catalogueName.equals(""))
                 {
@@ -150,15 +154,23 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_checked:
-                listData.setContent(fragment.getString());
+                if (listData.getCatalogue().equals("番剧"))
+                {
+                    //对于新番，新建的时候只能设置Remake 不能通过ActivityEditInfo来设置content ，有单独的Activity来设置
+                    listData.setContent("");
+                }
+                else{
+                    listData.setContent(fragment.getString());
+                }
                 listData.setRemarks(editRemark.getText().toString());
+                //只有calendar 这样在目录里面找不到的，才不需要手动设置
                 if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
                 listData.setCatalogue(spinner.getSelectedItem().toString());
                 Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
                 intent.putExtra(MainFormActivity.LIST_DATA, listData);
                 intent.putExtra(MainFormActivity.LIST_DATA_POS, pos);
                 if (pos == -1) {
-                    if (listData.getContent().equals("")) {
+                    if (listData.getContent().equals("")&&listData.getRemarks().equals("")) {
                         setResult(RESULT_NOTHING_NEW, intent);
                     } else
                         setResult(RESULT_ADD_NEW, intent);
@@ -180,8 +192,11 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                     editRemark.requestFocus();
                     editRemark.setFocusableInTouchMode(true);
                 }
+                if (!listData.getCatalogue().equals("番剧"))
+                {
+                    fragment.enableEdit();
+                }
 
-                fragment.enableEdit();
                 if (!notShowSpinner)
                 spinner.setVisibility(View.VISIBLE);
 

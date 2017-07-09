@@ -1,13 +1,20 @@
 package com.example.yanghang.clipboard.ListPackage.ClipInfosList;
 
+import android.util.Log;
+
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
+import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
+import java.util.List;
+
+import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 /**
  * Created by yanghang on 2016/11/22.
@@ -78,6 +85,7 @@ public class ListData implements Serializable {
     }
     public String getSimpleContent()
     {
+
         String strMessage=Content;
         switch (Catalogue)
         {
@@ -103,8 +111,25 @@ public class ListData implements Serializable {
                     String date = sDateFormat.format(new java.util.Date());
                     endDate=date;
                 }
-                strMessage=strMessage+"\n截止日期["+endDate+"]";
+                strMessage=strMessage+"\n截止日期["+endDate+"]"+(toDoData.isFinished()?"":"\n***** Not  Finished *****");
                 break;
+            case "番剧":
+                try {
+                    List<BangumiData> list = JSONArray.parseArray(Content, BangumiData.class);
+
+                    strMessage="《";
+                    for (int i=0; i<list.size()-1;i++) {
+                        strMessage+=list.get(i).getName()+"》，《";
+                    }
+                    strMessage+=list.get(list.size()-1).getName()+"》";
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    strMessage="Error Data！";
+                }
+                break;
+
             case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
                 switch (Remarks){
                     case "diary":

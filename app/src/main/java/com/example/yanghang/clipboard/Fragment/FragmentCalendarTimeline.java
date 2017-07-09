@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.yanghang.clipboard.ActivityCalendar;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
@@ -24,7 +25,9 @@ import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.R;
 import com.linechart.ChartView;
 import com.linechart.DateString;
+import com.sevenheaven.segmentcontrol.SegmentControl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -42,11 +45,16 @@ public class FragmentCalendarTimeline extends Fragment {
     private TextView tvDateTime;
     private TextView tvTag;
     private String currentSelectDate;
-    private Handler handler = new Handler();
+    private Handler handler = new Handler()
+    {
+
+    };
+
+
     String currentTag;
     HorizontalScrollView horizontalScrollView;
     LinearLayout linearLayout;
-
+    private SegmentControl mSegmentHorzontal;
 
     //x轴坐标对应的数据
     private List<String> xValue = new ArrayList<>();
@@ -84,6 +92,25 @@ public class FragmentCalendarTimeline extends Fragment {
         toolbar.setTitle("");
 //        ((ActivityCalendar) getActivity()).setSupportActionBar(toolbar);
         tvDateTime = mView.findViewById(R.id.calendar_timeline_date_tv);
+        mSegmentHorzontal = mView.findViewById(R.id.segment_control2);
+        mSegmentHorzontal.setSelectedIndex(0);
+        mSegmentHorzontal.setOnSegmentControlClickListener(new SegmentControl.OnSegmentControlClickListener() {
+            @Override
+            public void onSegmentControlClick(int index) {
+                int selectedIndex=index;
+                switch (selectedIndex){
+                    case 0:
+                        loadTagChart();
+                        break;
+                    case 1:
+                        Toast.makeText(getActivity(), "not finished", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 2:
+                        loadMonthTimeLine();
+                        break;
+                }
+            }
+        });
         tvTag = mView.findViewById(R.id.calendar_timeline_tag);
         String todayStr = new DateString(Calendar.getInstance().getTime()).getDate();
         tvDateTime.setText(todayStr);
@@ -108,10 +135,13 @@ public class FragmentCalendarTimeline extends Fragment {
         onClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                currentTag = ((TextView) view).getTag().toString();
-                tvTag.setText(((TextView) view).getText());
-                Log.d(TAG, "onClick: Tag=" + currentTag);
+                currentTag = (view).getTag().toString();
+                mSegmentHorzontal.setSelectedIndex(0);
+                tvTag.setText(((Button) view).getText());
+//                Log.d(TAG, "onClick: Tag=" + currentTag);
                 loadTagChart();
+
+
             }
         };
 
@@ -135,19 +165,65 @@ public class FragmentCalendarTimeline extends Fragment {
 
     }
 
-    void testChart() {
-        for (int i = 0; i < 12; i++) {
-            xValue.add((i + 1) + "月");
-            value.put((i + 1) + "月", (float) (Math.random() * 181 + 60));//60--240
-        }
+    private void loadMonthTimeLine() {
+        new Thread() {
+            @Override
+            public void run() {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Map<String, Float> valueTemp = new HashMap<>();
+                        List<String> xTemp = new ArrayList<String>();
+                        Integer maxY=0;
+                        valueTemp.clear();
+                        String year=new DateString(currentSelectDate).getYear()+"";
+                        for (int i=1;i<=12;i++)
+                        {
+                            xTemp.add(i + "月");
+                            loadDataToChart(year+(i>9?"-"+i:"-0"+i)+"-01");
+                            float monthTotal=0f;
 
-        for (int i = 0; i < 6; i++) {
-            yValue.add(i * 60);
-        }
+                            for (String key:value.keySet())
+                            {
 
-        ChartView chartView = (ChartView) mView.findViewById(R.id.chartView);
-        chartView.setValue(value, xValue, yValue);
+                                monthTotal+=value.get(key);
+                                BigDecimal b = new BigDecimal(monthTotal);
+                                monthTotal= b.setScale(1, BigDecimal.ROUND_HALF_UP).floatValue();
+                            }
+                            if (monthTotal>maxY)
+                                maxY=(int)monthTotal;
+                            valueTemp.put(i + "月", monthTotal);
+                            Log.d(TAG, "FragmentCalendar loadMonthTime run: "+i + "月  total="+ monthTotal);
+                        }
+                        value.clear();
+                        value.putAll(valueTemp);
+                        xValue.clear();
+                        xValue.addAll(xTemp);
+
+                        yValue.clear();
+                        if (maxY == 0)
+                            maxY = 1;
+                        int Ylines = 0;
+                        if (maxY < 6)
+                            Ylines = maxY;
+                        else Ylines = 6;
+
+                        for (int i = 0; i < Ylines + 2; i++) {
+                            int current = (int) (1.0f*maxY / Ylines * i);
+                            if (!yValue.contains(current))
+                                yValue.add(current);
+                        }
+                        Log.d(TAG, "FragmentCalendar loadMonthTime run:x0="+xValue.get(0)+ "  values 0()="+value.get(xValue.get(0))+"  y0="+yValue.get(0));
+                        ChartView chartView = (ChartView) mView.findViewById(R.id.chartView);
+                        chartView.setValue(value, xValue, yValue);
+                    }
+                });
+            }
+        }.start();
+
+
     }
+
 
 
     private void loadTagChart() {
@@ -157,7 +233,9 @@ public class FragmentCalendarTimeline extends Fragment {
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        loadDataToChart();
+                        loadDataToChart(currentSelectDate);
+                        ChartView chartView = (ChartView) mView.findViewById(R.id.chartView);
+                        chartView.setValue(value, xValue, yValue);
                     }
                 });
             }
@@ -167,9 +245,9 @@ public class FragmentCalendarTimeline extends Fragment {
     }
 
     //不负责数据获取工作，避免初始化的时候混乱，我又让他负责了
-    private void loadDataToChart() {
-        activityCalendar.loadDBToDataTree(currentSelectDate);
-        DateString dateString = new DateString(currentSelectDate);
+    private void loadDataToChart(String date) {
+        activityCalendar.loadDBToDataTree(date);
+        DateString dateString = new DateString(date);
         yValue.clear();
         xValue.clear();
         value.clear();
@@ -183,7 +261,7 @@ public class FragmentCalendarTimeline extends Fragment {
 //            Log.d(TAG, "loadDataToChart: currentdayString"+currentdayString);
 //            Log.d(TAG, "loadDataToChart: xi=" + xi);
             boolean isAdd = false;
-            boolean isNum = false;
+
             xValue.add(xi);
 //
             List<ListData> listDatas = activityCalendar.listTreeMap.get(currentdayString);
@@ -203,10 +281,10 @@ public class FragmentCalendarTimeline extends Fragment {
                             if (currentY > maxY)
                                 maxY = (int)currentY;
                             value.put(xi, currentY);
-                            isNum = true;
+
 //                            Log.d(TAG, "loadDataToChart: yi=" + currentY);
                         } catch (NumberFormatException e) {
-                            isNum = false;
+
 //                            e.printStackTrace();
                             maxY = 2;
                             value.put(xi, 1f);
@@ -222,14 +300,14 @@ public class FragmentCalendarTimeline extends Fragment {
 
                 }
                 if (isAdd == false) {
-                    if (!isNum) {
+
                         value.put(xi, 0f);
 //                        Log.d(TAG, "loadDataToChart: not num yi=0");
-                    }
+
 
                 }
             } else {
-                if (!isNum)
+
                     value.put(xi, 0f);//60--240
 //                Log.d(TAG, "loadDataToChart: fragment currentDay data is null");
             }
@@ -248,8 +326,9 @@ public class FragmentCalendarTimeline extends Fragment {
             if (!yValue.contains(current))
                 yValue.add(current);
         }
-        ChartView chartView = (ChartView) mView.findViewById(R.id.chartView);
-        chartView.setValue(value, xValue, yValue);
+
+
+
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -278,7 +357,7 @@ public class FragmentCalendarTimeline extends Fragment {
         lp.setMargins(10, 5, 5, 5);
         view.setLayoutParams(lp);
 
-        view.setBackground(getActivity().getDrawable(R.drawable.button_background));
+        view.setBackground(getActivity().getDrawable(R.drawable.button_background_green));
         return view;
     }
 

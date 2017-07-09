@@ -49,26 +49,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textAllCaps="false"
             android:text="ScrollingActivity"
             android:id="@+id/test_button_scrolling"/>
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textAllCaps="false"
             android:id="@+id/test_button_masterItem"
             android:text="Master/ItemActivity"/>
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <ImageButton
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:layout_margin="10dp"
+            android:textAllCaps="false"
             android:id="@+id/test_button_fullScreen"
             android:text="FullScreenActivity"/>
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textAllCaps="false"
             android:id="@+id/test_button_buttonNavigation"
-            android:text="ButtonNavigationActivity"/>
+            android:text="HorizontalScrollListView"/>
 
     </LinearLayout>
 </RelativeLayout>

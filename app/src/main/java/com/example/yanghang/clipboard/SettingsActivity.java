@@ -203,7 +203,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
         private void showSpecialCatalogueNames() {
             new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称")
-                    .setMessage("待办事项, collect_calendar_catalogue[diary luser weight] ").setCancelable(true).show();
+                    .setMessage("待办事项, collect_calendar_catalogue[diary luser weight] ，番剧").setCancelable(true).show();
         }
 
         private void showLogFileDialog() {

@@ -1,17 +1,22 @@
 package com.example.yanghang.clipboard;
 
+import android.annotation.TargetApi;
 import android.content.Intent;
+import android.os.Build;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.yanghang.clipboard.EncodeFile.AES;
 import com.example.yanghang.clipboard.EncodeFile.AESKeyModel;
 import com.example.yanghang.clipboard.EncodeFile.AESUtils;
+import com.example.yanghang.clipboard.Test.HorizontalScrollListView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +38,7 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
     File decodeFile;
 
 
-    Button fullScreenButton;
+    ImageButton fullScreenButton;
     Button masterItemButton;
     Button scrollingButton;
     Button buttonNavigationButton;
@@ -58,7 +63,7 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
         scrollingButton = (Button) findViewById(R.id.test_button_scrolling);
-        fullScreenButton = (Button) findViewById(R.id.test_button_fullScreen);
+        fullScreenButton = (ImageButton) findViewById(R.id.test_button_fullScreen);
         masterItemButton = (Button) findViewById(R.id.test_button_masterItem);
         buttonNavigationButton = (Button) findViewById(R.id.test_button_buttonNavigation);
 
@@ -66,6 +71,8 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         fullScreenButton.setOnClickListener(this);
         masterItemButton.setOnClickListener(this);
         buttonNavigationButton.setOnClickListener(this);
+
+        setImage(fullScreenButton);
     }
 
     private void doAESUtils() {
@@ -73,7 +80,21 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         encode.setText(enryptString);
         decode.setText(AESUtils.decrypt("5568646",enryptString));
     }
-
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void setBackground(View view ,boolean watched)
+    {
+        if (watched)
+            view.setBackground(getDrawable(R.drawable.button_background_green));
+        else
+            view.setBackground(getDrawable(R.drawable.button_background_gray));
+    }
+    private void setImage(ImageButton imageButton)
+    {
+        VectorDrawableCompat vectorDrawableCompat = VectorDrawableCompat.create(getResources(),R.drawable.ic_love,getTheme());
+        //你需要改变的颜色
+//        vectorDrawableCompat.setTint(getResources().getColor(R.color.light_gray));
+        imageButton.setImageDrawable(vectorDrawableCompat);
+    }
     void doneWork() {
         aesEncode(originFile.getAbsolutePath(), encodeFile.getAbsolutePath());
         try {
@@ -189,6 +210,8 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         Intent intent;
         switch (v.getId()) {
             case R.id.test_button_scrolling:
+                intent = new Intent(TestActivity.this, HorizontalScrollListView.class);
+                startActivity(intent);
 
                 break;
             case R.id.test_button_buttonNavigation:

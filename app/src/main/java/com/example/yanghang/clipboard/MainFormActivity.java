@@ -30,6 +30,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,10 +45,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
+import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
@@ -58,6 +61,7 @@ import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 import permissions.dispatcher.NeedsPermission;
@@ -90,12 +94,13 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     Button btnOK;
     Button btnCancle;
     Button btnCalendar;
-    public static int TotalDataCount=0;
+    public static int TotalDataCount = 0;
     private RecyclerView recyclerView;
     private RecyclerView catalogueRecycler;
     private SwipeRefreshLayout refreshLayout;
     private ListClipInfoAdapter listClipInfoAdapter;
     private CatalogueAdapter catalogueAdapter;
+    private LinearLayoutManager linearLayoutManager;
     private DrawerLayout mDrawerLayout;
     private List<ListData> listDatas;
     private String messageToDoList;
@@ -268,7 +273,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             @Override
             public void run() {
                 listDatas = dbListInfoManager.getDatas("");
-                TotalDataCount=listDatas.size();
+                TotalDataCount = listDatas.size();
                 Message msg = new Message();
                 Bundle data = new Bundle();
                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
@@ -292,11 +297,17 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             public boolean OnItemLongClick(View v, int position) {
                 if (IsEdite)
                     return false;
-                Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
+                ListData data = listDatas.get(position);
+                Intent intent;
+                if (data.getCatalogue().equals("番剧")) {
+                    intent = new Intent(MainFormActivity.this, ActivityBangumi.class);
+                } else {
+                    intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
+                }
                 intent.putExtra(LIST_DATA, listDatas.get(position));
                 intent.putExtra(LIST_DATA_POS, position);
-//                Log.v(TAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
+//                Log.v(TAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
                 return true;
             }
         });
@@ -328,10 +339,28 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         btnCalendar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent=new Intent(MainFormActivity.this,ActivityCalendar.class);
+                Intent intent = new Intent(MainFormActivity.this, ActivityCalendar.class);
                 startActivity(intent);
             }
         });
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                List<ListData> listDatas = dbListInfoManager.getDatas("2017年4月新番");
+//                List<BangumiData> list = new ArrayList<BangumiData>();
+//                for (int i = 0; i < listDatas.size(); i++) {
+//                    ListData listData = listDatas.get(i);
+//                    BangumiData bangumiData = new BangumiData();
+//                    bangumiData.setName(listData.getRemarks());
+//
+//                    bangumiData.setRemark(listData.getContent());
+//                    list.add(bangumiData);
+//                }
+//                ListData listData = new ListData("2017年4月新番",JSONArray.toJSONString(list),dbListInfoManager.getDataCount(),"番剧");
+//                dbListInfoManager.insertData(listData);
+//
+//            }
+//        }).start();
 
 
     }
@@ -346,7 +375,8 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
         }
         // 设置布局，否则无法正常使用
-        catalogueRecycler.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+        linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
+        catalogueRecycler.setLayoutManager(linearLayoutManager);
 
         catalogueAdapter = new CatalogueAdapter(catalogues, MainFormActivity.this);
         if (!catalogueAdapter.contains("default")) {
@@ -416,7 +446,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
                     listClipInfoAdapter.editItem(pos, listData);
                     dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
-
+                    return;
                 }
                 if (resultCode == ActivityEditInfo.RESULT_ADD_NEW) {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
@@ -428,6 +458,17 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         Toast.makeText(MainFormActivity.this, "存储该行数据出错", Toast.LENGTH_SHORT).show();
                     else
                         listClipInfoAdapter.addItem(listData);
+                    return;
+                }
+                if (resultCode == ActivityBangumi.RESULT_BANGUMI_ACTIVITY) {
+
+                    ListData listData = (ListData) data.getExtras().get(LIST_DATA);
+                    int pos = data.getIntExtra(LIST_DATA_POS, 0);
+                    Log.d(TAG, "onActivityResult: content=" + JSON.toJSONString(listData.getContent()));
+
+//                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
+                    listClipInfoAdapter.editItem(pos, listData);
+                    return;
                 }
                 break;
 
@@ -606,6 +647,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                     setCatalogueChanged(catalogueName, catalogueNewName);
                     catalogueAdapter.set(index, catalogueNewName);
                     catalogueAdapter.notifyItemChanged(index);
+//                    linearLayoutManager.scrollToPositionWithOffset(index,0);
                     currentCatalogue = catalogueNewName;
                     toolbar.setTitle(currentCatalogue);
                 }

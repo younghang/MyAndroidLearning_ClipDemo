@@ -2,12 +2,55 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.yanghang.clipboard.Fragment.FragmentCalendarItem">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="先放着充数" />
+        android:layout_height="match_parent">
+        <android.support.v7.widget.CardView
+            android:id="@+id/timer_CardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="10dp"
+            android:layout_margin="8dp"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:minHeight="80dp"
+            app:cardElevation="8dp">
 
+        <Chronometer
+        android:layout_margin="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:format="00:00:00"
+        android:textSize="20dp"
+        android:gravity="center"
+        android:id="@+id/timer"/>
+        </android.support.v7.widget.CardView>
+        <Button
+            android:layout_width="match_parent"
+            style="@null"
+            android:id="@+id/start_timer"
+            android:background="@drawable/button_background_green"
+            android:text="开始"
+            android:textSize="20dp"
+            android:textColor="@color/white"
+            android:layout_margin="20dp"
+            android:layout_height="wrap_content" />
+        <Button
+            android:text="结束"
+            android:textSize="20dp"
+            android:textColor="@color/white"
+            android:layout_width="match_parent"
+            style="@null"
+            android:layout_marginTop="0dp"
+            android:id="@+id/end_timer"
+            android:background="@drawable/button_background_green"
+            android:layout_marginRight="20dp"
+            android:layout_marginLeft="20dp"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 </FrameLayout>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory android:title="程序文件">
-        <Preference android:title="日志文件"
+        <Preference android:title="错误日志文件"
             android:key="setting_about_log_file">
         </Preference>
         <Preference android:title="清除记录数据"

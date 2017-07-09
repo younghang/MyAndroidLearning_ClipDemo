@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/colorPrimary"
@@ -11,7 +12,7 @@
         android:layout_height="40dp"
         android:layout_weight="1"
         android:background="@drawable/button_press_dark"
-        android:src="@drawable/ic_image_black_24dp" />
+        app:srcCompat="@drawable/ic_image_black_24dp" />
 
     <ImageButton
         android:id="@+id/btn_message_file"
@@ -19,7 +20,7 @@
         android:layout_height="40dp"
         android:layout_weight="1"
         android:background="@drawable/button_press_dark"
-        android:src="@drawable/ic_folder_white_24dp" />
+        app:srcCompat="@drawable/ic_folder_white_24dp" />
 
     <ImageButton
         android:id="@+id/btn_message_send"

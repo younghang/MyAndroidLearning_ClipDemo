@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
 import com.example.yanghang.clipboard.R;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.BaseCalendarItemAdapter;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.BaseCalendarItemModel;
@@ -99,46 +100,8 @@ public class CalendarItemAdapter extends BaseCalendarItemAdapter<CustomCalendarI
     }
     private  void setImage(ImageView imageView,String pic)
     {
-//        Log.d(TAG, "setImage: pic="+pic);
-         
-        switch (pic)
-        {
-            case "luser":
-                imageView.setImageResource(R.drawable.toilet_paper);
-                break;
-            case "diary":
-                imageView.setImageResource(R.drawable.diary1);
-                break;
-            case "weight":
-                imageView.setImageResource(R.drawable.weight_scale);
-                break;
-            case "star":
-                imageView.setImageResource(R.drawable.ic_star);
-                break;
-            case "fire":
-                imageView.setImageResource(R.drawable.ic_fire);
-                break;
-            case "check":
-                imageView.setImageResource(R.drawable.ic_green_check);
-                break;
-            case "jp":
-                imageView.setImageResource(R.drawable.jp_learn);
-                break;
-            case "like":
-                imageView.setImageResource(R.mipmap.ic_like_normal);
-                break;
-            case "rest":
-                imageView.setImageResource(R.drawable.rest);
-                break;
-            case "code":
-                imageView.setImageResource(R.drawable.code);
-                break;
-            case "paint":
-                imageView.setImageResource(R.drawable.paint);
-                break;
-            default:
-                imageView.setImageResource(R.drawable.ic_star);
-        }
+
+        CalendarAddItemsAdapter.setImageSource(imageView,pic);
         imageView.setVisibility(View.VISIBLE);
     }
 }

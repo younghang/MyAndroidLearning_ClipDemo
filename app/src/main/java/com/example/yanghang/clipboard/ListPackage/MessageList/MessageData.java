@@ -6,10 +6,24 @@ package com.example.yanghang.clipboard.ListPackage.MessageList;
 public class MessageData {
     private MessageType messageType;
     private String messageText;
-
+    private MessageKind messageKind;
     public MessageData(MessageType messageType, String messageText) {
         this.messageType = messageType;
         this.messageText = messageText;
+    }
+
+    public MessageData(MessageType messageType, String messageText, MessageKind messageKind) {
+        this.messageType = messageType;
+        this.messageText = messageText;
+        this.messageKind = messageKind;
+    }
+
+    public MessageKind getMessageKind() {
+        return messageKind;
+    }
+
+    public void setMessageKind(MessageKind messageKind) {
+        this.messageKind = messageKind;
     }
 
     public MessageType getMessageType() {
@@ -30,5 +44,8 @@ public class MessageData {
 
     public enum MessageType {
         COMPUTER, YOU
+    }
+    public enum MessageKind{
+        FILE,MESSAGE
     }
 }

@@ -4,8 +4,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,6 +26,7 @@ import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.ConnectToPC.ConnectThread;
 import com.example.yanghang.clipboard.ConnectToPC.FileInfo;
 import com.example.yanghang.clipboard.ConnectToPC.PhoneServer;
+import com.example.yanghang.clipboard.FileUtils.AndroidFileUtil;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.ListPackage.MessageList.MessageAdapter;
 import com.example.yanghang.clipboard.ListPackage.MessageList.MessageData;
@@ -33,8 +36,10 @@ import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBa
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,10 +50,12 @@ public class ActivityPCMessage extends SwipeBackActivity {
     private static final int SEND_MESSAGE_FINISH = 123;
     private static final int SEND_MESSAGE_FAIL = 145;
     private static final int MESSAGE_FROM_PC=4512;
+    private static final int FILE_FROM_PC=4502;
     private static final String  SEND_MESSAGE_PROGRESS="message progress";
     public static String DIALOG_MESSAGE = "dialog_message";
     private static String SEND_MESSAGE = "send_message";
     private static String RECEIVE_MESSAGE_FROM_PC="receive_message_from_pc";
+    private static String RECEIVE_FILE_FROM_PC = "receive_file_from_pc";
     Toolbar toolbar;
     RecyclerView recyclerView;
     MessageAdapter messageAdapter;
@@ -81,7 +88,7 @@ public class ActivityPCMessage extends SwipeBackActivity {
                 switch (val) {
                     case MESSAGE_FROM_PC:
                         String message = data.getString(RECEIVE_MESSAGE_FROM_PC);
-                        messageAdapter.addItem(new MessageData(MessageData.MessageType.COMPUTER,message));
+                        messageAdapter.addItem(new MessageData(MessageData.MessageType.COMPUTER,message, MessageData.MessageKind.MESSAGE));
                         break;
                     case SEND_MESSAGE_FAIL:
                         Toast.makeText(ActivityPCMessage.this, "发送文件失败", Toast.LENGTH_SHORT).show();
@@ -91,6 +98,12 @@ public class ActivityPCMessage extends SwipeBackActivity {
                         Toast.makeText(ActivityPCMessage.this, "发送文件" + fileName + "完成", Toast.LENGTH_SHORT).show();
                         messageAdapter.addItem(new MessageData(MessageData.MessageType.YOU, fileName));
                         break;
+                    case FILE_FROM_PC:
+                        String file = data.getString(RECEIVE_FILE_FROM_PC);
+                        MessageData messageData = new MessageData(MessageData.MessageType.COMPUTER, file, MessageData.MessageKind.FILE);
+                        messageAdapter.addItem(messageData);
+                        break;
+
                 }
                 loadingDialog.hide();
                 btnSend.setEnabled(true);
@@ -143,15 +156,30 @@ public class ActivityPCMessage extends SwipeBackActivity {
         messageAdapter.setOnItemClickListener(new MessageAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View v, int pos) {
-                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                // 将文本内容放到系统剪贴板里。
-                cm.setText(messageAdapter.getItemAt(pos));
-                Toast.makeText(ActivityPCMessage.this, "复制到粘贴板", Toast.LENGTH_LONG).show();
+                MessageData messageData=messageAdapter.getItem(pos);
+                if (messageData.getMessageKind()== MessageData.MessageKind.MESSAGE)
+                {
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    // 将文本内容放到系统剪贴板里。
+                    cm.setText(messageAdapter.getItemMessageAt(pos));
+                    Toast.makeText(ActivityPCMessage.this, "复制到粘贴板", Toast.LENGTH_LONG).show();
+                }
+                else if(messageData.getMessageKind()== MessageData.MessageKind.FILE&&messageData.getMessageType()== MessageData.MessageType.COMPUTER)
+                {
+                    Intent intent=AndroidFileUtil.openFile(messageData.getMessageText());
+                    startActivity(intent);
+                }
+
             }
 
             @Override
             public boolean onItemLongClick(View v, int pos) {
-                return false;
+                MessageData messageData=messageAdapter.getItem(pos);
+                if (messageData.getMessageKind() == MessageData.MessageKind.MESSAGE) {
+                    showMessageDialog(messageData.getMessageText());
+                }
+                return true;
+
             }
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -160,16 +188,50 @@ public class ActivityPCMessage extends SwipeBackActivity {
         initialServer();
 
     }
+
+    private void showMessageDialog(String message) {
+        View view = LayoutInflater.from(getApplicationContext()).inflate(R.layout.loading, null);
+        final EditText editText = (EditText) view.findViewById(R.id.loadingEditText);
+        final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
+//          去掉即可复制，用于解决textView不能滑动的问题
+//            editText.setMovementMethod(new ScrollingMovementMethod());
+        loadingDialog = new AlertDialog.Builder(ActivityPCMessage.this).setView(view)
+                .setTitle("详情")
+                  .create();
+
+        editText.setText(message);
+        editText.setKeyListener(null);
+        editText.setBackground(null);
+        editText.setSingleLine(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            editText.setTextColor(getColor(R.color.message_text));
+        } else {
+            editText.setTextColor(getResources().getColor(R.color.message_text));
+        }
+        editText.setTextSize(15);
+        progress.setVisibility(View.INVISIBLE);
+        loadingDialog.show();
+    }
+
     PhoneServer phoneServer;
     private void initialServer() {
 
         phoneServer=new PhoneServer(new PhoneServer.IUpdateMessage() {
             @Override
-            public void updateMessage(String message) {
+            public void updateMessage(String message, PhoneServer.MESSAGE_TYPE message_type) {
                 Message msg = new Message();
                 Bundle data = new Bundle();
-                data.putInt(SEND_MESSAGE, MESSAGE_FROM_PC);
-                data.putString(RECEIVE_MESSAGE_FROM_PC,message);
+
+
+                if (message_type== PhoneServer.MESSAGE_TYPE.MESSAGE)
+                {
+                    data.putInt(SEND_MESSAGE, MESSAGE_FROM_PC);
+                    data.putString(RECEIVE_MESSAGE_FROM_PC,message);
+                }
+                else {
+                    data.putInt(SEND_MESSAGE, FILE_FROM_PC);
+                    data.putString(RECEIVE_FILE_FROM_PC,message);
+                }
                 msg.setData(data);
                 handler.sendMessage(msg);
             }

@@ -26,18 +26,37 @@ public class CustomCalendarItemModel  extends BaseCalendarItemModel{
     private boolean isStar;
     private boolean isCode;
     private boolean isPaint;
+    private boolean isMoneySpend;
+    private boolean isMoneyIncome;
 
     public int imageCount=0;
     public List<String> pics = new ArrayList<>();
 
     public void setStar(boolean star) {
-
+        //避免多次重复添加小图片
         if (star==true&&isStar==false)
         {
             imageCount++;
             pics.add("star");
         }
         isStar = star;
+    }
+
+    public void setMoneySpend(boolean spendMoney) {
+        if (spendMoney==true&&isMoneySpend==false)
+        {
+            imageCount++;
+            pics.add("cost");
+        }
+        isMoneySpend = spendMoney;
+    }
+
+    public void setMoneyIncome(boolean moneyIncome) {
+        if (moneyIncome == true && isMoneyIncome == false) {
+            imageCount++;
+            pics.add("income");
+        }
+        isMoneyIncome = moneyIncome;
     }
 
 

@@ -25,8 +25,12 @@ import java.net.Socket;
 
 public class PhoneServer {
 
+    public enum MESSAGE_TYPE{
+        FILE,MESSAGE
+    }
+
     public interface IUpdateMessage{
-        void updateMessage(String message);
+        void updateMessage(String message,MESSAGE_TYPE message_type);
         void failedReceive();
         void disconnectPCtoServer();
     };
@@ -62,7 +66,7 @@ public class PhoneServer {
             bo = new BufferedOutputStream(socket.getOutputStream());
             receiveData();
         } catch (IOException e) {
-            updateMessage.updateMessage("启动端口失败，请退出程序");
+            updateMessage.updateMessage("启动端口失败，请退出程序",MESSAGE_TYPE.MESSAGE);
             updateMessage.disconnectPCtoServer();
             e.printStackTrace();
         }
@@ -130,7 +134,7 @@ public class PhoneServer {
 
         try {
             outPutString=bas.toString("utf-8");
-            updateMessage.updateMessage(outPutString);
+            updateMessage.updateMessage(outPutString,MESSAGE_TYPE.MESSAGE);
             Log.v(MainFormActivity.TAG,"PhoneServer  receiveMessage:  "+outPutString);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -208,7 +212,7 @@ public class PhoneServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        updateMessage.updateMessage(fileInfo.getFileName()+"接受完成");
+        updateMessage.updateMessage(filePath+"/"+fileInfo.getFileName(),MESSAGE_TYPE.FILE);
         isRunning=false;
         receiveData();
 
@@ -222,7 +226,7 @@ public class PhoneServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        updateMessage.updateMessage("PC 端已经关闭");
+        updateMessage.updateMessage("PC 端已经关闭",MESSAGE_TYPE.MESSAGE);
 
 
 

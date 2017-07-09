@@ -102,7 +102,7 @@
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_height="60dp"
                 android:layout_marginTop="24dp"
-                android:background="@drawable/button_background"
+                android:background="@drawable/button_background_green"
                 android:text="发送 "
                  />
 

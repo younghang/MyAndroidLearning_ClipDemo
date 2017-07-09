@@ -54,6 +54,7 @@ public class DBListInfoManager {
         mSQLiteDatabase.close();
     }
 
+    //获取orderId
     public int getDataCount() {
         open();
         int count = 0;
@@ -142,6 +143,11 @@ public class DBListInfoManager {
             ListData listData = listDatas.get(i);
             insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), getDataCount(), listData.getCatalogue());
         }
+    }
+
+    public long insertData(ListData listData) {
+        return insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
+
     }
 
 
@@ -278,8 +284,8 @@ public class DBListInfoManager {
         close();
         return count > 0;
     }
-
-    public boolean updateDataOrder(int OldOrderID, ListData newData) {
+// i don't know it , I've forgot this
+    private boolean updateDataOrder(int OldOrderID, ListData newData) {
         Log.v(MainFormActivity.TAG, "update: oldid=" + OldOrderID + "  newdata: orderid=" + newData.getOrderID() + "  catalogue=" + newData.getCatalogue());
         ContentValues args = new ContentValues();
         args.put(KEY_DATETIME, newData.getCreateDate());

@@ -560,10 +560,18 @@ public class ChartView extends View {
         float sf=Math.abs(vis) / 10000;
 //        scrollLength=scrollLength*0.3f;
 //        if (Math.abs(vis) < 10000)//10000是一个速度临界值，如果速度达到10000，最大可以滑动(maxXInit - minXInit)
+//           if (vis>0)//应该是这样才对
+//           {
+//               scrollLength = (maxXInit - xInit) * sf;
+//           }
+//           else
+//           {
+//               scrollLength = (xInit-minXInit) * sf;
+//           }
             scrollLength = (maxXInit - minXInit) * sf;
 //        Log.d(TAG, "ChartView scrollAfterActionUp: srollLength="+scrollLength);
         ValueAnimator animator = ValueAnimator.ofFloat(0, scrollLength);
-        animator.setDuration((long) ( 3000*sf));//时间最大为1000毫秒，此处使用比例进行换算
+        animator.setDuration((long) ( 2000*sf));//时间最大为1000毫秒，此处使用比例进行换算
         animator.setInterpolator(new DecelerateInterpolator());
         final float xInitTemp=xInit;
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {

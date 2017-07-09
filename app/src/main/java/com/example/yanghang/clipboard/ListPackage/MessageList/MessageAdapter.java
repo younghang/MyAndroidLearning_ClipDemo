@@ -1,6 +1,7 @@
 package com.example.yanghang.clipboard.ListPackage.MessageList;
 
 import android.content.Context;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.OthersView.MessageText;
 import com.example.yanghang.clipboard.R;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -35,8 +37,12 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         notifyItemInserted(mDatas.size() - 1);
     }
 
-    public String getItemAt(int pos) {
+    public String getItemMessageAt(int pos) {
         return mDatas.get(pos).getMessageText();
+    }
+
+    public MessageData getItem(int pos) {
+        return mDatas.get(pos);
     }
 
     @Override
@@ -76,11 +82,27 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         Log.v(MainFormActivity.TAG, "onBind set text:" + mDatas.get(position).getMessageText());
         if (holder instanceof MessagePCHolder) {
-            ((MessagePCHolder) holder).messageText.setText(mDatas.get(position).getMessageText());
+            MessageData messageData=mDatas.get(position);
+            if (messageData.getMessageKind() == MessageData.MessageKind.MESSAGE) {
+                ((MessagePCHolder) holder).messageText.setText(mDatas.get(position).getMessageText());
+            }
+            else
+            {
+                File file = new File(messageData.getMessageText());
+                String fileName = file.getName();
+                ((MessagePCHolder) holder).messageText.setText("文件【"+fileName+"】接收完成");
+            }
+
             ((MessagePCHolder) holder).messageText.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     onItemClickListener.onItemClick(v, holder.getAdapterPosition());
+                }
+            });
+            ((MessagePCHolder) holder).messageText.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    return onItemClickListener.onItemLongClick(view,holder.getAdapterPosition());
                 }
             });
         }

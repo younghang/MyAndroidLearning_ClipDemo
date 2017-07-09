@@ -66,4 +66,7 @@
         <attr name="bgcolor" />
         <attr name="isScroll" />
     </declare-styleable>
+
+
+
 </resources>

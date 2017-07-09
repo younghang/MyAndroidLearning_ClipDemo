@@ -130,10 +130,13 @@ public class FragmentCalendar extends Fragment {
         lists.add(new CalendarItemsData("编程", "code"));
         lists.add(new CalendarItemsData("画画", "paint"));
         lists.add(new CalendarItemsData("懒惰","rest"));
+        lists.add(new CalendarItemsData("支出", "cost"));
+        lists.add(new CalendarItemsData("收入", "income"));
         lists.add(new CalendarItemsData("火焰", "fire"));
         lists.add(new CalendarItemsData("爱心", "like"));
         lists.add(new CalendarItemsData("完成", "check"));
         lists.add(new CalendarItemsData("标记", "star"));
+
 
         CalendarAddItemsAdapter calendarItemAdapter = new CalendarAddItemsAdapter(lists, getActivity());
         calendarItemAdapter.setOnItemClickListener(new CalendarAddItemsAdapter.OnItemClickListener() {
@@ -153,6 +156,8 @@ public class FragmentCalendar extends Fragment {
                     case "check":
                     case "paint":
                     case "code":
+                    case "cost":
+                    case "income":
                         addCalendarItem(remarkName);
                         break;
 
@@ -416,7 +421,12 @@ public class FragmentCalendar extends Fragment {
                                             case "code":
                                                 itemCalendarModel.setCode(true);
                                                 break;
-
+                                            case "cost":
+                                                itemCalendarModel.setMoneySpend(true);
+                                                break;
+                                            case "income":
+                                                itemCalendarModel.setMoneyIncome(true);
+                                                break;
                                         }
                                     }
 

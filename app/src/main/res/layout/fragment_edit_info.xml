@@ -8,11 +8,12 @@
         <android.support.v4.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingRight="0dp"
+
             android:overScrollMode="never"
             >
         <EditText
-            android:layout_margin="10dp"
+            android:padding="5dp"
+            android:layout_margin="5dp"
             android:minHeight="200dp"
             android:id="@+id/tv_ShowInfo"
             android:layout_width="match_parent"

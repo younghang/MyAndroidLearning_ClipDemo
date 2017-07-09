@@ -3,11 +3,14 @@
     <!-- 灰色阴影 -->
      <!-- 白色前景 -->
     <item
-        android:bottom="4dp"
-        android:right="2dp">
+        android:top="2dp"
+        android:bottom="2dp"
+        android:right="2dp"
+        android:left="2dp"
+        >
         <shape>
             <solid android:color="@color/white"/>
-            <corners android:radius="20dp" />
+            <corners android:radius="15dp" />
         </shape>
     </item>
 

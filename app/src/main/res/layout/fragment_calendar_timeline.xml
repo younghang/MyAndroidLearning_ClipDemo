@@ -53,23 +53,42 @@
             </android.support.v7.widget.Toolbar>
         </android.support.design.widget.AppBarLayout>
 
-
-
-        <com.linechart.ChartView
-            android:id="@+id/chartView"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="400dp"
-            android:layout_centerInParent="true"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            app:bgcolor="#f9f9f9"
-            app:interval="40dp"
-            app:isScroll="true"
-            app:linecolor="#02bbb7"
-            app:xylinecolor="#e2e2e2"
-            app:xylinewidth="1dp"
-            app:xytextcolor="#7e7e7e"
-            app:xytextsize="12sp" />
+            android:layout_height="wrap_content">
+
+            <com.linechart.ChartView
+                android:id="@+id/chartView"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:layout_centerInParent="true"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                app:bgcolor="#f9f9f9"
+                app:interval="40dp"
+                app:isScroll="true"
+                app:linecolor="#02bbb7"
+                app:xylinecolor="#e2e2e2"
+                app:xylinewidth="1dp"
+                app:xytextcolor="#7e7e7e"
+                app:xytextsize="12sp" />
+
+            <com.sevenheaven.segmentcontrol.SegmentControl
+                android:id="@+id/segment_control2"
+                android:layout_marginTop="7dp"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:textSize="16sp"
+                android:layout_gravity="top|center_horizontal"
+                app:selectedColor="@color/light_gray"
+                app:normalColor="#FFFFFF"
+                app:cornerRadius="5dip"
+                android:orientation="horizontal"
+                app:horizonGap="8dip"
+                app:texts="日|周|月"
+                app:verticalGap="8dip"/>
+
+        </FrameLayout>
 
         <HorizontalScrollView
             android:id="@+id/calendar_horizontalScrollView"
