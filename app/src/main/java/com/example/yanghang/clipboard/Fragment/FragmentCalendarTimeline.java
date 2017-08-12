@@ -148,18 +148,23 @@ public class FragmentCalendarTimeline extends Fragment {
 
         horizontalScrollView = mView.findViewById(R.id.calendar_horizontalScrollView);
         linearLayout = mView.findViewById(R.id.calendar_timeline_linearLayout);
+        addTextView("日常任务","dailyMission");
         addTextView("luser", "luser");
         addTextView("日记", "diary");
         addTextView("体重", "weight");
         addTextView("日语", "jp");
+        addTextView("收入","income");
+        addTextView("支出","cost");
         addTextView("火焰", "fire");
         addTextView("编程", "code");
         addTextView("画画", "paint");
         addTextView("爱心", "like");
         addTextView("完成", "check");
         addTextView("标记", "star");
+
+
         //因为他的ChartView 有问题，必须在主线程中，先初始化的时候将几个数据存储大小设定好
-        //不然改不了，而且会抖动
+        //不然改不了，而且会抖动,后来解决了
 //        loadDataToChart();
 //        testChart();
 
@@ -269,9 +274,18 @@ public class FragmentCalendarTimeline extends Fragment {
             if (listDatas != null) {
 //                Log.d(TAG, "loadDataToChart: fragment currentDay dataSize=" + listDatas.size());
                 for (int j = 0; j < listDatas.size(); j++) {
-
-                    if (listDatas.get(j).getRemarks().equals(currentTag)) {
-                        String content = listDatas.get(j).getSimpleContent();
+                    //多加个或(||)就可以，选取该数据进行绘图
+                    if (listDatas.get(j).getRemarks().equals(currentTag)||listDatas.get(j).getCatalogue().equals(currentTag)) {
+                        String content;
+                        //然后在这里区分下就行了
+                        if (listDatas.get(j).getCatalogue().equals(currentTag))
+                        {
+                            content = listDatas.get(j).getRemarks();
+                        }
+                        else
+                        {
+                            content = listDatas.get(j).getSimpleContent();
+                        }
 //                        if (content.contains("."))
 //                            content = content.substring(0, content.indexOf("."));
 //                        Log.d(TAG, "loadDataToChart: content=" + content);

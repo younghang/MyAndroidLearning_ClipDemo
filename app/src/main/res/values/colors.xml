@@ -6,6 +6,7 @@
     <color name="colorAccentPre">#22e185</color>
     <color name="white">#FFFFFF</color>
     <color name="red">#ff0000</color>
+    <color name="textColor">#d99610</color>
     <drawable name="press_down">#5f7b7474</drawable>
     <drawable name="press_up">@android:color/transparent</drawable>
     <drawable name="press_up_dark">#3F51B5</drawable>

@@ -5,12 +5,16 @@ import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
+import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskData;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -24,7 +28,8 @@ import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 public class TaskShowToDoList {
     public interface IShowToDoList
     {
-        public void showToDoList(String messageToDoList);
+        public void showToDoList(String messageToDoList );
+        public void showDailyList(List<DailyTaskData> mDailyList,ListData todayListData);
     }
     private IShowToDoList showToDoList;
     private Context context;
@@ -36,16 +41,17 @@ public class TaskShowToDoList {
     public void runToDoListCheck()
     {
         final StringBuilder stringBuilder = new StringBuilder();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
                 List<ListData> listDatas=new DBListInfoManager(context).getDatas("待办事项");
                 SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 Date nowDate= Calendar.getInstance().getTime();
-                String time = DateFormat.format("yyyy-MM-dd", nowDate).toString();
+                String todayString = DateFormat.format("yyyy-MM-dd", nowDate).toString();
                 Date currentDate= null;
                 try {
-                    currentDate = sDateFormat.parse(time);
+                    currentDate = sDateFormat.parse(todayString);
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
@@ -58,10 +64,11 @@ public class TaskShowToDoList {
                     {
                         e.printStackTrace();
                     }
-                    if (toDoData==null)
+                    if (toDoData==null||toDoData.isFinished())
                     {
                         continue;
                     }
+
                     Date endDate=null;
                     try {
                         endDate = sDateFormat.parse(toDoData.getEndTime());
@@ -72,9 +79,44 @@ public class TaskShowToDoList {
                     if (endDate == null) {
                         continue;
                     }
-                    if (!endDate.before(currentDate)&&!toDoData.isFinished())
+                    if (!endDate.before(currentDate))
                     {
-                        Log.d(TAG, "run: endDate"+endDate.toString()+"   current:"+currentDate.toString());
+                        if (toDoData.isDailyTask())
+                        {
+                            Log.d(TAG, "run: "+toDoData.getContent());
+                            String[] dailyListString = new String[]{};
+                            dailyListString=toDoData.getContent().split("\n");
+                            List<ListData> lists = new DBListInfoManager(context).searchDataByDate(todayString);
+                            List<DailyTaskData> dailyList=new ArrayList<DailyTaskData>();
+                            boolean hasSaved=false;
+                            ListData listData=null;
+                            for (int j=0;j<lists.size();j++)
+                            {
+                                if (lists.get(j).getCatalogue().equals("dailyMission"))
+                                {
+                                    hasSaved=true;
+                                    listData = lists.get(j);
+                                    dailyList = JSONArray.parseArray(lists.get(j).getContent(),DailyTaskData.class);
+                                }
+                            }
+
+                            if (hasSaved==false)
+                            {
+                                for (int k=0;k<dailyListString.length;k++) {
+                                    if (dailyListString.equals(""))
+                                        continue;
+                                    Log.d(TAG, "run: currentStr="+dailyListString[k]);
+                                    dailyList.add(new DailyTaskData(dailyListString[k], 0));
+                                }
+                                DBListInfoManager dbListInfoManager=new DBListInfoManager(context);
+                                listData=new ListData("",JSONArray.toJSONString(dailyList),dbListInfoManager.getDataCount(),"dailyMission");
+                                dbListInfoManager .insertData(listData);
+
+                            }
+                            showToDoList.showDailyList(dailyList,listData);
+                            continue;
+                        }
+//                        Log.d(TAG, "run: endDate"+endDate.toString()+"   current:"+currentDate.toString());
                         if (endDate.toString().equals(currentDate.toString())) {
 
                             if (toDoData.isCurrentDay()) {
@@ -93,17 +135,13 @@ public class TaskShowToDoList {
                             else
                                 stringBuilder.append("["+toDoData.getEndTime()+"]:"+toDoData.getContent()+"\n");
                         }
-
-
                     }
-
-
-
                 }
                 showToDoList.showToDoList(stringBuilder.toString());
             }
         }).start();
     }
+
 
 }
 

@@ -12,7 +12,9 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
+import com.chiemy.cardview.MainActivity;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
+import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.R;
 
@@ -33,6 +35,7 @@ public class FragmentToDo extends FragmentEditAbstract {
     private String endDate;
     private boolean isFinished;
     private boolean isCurrentDay;
+    private boolean isDailyWork;
 
     private Switch finishSwitch;
     private Switch currentDaySwitch;
@@ -75,12 +78,14 @@ public class FragmentToDo extends FragmentEditAbstract {
             isFinished=toDoData.isFinished();
             isCurrentDay=toDoData.isCurrentDay();
             informationEdited=toDoData.getContent();
+            isDailyWork = toDoData.isDailyTask();
             endDate=toDoData.getEndTime();
         }
         else
         {
             isFinished=false;
             isCurrentDay=false;
+            isDailyWork=false;
             informationEdited=infoEdit;
             SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
             String date = sDateFormat.format(new java.util.Date());
@@ -100,6 +105,7 @@ public class FragmentToDo extends FragmentEditAbstract {
         finishSwitch.setEnabled(isEdit);
         currentDaySwitch.setChecked(isCurrentDay);
         currentDaySwitch.setEnabled(isEdit);
+        endDateTextView.setEnabled(isEdit);
         endDateTextView.setText(endDate);
 
 
@@ -120,6 +126,16 @@ public class FragmentToDo extends FragmentEditAbstract {
                 endDateChooseDialog.showDateChooseDialog();
             }
         });
+
+        if (isEdit&&MainFormActivity.isDailyTask)
+        {
+            isDailyWork=true;
+            MainFormActivity.isDailyTask=false;
+        }
+        if (isDailyWork)
+        {
+            currentDaySwitch.setVisibility(View.GONE);
+        }
     }
 
 
@@ -151,7 +167,7 @@ public class FragmentToDo extends FragmentEditAbstract {
     public String getString() {
         isFinished=finishSwitch.isChecked();
         isCurrentDay=currentDaySwitch.isChecked();
-        ToDoData toDoData = new ToDoData( fragmentEditInfo.getString(), endDateTextView.getText().toString(),isFinished,isCurrentDay);
+        ToDoData toDoData = new ToDoData(fragmentEditInfo.getString(), endDateTextView.getText().toString(), isFinished, isCurrentDay, isDailyWork);
         return JSON.toJSONString(toDoData);
     }
 
@@ -160,6 +176,7 @@ public class FragmentToDo extends FragmentEditAbstract {
         fragmentEditInfo.enableEdit();
         finishSwitch.setEnabled(true);
         currentDaySwitch.setEnabled(true);
+        endDateTextView.setEnabled(true);
 
     }
 

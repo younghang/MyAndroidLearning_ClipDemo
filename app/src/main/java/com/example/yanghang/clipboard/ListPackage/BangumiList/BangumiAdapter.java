@@ -88,9 +88,13 @@ public class BangumiAdapter extends RecyclerView.Adapter<QuarterAnimationHolder>
 
     private int getScoreColor(int grades) {
         if (grades >=90) {
-            return Color.parseColor("#f11b1b");
-        } else if (grades >= 80) {
-            return Color.parseColor("#e95207");
+            return Color.parseColor("#ff0000");
+        }else if (grades>=85)
+        {
+            return Color.parseColor("#ff5588");
+        }
+        else if (grades >= 80) {
+            return Color.parseColor("#ff5500");
         } else if (grades >= 70) {
             return Color.parseColor("#d99610");
         } else if (grades>=60)

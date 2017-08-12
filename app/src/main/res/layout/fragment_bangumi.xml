@@ -203,20 +203,23 @@
             </LinearLayout>
 
             <TextView
-                android:layout_margin="10dp"
                 android:layout_width="match_parent"
-                android:text="这一集："
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="这一集：" />
+
             <EditText
-                android:scrollbars="vertical"
                 android:id="@+id/bangumi_episode_comment"
                 android:layout_width="match_parent"
-                android:layout_height="138dp"
+                android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
+                android:layout_marginRight="20dp"
                 android:background="@drawable/corner_background_dark"
                 android:gravity="left|top"
-                android:padding="6dp" />
+                android:inputType="textMultiLine"
+                android:minHeight="138dp"
+                android:padding="6dp"
+                android:scrollbars="vertical" />
 
             <View
                 android:layout_width="match_parent"
@@ -227,21 +230,24 @@
                 android:background="@color/light_gray" />
 
             <TextView
-                android:layout_margin="10dp"
-                android:text="总的评价："
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="总的评价(手动添加观看过的时间)：" />
+
+
             <EditText
-                android:scrollbars="vertical"
                 android:id="@+id/bangumi_remarks"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
+                android:layout_marginRight="20dp"
                 android:background="@drawable/corner_background_dark"
                 android:gravity="left|top"
                 android:minHeight="200dp"
-                android:padding="6dp" />
+                android:padding="6dp"
+                android:scrollbars="vertical" />
+
         </LinearLayout>
 
 

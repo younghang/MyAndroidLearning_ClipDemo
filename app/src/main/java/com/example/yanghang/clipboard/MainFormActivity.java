@@ -25,6 +25,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -34,11 +35,13 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -57,6 +60,8 @@ import com.example.yanghang.clipboard.ListPackage.CatalogueList.SimpleItemTouchH
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdapter;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
+import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskAdapter;
+import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskData;
 import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
 import java.lang.reflect.Field;
@@ -81,6 +86,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     private static final int MSG_FINISH_SORTING_DATA = 123;
     private static final String MSG_SEARCH_DATA = "finish_sorting_listdata";
     private static final int MSG_FINISH_CHECK_TODO_DATA = 456;
+    private static final int MSG_FINISH_CHECK_DAILY_DATA = 5623;
     public static boolean IsEdite = false;
 
     public static String TAG = "nihao";
@@ -104,6 +110,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     private DrawerLayout mDrawerLayout;
     private List<ListData> listDatas;
     private String messageToDoList;
+    private List<DailyTaskData> dailyList;
+    private ListData todayMissionList;
+    private View popPositionTagView;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -140,6 +149,28 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         return;
                     loadingDialog.show();
                     break;
+                case MSG_FINISH_CHECK_DAILY_DATA:
+                    View dialogDailyTaskView = LayoutInflater.from(MainFormActivity.this.getApplicationContext()).inflate(R.layout.dialog_show_daily_list, null);
+                    RecyclerView recyclerView = dialogDailyTaskView.findViewById(R.id.dialog_dailyTask_recyclerView);
+                    final DailyTaskAdapter dailyTaskAdapter = new DailyTaskAdapter(MainFormActivity.this, dailyList);
+                    recyclerView.setItemAnimator(new DefaultItemAnimator());//设置默认动画
+
+                    recyclerView.setLayoutManager(new LinearLayoutManager(MainFormActivity.this, LinearLayoutManager.VERTICAL, false));
+                    recyclerView.setAdapter(dailyTaskAdapter);
+                    new android.support.v7.app.AlertDialog.Builder(MainFormActivity.this).setView(dialogDailyTaskView)
+                            .setTitle("日常任务")
+                            .setPositiveButton("更新", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+                                    dbListInfoManager.updateDataByOrderId(todayMissionList.getOrderID(), todayMissionList.getCatalogue(), dailyTaskAdapter.getTotalProgress(), JSONArray.toJSONString(dailyTaskAdapter.getLists()), todayMissionList.getCreateDate());
+                                    listClipInfoAdapter.setDatas(dbListInfoManager.getDatas(""));
+                                    listClipInfoAdapter.notifyDataSetChanged();
+                                }
+                            }).setNegativeButton("取消", null)
+                            .show();
+
+                    break;
+
             }
         }
     };
@@ -260,7 +291,19 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 refreshLayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        refreshLayout.setRefreshing(false);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                listDatas = dbListInfoManager.getDatas("");
+                                TotalDataCount = listDatas.size();
+                                Message msg = new Message();
+                                Bundle data = new Bundle();
+                                data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
+                                msg.setData(data);
+                                handler.sendMessage(msg);
+                            }
+                        }).start();
+
                     }
                 }, 3000);
             }
@@ -289,7 +332,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //                Log.v(TAG, "ItemClick orderid=" + listClipInfoAdapter.getItemData(position).getOrderID());
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
-                cm.setText(listDatas.get(position).getSimpleContent());
+                cm.setText(listClipInfoAdapter.getItemData(position).getSimpleContent());
                 Toast.makeText(MainFormActivity.this, "复制到粘贴板", Toast.LENGTH_LONG).show();
             }
 
@@ -297,17 +340,18 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             public boolean OnItemLongClick(View v, int position) {
                 if (IsEdite)
                     return false;
-                ListData data = listDatas.get(position);
+                //不要用 listDatas.get
+                ListData data = listClipInfoAdapter.getItemData(position);
                 Intent intent;
                 if (data.getCatalogue().equals("番剧")) {
                     intent = new Intent(MainFormActivity.this, ActivityBangumi.class);
                 } else {
                     intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 }
-                intent.putExtra(LIST_DATA, listDatas.get(position));
+                intent.putExtra(LIST_DATA, listClipInfoAdapter.getItemData(position));
                 intent.putExtra(LIST_DATA_POS, position);
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
-//                Log.v(TAG, "长按  current pos=" + position + " 数据为：  order=" + listDatas.get(position).getOrderID() + "  message=" + listDatas.get(position).getContent() + "  catalogue=" + listDatas.get(position).getCatalogue());
+//                Log.v(TAG, "长按  current pos=" + position + " 数据为：  order=" + listClipInfoAdapter.getItemData(position).getOrderID() + "  message=" + listClipInfoAdapter.getItemData(position).getContent() + "  catalogue=" + listClipInfoAdapter.getItemData(position).getCatalogue());
                 return true;
             }
         });
@@ -333,6 +377,19 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 msg.setData(data);
                 handler.sendMessage(msg);
             }
+
+            @Override
+            public void showDailyList(List<DailyTaskData> mDailyList, ListData listData) {
+                Message msg = new Message();
+                Bundle data = new Bundle();
+                MainFormActivity.this.dailyList = mDailyList;
+                MainFormActivity.this.todayMissionList = listData;
+                if (mDailyList == null || listData == null)
+                    return;
+                data.putInt(MSG_SEARCH_DATA, MSG_FINISH_CHECK_DAILY_DATA);
+                msg.setData(data);
+                handler.sendMessage(msg);
+            }
         }).runToDoListCheck();
 
         btnCalendar = (Button) findViewById(R.id.main_activity_form_btn_calendar);
@@ -349,7 +406,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //                List<ListData> listDatas = dbListInfoManager.getDatas("2017年4月新番");
 //                List<BangumiData> list = new ArrayList<BangumiData>();
 //                for (int i = 0; i < listDatas.size(); i++) {
-//                    ListData listData = listDatas.get(i);
+//                    ListData listData = listClipInfoAdapter.getItemData(i);
 //                    BangumiData bangumiData = new BangumiData();
 //                    bangumiData.setName(listData.getRemarks());
 //
@@ -362,6 +419,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //            }
 //        }).start();
 
+        popPositionTagView = findViewById(R.id.main_form_view);
 
     }
 
@@ -476,17 +534,49 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
     }
 
+    public static boolean isDailyTask = false;
+
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
 
         switch (item.getItemId()) {
             case R.id.add_info:
                 int orderid = dbListInfoManager.getDataCount();
 //                Log.v(TAG, "新建 orderid=" + orderid);
-                Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
+                final Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 intent.putExtra(LIST_DATA, new ListData("", "", orderid, currentCatalogue));
                 intent.putExtra(LIST_DATA_POS, -1);
-                startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
+                if (currentCatalogue.equals("待办事项")) {
+                    //创建弹出式菜单对象（最低版本11）
+                    PopupMenu popup = new PopupMenu(this, popPositionTagView);//第二个参数是绑定的那个view
+
+                    //获取菜单填充器
+                    MenuInflater inflater = popup.getMenuInflater();
+                    //填充菜单
+                    inflater.inflate(R.menu.todo_menu, popup.getMenu());
+                    //绑定菜单项的点击事件
+                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem menuItem) {
+                            switch (menuItem.getItemId()) {
+                                case R.id.todo_menu_daily_task:
+                                    isDailyTask = true;
+                                    break;
+                                case R.id.todo_menu_todo_task:
+                                    isDailyTask = false;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
+                            return false;
+                        }
+                    });
+                    //显示(这一行代码不要忘记了)
+                    popup.show();
+                } else
+                    startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
+
                 break;
             case R.id.edit_info:
                 IsEdite = !IsEdite;
@@ -805,7 +895,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //                List<ListData> listDatas=dbListInfoManager.getDatas("日记");
 //                for (int i=0;i<listDatas.size();i++)
 //                {
-//                    ListData listData = listDatas.get(i);
+//                    ListData listData = listClipInfoAdapter.getItemData(i);
 //                    listData.setRemarks("diary");
 //                    String content=listData.getContent();
 //                    String morningDiary="";
@@ -859,7 +949,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 //            List<ListData> listDatas=dbListInfoManager.getDatas("体重");
 //            for (int i=0;i<listDatas.size();i++)
 //            {
-//                ListData listData = listDatas.get(i);
+//                ListData listData = listClipInfoAdapter.getItemData(i);
 //                listData.setRemarks("weight");
 //                dbListInfoManager.updateDataByOrderId(listData.getOrderID(), FragmentCalendar.CALENDAR_CATALOGUE_NAME,listData.getRemarks(),listData.getContent(),listData.getCreateDate());
 //            }

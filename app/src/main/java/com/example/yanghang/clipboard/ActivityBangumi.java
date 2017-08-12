@@ -21,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -263,6 +264,10 @@ public class ActivityBangumi extends AppCompatActivity {
 //                Log.d(TAG, "onOptionsItemSelected: bangumi="+ JSON.toJSONString(bangumiData));
                 newBangumi = true;
                 invalidateOptionsMenu();
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+                }
                 break;
         }
         return true;

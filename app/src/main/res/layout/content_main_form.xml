@@ -9,7 +9,14 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.example.yanghang.clipboard.MainFormActivity"
     tools:showIn="@layout/activity_main_form">
+<View android:layout_width="100dp"
+    android:layout_height="1dp"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentTop="true"
+    android:id="@+id/main_form_view"
+    android:visibility="invisible"
 
+    />
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"

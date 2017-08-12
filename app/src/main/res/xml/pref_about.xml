@@ -20,11 +20,12 @@
                 android:data="https://github.com/younghang/MyAndroidLearning_ClipDemo" />
         </Preference>
         <Preference android:title="other"
-            android:summary="special catalogue name"
+            android:summary="special inner catalogue names have been defined in this application"
             android:key="setting_about_special_catalogue"
             />
         <Preference android:title="reference"
-            android:summary="SwipebackLayout CalendarListView DataChooseWheelViewDialog NiMinBan"
+            android:key="setting_about_show_reference"
+            android:summary="referred project"
 
             />
 

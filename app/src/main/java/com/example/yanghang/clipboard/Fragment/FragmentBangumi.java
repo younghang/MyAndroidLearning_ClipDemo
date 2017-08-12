@@ -1,5 +1,8 @@
 package com.example.yanghang.clipboard.Fragment;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -13,6 +16,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewPropertyAnimator;
 import android.view.animation.AccelerateInterpolator;
 
 
@@ -35,10 +39,7 @@ import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.ActivityBangumi;
 import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 import com.example.yanghang.clipboard.R;
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.AnimatorListenerAdapter;
-import com.nineoldandroids.view.ViewHelper;
-import com.nineoldandroids.view.ViewPropertyAnimator;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,10 +54,10 @@ public class FragmentBangumi extends Fragment {
     private String TAG = "nihao_bangumi";
 
     private String name;
-    private List<String> classifications=new ArrayList<>();
+    private List<String> classifications = new ArrayList<>();
     private int episodes;
-    private Map<String, Boolean> episodesState=new HashMap<>();
-    private Map<String, String> comments=new HashMap<>();
+    private Map<String, Boolean> episodesState = new HashMap<>();
+    private Map<String, String> comments = new HashMap<>();
     private String remark;
     private int grades;
     private String imageUrl;
@@ -137,8 +138,10 @@ public class FragmentBangumi extends Fragment {
                             comments.put(((Button) tempViewForEpisode).getText().toString(), editEpisodeComment.getText().toString());
                     }
                 } else {
+                    if (!editEpisodeComment.getText().toString().equals(""))
                     comments.put(((Button) view).getText().toString(), editEpisodeComment.getText().toString());
                 }
+                Log.d(TAG, "onClick: "+comments.get(((Button) view).getText()));
                 tempViewForEpisode = view;
                 editEpisodeComment.setText(comments.get(((Button) view).getText()) == null ? "" : comments.get(((Button) view).getText()));
 
@@ -185,7 +188,7 @@ public class FragmentBangumi extends Fragment {
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (view.getId() == R.id.bangumi_episode_comment) {
                     view.getParent().requestDisallowInterceptTouchEvent(true);
-                    switch (motionEvent.getAction()&MotionEvent.ACTION_MASK){
+                    switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                         case MotionEvent.ACTION_UP:
                             view.getParent().requestDisallowInterceptTouchEvent(false);
                             break;
@@ -201,7 +204,7 @@ public class FragmentBangumi extends Fragment {
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if (view.getId() == R.id.bangumi_remarks) {
                     view.getParent().requestDisallowInterceptTouchEvent(true);
-                    switch (motionEvent.getAction()&MotionEvent.ACTION_MASK){
+                    switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
                         case MotionEvent.ACTION_UP:
                             view.getParent().requestDisallowInterceptTouchEvent(false);
                             break;
@@ -223,11 +226,14 @@ public class FragmentBangumi extends Fragment {
     AlertDialog alertDialog;
 
     private void showEpisodeAddItemDialog(final View tag) {
+        if (tempViewForEpisode!=null)
+        comments.put(((Button) tempViewForEpisode).getText().toString(), editEpisodeComment.getText().toString());
+        editEpisodeComment.setText("");
         final View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_bangumi_episode, null);
         final EditText editText = view.findViewById(R.id.bangumi_episode_name);
         final Switch likeSwitch = view.findViewById(R.id.bangumi_episode_switch_like);
         final Switch watchSwitch = view.findViewById(R.id.bangumi_episode_switch_watched);
-
+        final Switch firstSwitch = view.findViewById(R.id.bangumi_episode_switch_first);
         editText.setText("第集");
         alertDialog = new AlertDialog.Builder(getActivity()).setView(view)
                 .setTitle("添加集数").setPositiveButton("确定", new DialogInterface.OnClickListener() {
@@ -243,7 +249,13 @@ public class FragmentBangumi extends Fragment {
                         comments.put(newTagName, "");
                         episodeNames.add(newTagName);
                         episodeLikes.put(newTagName, likeSwitch.isChecked());
-                        addEpisodeItemView(newTagName,-1);
+                        if (firstSwitch.isChecked())
+                        {
+                            addEpisodeItemView(newTagName, 0);
+                        }else
+                        {
+                            addEpisodeItemView(newTagName, -1);
+                        }
                     }
                 }).setNegativeButton("取消", null).show();
     }
@@ -254,11 +266,13 @@ public class FragmentBangumi extends Fragment {
         final Switch watchSwitch = view.findViewById(R.id.bangumi_episode_switch_watched);
         final Switch likeSwitch = view.findViewById(R.id.bangumi_episode_switch_like);
         final String oldTagName = ((Button) tag).getText().toString();
+        final Switch firstSwitch = view.findViewById(R.id.bangumi_episode_switch_first);
 
         editText.setText(oldTagName);
         likeSwitch.setChecked(episodeLikes.get(oldTagName));
         watchSwitch.setChecked(episodesState.get(oldTagName));
 
+//        Log.d(TAG, "showEpisodeAlterDialog: episodeNames="+episodeNames.toString());
         alertDialog = new AlertDialog.Builder(getActivity()).setView(view)
                 .setTitle("修改集数").setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
@@ -273,10 +287,18 @@ public class FragmentBangumi extends Fragment {
 
                         } else if (newTagName.equals(oldTagName)) {
 
-                        } else {
-                            episodeNames.set(index, newTagName);
-                            comments.put(newTagName, comments.get(oldTagName));
+
+                            if (firstSwitch.isChecked())
+                            {
+                                episodeNames.remove(index);
+                                episodeNames.add(0, newTagName);
+                            }
+                            else {
+                                episodeNames.set(index, newTagName);
+                            }
                             comments.remove(oldTagName);
+                            comments.put(newTagName, comments.get(oldTagName));
+
 
                         }
                         episodeLikes.remove(oldTagName);
@@ -294,9 +316,14 @@ public class FragmentBangumi extends Fragment {
                             oldView = tag;
                         }
                         viewIndex = episodesLinearLayout.indexOfChild(oldView);
-                        addEpisodeItemView(newTagName, viewIndex);
+                        if (firstSwitch.isChecked())
+                        {
+                            addEpisodeItemView(newTagName, 0);
+                        }else
+                        {
+                            addEpisodeItemView(newTagName, viewIndex);
+                        }
                         episodesLinearLayout.removeView(oldView);
-
 
                     }
                 }).setNegativeButton("取消", null)
@@ -420,7 +447,8 @@ public class FragmentBangumi extends Fragment {
 
     public BangumiData hideFragment() {
         root.setClickable(false);
-        ViewPropertyAnimator.animate(root)
+
+        root.animate()
                 .rotationY(-90).setDuration(200)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
@@ -431,19 +459,21 @@ public class FragmentBangumi extends Fragment {
                     }
                 });
         remark = editRemark.getText().toString();
-        if (tempViewForEpisode!=null)
-        {
-            String tagName=((Button)tempViewForEpisode).getText().toString();
+        if (tempViewForEpisode != null) {
+            String tagName = ((Button) tempViewForEpisode).getText().toString();
             comments.remove(tagName);
             comments.put(tagName, editEpisodeComment.getText().toString());
         }
         BangumiData bangumiData = new BangumiData(name, classifications, episodes, comments, remark, grades, imageUrl, episodesState, episodeNames, episodeLikes);
 
-            classifications=null;
-            episodeNames=null;
-            comments=null;
-            episodeLikes=null;
-            episodesState=null;
+        classifications = null;
+        episodeNames = null;
+        comments = null;
+        episodeLikes = null;
+        episodesState = null;
+        tempViewForEpisode = null;
+        editEpisodeComment.setText("");
+        editRemark.setText("");
         return bangumiData;
     }
 
@@ -457,21 +487,21 @@ public class FragmentBangumi extends Fragment {
         initialUIs(bangumiData);
 
 
-        ViewHelper.setRotationY(view, 0);
-        ViewHelper.setRotationY(root, -90);
+        view.setRotationY(0);
+        root.setRotationY(-90);
         root.setVisibility(View.VISIBLE);
 
-        ViewPropertyAnimator.animate(view).rotationY(90)
+        view.animate().rotationY(90)
                 .setDuration(300).setListener(null)
                 .setInterpolator(new AccelerateInterpolator());
 
 
-        ViewPropertyAnimator.animate(root)
+        root.animate()
                 .rotationY(0).setDuration(200).setStartDelay(300)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        ViewHelper.setRotationY(view, 0);
+                        view.setRotationY(0);
                     }
                 });
     }
@@ -528,15 +558,21 @@ public class FragmentBangumi extends Fragment {
         }
 
         for (int i = 0; i < episodeNames.size(); i++) {
-            addEpisodeItemView(episodeNames.get(i),-1);
+            addEpisodeItemView(episodeNames.get(i), -1);
         }
+
+        //to avoid the last view to become assigned with empty string once you click any episode item.
+        tempViewForEpisode=null;
+
 
 
     }
 
     @TargetApi(Build.VERSION_CODES.M)
     private void addEpisodeItemView(String key, int index) {
+        Log.d(TAG, "addEpisodeItemView: index="+index);
         Button tv = new Button(getActivity());
+        tempViewForEpisode=tv;
         tv.setText(key);
         tv.setOnLongClickListener(onEpisodeItemLongClicked);
         tv.setOnClickListener(onEpisodeItemClicked);
@@ -547,7 +583,7 @@ public class FragmentBangumi extends Fragment {
         tv.setTextAppearance(R.style.borderless);
         if (episodeLikes.get(key)) {
             FrameLayout frameLayout = new FrameLayout(getActivity());
-            LinearLayout.LayoutParams lf=new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams lf = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             lf.setMargins(dpToPx(5), 0, dpToPx(5), 0);
             lf.gravity = Gravity.CENTER;  //必须要加上这句，setMargins才会起作用，而且此句还必须在setMargins下面
 
@@ -570,7 +606,7 @@ public class FragmentBangumi extends Fragment {
             frameLayout.addView(view);
             tv.setTag(frameLayout);
             if (index != -1) {
-                episodesLinearLayout.addView(frameLayout,index);
+                episodesLinearLayout.addView(frameLayout, index);
             } else {
                 episodesLinearLayout.addView(frameLayout);
             }
@@ -579,7 +615,7 @@ public class FragmentBangumi extends Fragment {
         }
 
         if (index != -1) {
-            episodesLinearLayout.addView(initViewParams(tv, episodesState.get(key)),index);
+            episodesLinearLayout.addView(initViewParams(tv, episodesState.get(key)), index);
         } else {
             episodesLinearLayout.addView(initViewParams(tv, episodesState.get(key)));
         }
@@ -605,7 +641,7 @@ public class FragmentBangumi extends Fragment {
         //  动态添加布局
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dpToPx(40));
         lp.setMargins(5, 5, 5, 5);
-        lp.gravity=Gravity.CENTER;
+        lp.gravity = Gravity.CENTER;
         view.setLayoutParams(lp);
         setBackground(view, watched);
 

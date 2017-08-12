@@ -10,10 +10,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 import android.widget.Spinner;
 
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
@@ -132,7 +134,9 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                 break;
             case "番剧":
                 fragment = FragmentEditInfo.newInstance(listData.getContent(), false);
-
+                break;
+            case "dailyMission"://只是不显示spinner
+                fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
                 break;
             default:
                 if (catalogueName.equals(""))
@@ -143,6 +147,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
 
                 fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
                 notShowSpinner=false;
+                break;
 
         }
         spinner.setVisibility(notShowSpinner||!isEdit ? View.GONE : View.VISIBLE);
@@ -163,8 +168,8 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                     listData.setContent(fragment.getString());
                 }
                 listData.setRemarks(editRemark.getText().toString());
-                //只有calendar 这样在目录里面找不到的，才不需要手动设置
-                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
+                //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission
+                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME)||!listData.getCatalogue().equals("dailyMission"))
                 listData.setCatalogue(spinner.getSelectedItem().toString());
                 Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
                 intent.putExtra(MainFormActivity.LIST_DATA, listData);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
@@ -12,17 +13,27 @@
         android:layout_height="wrap_content">
 
         <Switch
-
+            android:textSize="12sp"
             android:id="@+id/bangumi_episode_switch_like"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="特别标记" />
+            android:text="标记" />
         <Switch
-            android:layout_alignParentRight="true"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:textSize="12sp"
+            android:layout_toRightOf="@id/bangumi_episode_switch_like"
+            android:id="@+id/bangumi_episode_switch_first"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="最前" />
+        <Switch
+            android:textSize="12sp"
+            android:layout_toRightOf="@id/bangumi_episode_switch_first"
             android:id="@+id/bangumi_episode_switch_watched"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="已经看了" />
+            android:text="看了" />
 
     </RelativeLayout>
 

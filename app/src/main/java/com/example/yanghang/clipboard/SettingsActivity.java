@@ -164,6 +164,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         private Preference deleteFilePreference;
         private Preference logFilePreference;
         private Preference specialCataloguePreference;
+        private Preference referencePreference;
         AlertDialog loadingDialog;
         File file;
 
@@ -175,10 +176,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             deleteFilePreference = findPreference("setting_about_delete_data_file");
             logFilePreference = findPreference("setting_about_log_file");
             specialCataloguePreference = findPreference("setting_about_special_catalogue");
+            referencePreference = findPreference("setting_about_show_reference");
 
             deleteFilePreference.setOnPreferenceClickListener(this);
             logFilePreference.setOnPreferenceClickListener(this);
             specialCataloguePreference.setOnPreferenceClickListener(this);
+            referencePreference.setOnPreferenceClickListener(this);
 
             logFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(file.getAbsolutePath()));
             deleteFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath())+"  共"+MainFormActivity.TotalDataCount+"条记录");
@@ -197,13 +200,25 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             if (preference == specialCataloguePreference) {
                 showSpecialCatalogueNames();
+                return true;
+            }
+            if (preference == referencePreference) {
+                showReference();
+                return true;
             }
             return false;
         }
+        private void showReference()
+        {
+            new AlertDialog.Builder(getActivity()).setTitle("参考项目")
+                    .setMessage("SwipebackLayout    CalendarListView    DataChooseWheelViewDialog   NiMinBan" +
+                            "").setCancelable(true).show();
+        }
+
 
         private void showSpecialCatalogueNames() {
             new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称")
-                    .setMessage("待办事项, collect_calendar_catalogue[diary luser weight] ，番剧").setCancelable(true).show();
+                    .setMessage("待办事项, collect_calendar_catalogue[diary luser weight] ，番剧 ，dailyMission").setCancelable(true).show();
         }
 
         private void showLogFileDialog() {

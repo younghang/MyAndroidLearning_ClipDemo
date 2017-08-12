@@ -56,6 +56,7 @@
         </activity>
         <activity
             android:name=".ActivityBangumi"
+
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Test.HorizontalScrollListView"

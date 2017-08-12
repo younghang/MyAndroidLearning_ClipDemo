@@ -59,6 +59,23 @@ public class ToDoData {
     private boolean isFinished;
     //是否仅当日显示
     private boolean isCurrentDay;
+    //是否为日常任务
+    private boolean isDailyTask;
 
+    public boolean isDailyTask() {
+        return isDailyTask;
+    }
+
+    public void setDailyTask(boolean dailyTask) {
+        isDailyTask = dailyTask;
+    }
+
+    public ToDoData(String content, String endTime, boolean isFinished, boolean isCurrentDay, boolean isDailyTask) {
+        this.content = content;
+        this.endTime = endTime;
+        this.isFinished = isFinished;
+        this.isCurrentDay = isCurrentDay;
+        this.isDailyTask = isDailyTask;
+    }
 }
 

@@ -99,19 +99,24 @@ public class ListData implements Serializable {
                 {
                     e.printStackTrace();
                 }
+                String extraMessage="";
                 if (toDoData!=null)
                 {
-
                     strMessage=toDoData.getContent();
+                    strMessage=strMessage.replace('\n',' ');
                     endDate=toDoData.getEndTime();
+                    extraMessage=(toDoData.isDailyTask()?"\n<日常任务>":"")+(toDoData.isFinished()?"":"\n***** Not  Finished *****");
                 }
                 else
                 {
                     SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                     String date = sDateFormat.format(new java.util.Date());
                     endDate=date;
+                    extraMessage="\n[数据格式化出错,非待办事项数据,请删除！]";
                 }
-                strMessage=strMessage+"\n截止日期["+endDate+"]"+(toDoData.isFinished()?"":"\n***** Not  Finished *****");
+
+
+                strMessage=strMessage+"\n截止日期["+endDate+"]"+extraMessage;
                 break;
             case "番剧":
                 try {

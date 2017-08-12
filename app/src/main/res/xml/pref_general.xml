@@ -45,7 +45,7 @@
         >
         <Preference
             android:key="@string/dataCatalogueExport"
-            android:title="导出目录"
+            android:title="导出目录[目录有时候会因未知原因丢失]"
       />
         <Preference
             android:key="@string/dataCatalogueImport"

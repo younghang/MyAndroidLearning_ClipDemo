@@ -201,7 +201,7 @@ public class ChartView extends View {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        Log.d(TAG, "onLayout: ChartView onLayout called");
+//        Log.d(TAG, "onLayout: ChartView onLayout called");
 //        if (changed) {//去掉这个，然后在setValue 的时候加上requestLayout 就不会再闪了
             //这里需要确定几个基本点，只有确定了xy轴原点坐标，第一个点的X坐标值及其最大最小值
             width = getWidth();
