@@ -169,7 +169,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                 }
                 listData.setRemarks(editRemark.getText().toString());
                 //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission
-                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME)||!listData.getCatalogue().equals("dailyMission"))
+                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME)&&!listData.getCatalogue().equals("dailyMission"))
                 listData.setCatalogue(spinner.getSelectedItem().toString());
                 Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
                 intent.putExtra(MainFormActivity.LIST_DATA, listData);

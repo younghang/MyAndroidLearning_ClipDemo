@@ -1,5 +1,6 @@
 package com.example.yanghang.clipboard.ListPackage.ClipInfosList;
 
+import android.text.format.DateFormat;
 import android.util.Log;
 
 import com.alibaba.fastjson.JSON;
@@ -11,7 +12,10 @@ import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
@@ -91,6 +95,15 @@ public class ListData implements Serializable {
         {
             case "待办事项":
                 String endDate="";
+                SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String todayDate = sDateFormat.format(new java.util.Date());
+                Date endDateObject=null;
+                Date todayDateObject=null;
+                try {
+                    todayDateObject= sDateFormat.parse(DateFormat.format("yyyy-MM-dd", Calendar.getInstance().getTime()).toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 ToDoData toDoData =null;
                 try {
                     toDoData= JSON.parseObject(strMessage, ToDoData.class);
@@ -105,13 +118,17 @@ public class ListData implements Serializable {
                     strMessage=toDoData.getContent();
                     strMessage=strMessage.replace('\n',' ');
                     endDate=toDoData.getEndTime();
-                    extraMessage=(toDoData.isDailyTask()?"\n<日常任务>":"")+(toDoData.isFinished()?"":"\n***** Not  Finished *****");
+                    try {
+                        endDateObject=sDateFormat.parse(endDate);
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    extraMessage=(toDoData.isDailyTask()?"\n<日常任务>":"")+(endDateObject.before(todayDateObject)?"\nMission Out of Date":"\n****Running****")+(toDoData.isDailyTask()||toDoData.isFinished()?"":"\n***** Not  Finished *****");
                 }
                 else
                 {
-                    SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    String date = sDateFormat.format(new java.util.Date());
-                    endDate=date;
+
+                    endDate=todayDate;
                     extraMessage="\n[数据格式化出错,非待办事项数据,请删除！]";
                 }
 

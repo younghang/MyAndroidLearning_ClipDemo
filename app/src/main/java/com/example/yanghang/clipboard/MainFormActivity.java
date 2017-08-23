@@ -384,7 +384,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 Bundle data = new Bundle();
                 MainFormActivity.this.dailyList = mDailyList;
                 MainFormActivity.this.todayMissionList = listData;
-                if (mDailyList == null || listData == null)
+                if (mDailyList == null || listData == null||mDailyList.isEmpty())
                     return;
                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_CHECK_DAILY_DATA);
                 msg.setData(data);

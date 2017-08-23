@@ -96,8 +96,14 @@ public class TaskShowToDoList {
                                 {
                                     hasSaved=true;
                                     listData = lists.get(j);
-                                    dailyList = JSONArray.parseArray(lists.get(j).getContent(),DailyTaskData.class);
-                                }
+                                    try{
+                                        dailyList = JSONArray.parseArray(lists.get(j).getContent(),DailyTaskData.class);
+
+                                    }catch (Exception e)
+                                    {
+                                        e.printStackTrace();
+                                    }
+                                     }
                             }
 
                             if (hasSaved==false)
