@@ -294,7 +294,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                listDatas = dbListInfoManager.getDatas("");
+                                listDatas = dbListInfoManager.getDatas(currentCatalogue);
                                 TotalDataCount = listDatas.size();
                                 Message msg = new Message();
                                 Bundle data = new Bundle();
@@ -400,25 +400,28 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 startActivity(intent);
             }
         });
+        /*
+        修改用的
+         */
+        ///----------------------------------------------------------------------
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
-//                List<ListData> listDatas = dbListInfoManager.getDatas("2017年4月新番");
-//                List<BangumiData> list = new ArrayList<BangumiData>();
+//                List<ListData> listDatas = dbListInfoManager.getDatas("dailyMission");
+////                List<BangumiData> list = new ArrayList<BangumiData>();
 //                for (int i = 0; i < listDatas.size(); i++) {
-//                    ListData listData = listClipInfoAdapter.getItemData(i);
-//                    BangumiData bangumiData = new BangumiData();
-//                    bangumiData.setName(listData.getRemarks());
+//                    ListData listData = listDatas.get(i);
+//                    dbListInfoManager.updateDataByOrderId(listData.getOrderID(),listData.getCatalogue(),listData.getRemarks(),listData.getContent().replace("taskProgress","tP").replace("taskName","tN"),listData.getCreateDate());
 //
-//                    bangumiData.setRemark(listData.getContent());
-//                    list.add(bangumiData);
+//
 //                }
-//                ListData listData = new ListData("2017年4月新番",JSONArray.toJSONString(list),dbListInfoManager.getDataCount(),"番剧");
-//                dbListInfoManager.insertData(listData);
+////                ListData listData = new ListData("2017年4月新番",JSONArray.toJSONString(list),dbListInfoManager.getDataCount(),"番剧");
+////                dbListInfoManager.insertData(listData);
 //
 //            }
 //        }).start();
 
+        ///--------------------------------------------------
         popPositionTagView = findViewById(R.id.main_form_view);
 
     }

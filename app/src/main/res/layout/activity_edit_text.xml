@@ -38,6 +38,19 @@
 
         </android.support.v7.widget.Toolbar>
 
+
+        <TextView
+
+            android:id="@+id/item_info_create_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2017-10-07 23:20"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:drawableLeft="@mipmap/ic_time"
+            android:drawablePadding="3dp"
+            android:textColor="@color/gray_bbbbbb" />
         <!--大图-->
         <Spinner
             app:layout_scrollFlags="scroll|snap|enterAlways"
@@ -48,8 +61,11 @@
 
             />
         <!--选项卡-->
-
     </android.support.design.widget.AppBarLayout>
+
+
+
+
 
 
     <FrameLayout

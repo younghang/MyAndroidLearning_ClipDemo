@@ -350,7 +350,7 @@ public class FragmentCalendar extends Fragment {
             @Override
             public void onDateSelected(View View, String selectedDate, int listSection, SelectedDateRegion selectedDateRegion) {
 //                Log.d(TAG, "onDateSelected: Selected date="+selectedDate);
-                loadNewList(selectedDate);
+//                loadNewList(selectedDate);
 
 
             }

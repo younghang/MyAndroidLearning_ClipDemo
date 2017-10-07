@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.PopupMenu;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
@@ -37,8 +38,10 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
 
 
     EditText editRemark;
+    TextView createTimeView;
     Spinner spinner;
     List<CatalogueInfos> mCatalogue;
+    List<String> specialCatalogueNames = new ArrayList<>();
 
     private ListData listData;
     private int pos;
@@ -89,15 +92,26 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
         Log.d(MainFormActivity.TAG, "Initial: catalogueName="+catalogueName);
 
         editRemark = (EditText) findViewById(R.id.edit_remark);
+        createTimeView = (TextView) findViewById(R.id.item_info_create_time);
 
         editRemark.setText(listData.getRemarks());
+
         editRemark.setFocusable(isEdit);
+        createTimeView.setText(listData.getCreateDate().replace("\n","  "));
 
         spinner = (Spinner) findViewById(R.id.catalogue_spinner);
         mCatalogue = getCatalogue();
+
+        specialCatalogueNames.add(FragmentCalendar.CALENDAR_CATALOGUE_NAME);
+        specialCatalogueNames.add("待办事项");
+        specialCatalogueNames.add("番剧");
+        specialCatalogueNames.add("dailyMission");
+
+
         List<String> catalogueNames = new ArrayList<>();
         for (int i = 0; i < mCatalogue.size(); i++)
         {
+            if (!specialCatalogueNames.contains(mCatalogue.get(i).getCatalogue()))
             catalogueNames.add(mCatalogue.get(i).getCatalogue());
         }
 

@@ -5,30 +5,32 @@ package com.example.yanghang.clipboard.ListPackage.DailyTaskList;
  */
 
 public class DailyTaskData {
-    String taskName;
-    int taskProgress;
+    //taskName for short
+    String tN;
+    //tP for short
+    int tP;
 
     public DailyTaskData() {
     }
 
-    public DailyTaskData(String taskName, int taskProgress) {
-        this.taskName = taskName;
-        this.taskProgress = taskProgress;
+    public DailyTaskData(String tN, int tP) {
+        this.tN = tN;
+        this.tP = tP;
     }
 
-    public String getTaskName() {
-        return taskName;
+    public String gettN() {
+        return tN;
     }
 
-    public void setTaskName(String taskName) {
-        this.taskName = taskName;
+    public void settN(String tN) {
+        this.tN = tN;
     }
 
-    public int getTaskProgress() {
-        return taskProgress;
+    public int gettP() {
+        return tP;
     }
 
-    public void setTaskProgress(int taskProgress) {
-        this.taskProgress = taskProgress;
+    public void settP(int tP) {
+        this.tP = tP;
     }
 }

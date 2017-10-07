@@ -123,7 +123,7 @@ public class ListData implements Serializable {
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
-                    extraMessage=(toDoData.isDailyTask()?"\n<日常任务>":"")+(endDateObject.before(todayDateObject)?"\nMission Out of Date":"\n****Running****")+(toDoData.isDailyTask()||toDoData.isFinished()?"":"\n***** Not  Finished *****");
+                    extraMessage=(toDoData.isDailyTask()?"\n<日常任务>":"")+(toDoData.isDailyTask()?(endDateObject.before(todayDateObject)?"\nMission Out of Date":"\n****Running****"):"")+(toDoData.isDailyTask()||toDoData.isFinished()?"":"\n***** Not  Finished *****");
                 }
                 else
                 {

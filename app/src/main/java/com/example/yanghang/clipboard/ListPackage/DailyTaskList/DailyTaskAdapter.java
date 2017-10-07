@@ -11,11 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
-import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.R;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,7 +33,7 @@ public class DailyTaskAdapter extends RecyclerView.Adapter<DailyTaskAdapter.Dail
         int sum=0;
         for (int i=0;i<lists.size();i++)
         {
-            sum+=lists.get(i).getTaskProgress();
+            sum+=lists.get(i).gettP();
         }
         return sum/lists.size()+"";
     }
@@ -55,8 +52,8 @@ public class DailyTaskAdapter extends RecyclerView.Adapter<DailyTaskAdapter.Dail
 
     @Override
     public void onBindViewHolder(final DailyTaskHolder holder, int position) {
-        holder.tvTaskProgress.setText(lists.get(position).getTaskProgress()+"%");
-        holder.tvTaskName.setText(lists.get(position).getTaskName());
+        holder.tvTaskProgress.setText(lists.get(position).gettP()+"%");
+        holder.tvTaskName.setText(lists.get(position).gettN());
         holder.llTaskClick.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -64,7 +61,7 @@ public class DailyTaskAdapter extends RecyclerView.Adapter<DailyTaskAdapter.Dail
                 final View dialogView = LayoutInflater.from(mContext).inflate(R.layout.dialog_horizontal_progress, null);
                 final TextView tvProgress=dialogView.findViewById(R.id.dailyTask_Progress);
                 final SeekBar seekBar = dialogView.findViewById(R.id.dailyTask_SeekBar);
-                int progress=lists.get(pos).getTaskProgress();
+                int progress=lists.get(pos).gettP();
                 tvProgress.setText(progress+"%");
                 seekBar.setMax(10);
                 seekBar.setProgress(progress/10);
@@ -89,7 +86,7 @@ public class DailyTaskAdapter extends RecyclerView.Adapter<DailyTaskAdapter.Dail
                         .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                lists.get(pos).setTaskProgress(seekBar.getProgress()*10);
+                                lists.get(pos).settP(seekBar.getProgress()*10);
                                 notifyItemChanged(pos);
                             }
                         }).setNegativeButton("取消",null)

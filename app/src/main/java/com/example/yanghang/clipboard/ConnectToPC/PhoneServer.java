@@ -3,6 +3,7 @@ package com.example.yanghang.clipboard.ConnectToPC;
 import android.content.Context;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.MainFormActivity;
@@ -67,6 +68,7 @@ public class PhoneServer {
             receiveData();
         } catch (IOException e) {
             updateMessage.updateMessage("启动端口失败，请退出程序",MESSAGE_TYPE.MESSAGE);
+            Toast.makeText(context,"启动端口失败，请退出程序",Toast.LENGTH_SHORT).show();
             updateMessage.disconnectPCtoServer();
             e.printStackTrace();
         }
@@ -219,10 +221,14 @@ public class PhoneServer {
     }
     public void close() {
         try {
-            bo.close();
-            bi.close();
-            socket.close();
-            ss.close();
+            if (socket!=null&&ss!=null)
+            {
+                bo.close();
+                bi.close();
+                socket.close();
+                ss.close();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -384,6 +384,7 @@ public class ActivityPCMessage extends SwipeBackActivity {
             bo.write(0xfc);
             bo.flush();
             ConnectThread.socket.close();
+            phoneServer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
