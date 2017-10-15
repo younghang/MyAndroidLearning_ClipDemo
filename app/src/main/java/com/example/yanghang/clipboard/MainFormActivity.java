@@ -379,6 +379,11 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             }
 
             @Override
+            public void showTodayMission(String todayMission) {
+                //nothing need to be done
+            }
+
+            @Override
             public void showDailyList(List<DailyTaskData> mDailyList, ListData listData) {
                 Message msg = new Message();
                 Bundle data = new Bundle();

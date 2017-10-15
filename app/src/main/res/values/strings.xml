@@ -203,4 +203,5 @@
     </string-array>
     <string name="calendar_item_new_count">%d条</string>
     <string name="title_activity_horizontal_scroll_list_view">HorizontalScrollListView</string>
+    <string name="pref_header_notification">通知设置</string>
 </resources>

@@ -2,6 +2,7 @@ package com.example.yanghang.clipboard;
 
 
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +17,8 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
+import android.support.annotation.Nullable;
+import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -42,6 +46,8 @@ import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
 
 
 public class SettingsActivity extends AppCompatPreferenceActivity {
@@ -155,9 +161,123 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
      */
     protected boolean isValidFragment(String fragmentName) {
         return PreferenceFragment.class.getName().equals(fragmentName)
-                || GeneralPreferenceFragment.class.getName().equals(fragmentName) ||
-                AboutPreferenceFragment.class.getName().equals(fragmentName);
+                ||  GeneralPreferenceFragment.class.getName().equals(fragmentName) ||
+                 AboutPreferenceFragment.class.getName().equals(fragmentName)||
+        NotificationFragment.class.getName().equals(fragmentName);
 
+    }
+    public static class NotificationFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener
+        ,Preference.OnPreferenceChangeListener
+    {
+
+        private SwitchPreference toDoDataNotificationSwitch;
+        private SwitchPreference lockScreenSwitch;
+        private SwitchPreference todoServiceSwitch;
+        private Preference picPathPreference;
+        private static int REQUEST_CODE_IMAGE=90;
+        @Override
+        public boolean onPreferenceClick(Preference preference) {
+            if (preference==picPathPreference)
+            {
+                showImageChooseDialog();
+                return true;
+            }else if (preference==todoServiceSwitch)
+            {
+                final Intent intent = new Intent();
+                // 为Intent设置Action属性
+                intent.setAction("TodoNotification.ScreenLock.Service");
+                intent.setPackage(getActivity().getPackageName());
+                getActivity().stopService(intent);
+                todoServiceSwitch.setEnabled(false);
+            }
+            return false;
+        }
+
+        private void showImageChooseDialog() {
+            View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.setting_notification_lock_image_dialog, null);
+            final ImageView defaultImage = (ImageView) view.findViewById(R.id.setting_notification_lock_image_default);
+            final ImageView selectImage = (ImageView) view.findViewById((R.id.setting_notification_lock_image_choose));
+            AlertDialog alertDialog=new AlertDialog.Builder(getActivity()).setView(view)
+                        .setTitle("设置背景图片")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Toast.makeText(getActivity(), "目前没有写完，不能修改", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                        .setCancelable(true).create();
+            VectorDrawableCompat vectorDrawableCompat = VectorDrawableCompat.create(getResources(),R.drawable.add_gray,getActivity().getTheme());
+            //你需要改变的颜色
+//        vectorDrawableCompat.setTint(getResources().getColor(R.color.light_gray));
+            selectImage.setImageDrawable(vectorDrawableCompat);
+            selectImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    startActivityForResult(intent, REQUEST_CODE_IMAGE);
+                }
+            });
+
+
+            alertDialog.show();
+
+
+        }
+
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(R.xml.pref_notification);
+            toDoDataNotificationSwitch= (SwitchPreference) findPreference("notifications_todo_switch");
+            lockScreenSwitch = (SwitchPreference) findPreference("notification_screen_lock_switch");
+            picPathPreference=findPreference("notification_set_lock_image");
+            todoServiceSwitch = (SwitchPreference) findPreference("notification_todo_service_switch");
+
+            todoServiceSwitch.setOnPreferenceClickListener(this);
+            picPathPreference.setOnPreferenceClickListener(this);
+            picPathPreference.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(picPathPreference.getKey(), ""));
+
+
+            todoServiceSwitch.setChecked(isToDoNotificationServiceAlive());
+            if (!todoServiceSwitch.isChecked())
+            {
+                todoServiceSwitch.setEnabled(false);
+            }
+        }
+        private boolean isToDoNotificationServiceAlive()
+        {
+            ActivityManager manager=(ActivityManager)getActivity().getSystemService(Context.ACTIVITY_SERVICE);
+            for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+                if ("com.example.yanghang.clipboard.Notification.ServiceNotification".equals(service.service.getClassName())) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            String stringValue = newValue.toString();
+            //单独的Preference不会调用的，需要自己手动改，其他的不用
+            preference.setSummary(stringValue);
+            return true;
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+            super.onActivityResult(requestCode, resultCode, data);
+            if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_IMAGE) {
+                Uri uri = data.getData();
+                final String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
+                PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(picPathPreference.getKey(), file).apply();
+                picPathPreference.setSummary(file);
+                File fileImage = new File(file);
+            }
+        }
     }
 
     public static class AboutPreferenceFragment extends PreferenceFragment implements Preference.OnPreferenceClickListener {
@@ -208,13 +328,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return false;
         }
-        private void showReference()
-        {
+        private void showReference() {
             new AlertDialog.Builder(getActivity()).setTitle("参考项目")
                     .setMessage("SwipebackLayout    CalendarListView    DataChooseWheelViewDialog   NiMinBan" +
                             "").setCancelable(true).show();
         }
-
 
         private void showSpecialCatalogueNames() {
             new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称")

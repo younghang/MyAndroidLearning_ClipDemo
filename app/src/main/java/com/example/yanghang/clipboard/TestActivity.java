@@ -16,6 +16,8 @@ import android.widget.Toast;
 import com.example.yanghang.clipboard.EncodeFile.AES;
 import com.example.yanghang.clipboard.EncodeFile.AESKeyModel;
 import com.example.yanghang.clipboard.EncodeFile.AESUtils;
+import com.example.yanghang.clipboard.Notification.ActivityNotification;
+import com.example.yanghang.clipboard.Notification.ServiceNotification;
 import com.example.yanghang.clipboard.Test.HorizontalScrollListView;
 
 import java.io.File;
@@ -215,9 +217,13 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
 
                 break;
             case R.id.test_button_buttonNavigation:
+                Intent serviceIntent = new Intent(TestActivity.this, ServiceNotification.class);
+                startService(serviceIntent);
 
                 break;
             case R.id.test_button_fullScreen:
+                Intent fullScreenIntent = new Intent(TestActivity.this, ActivityNotification.class);
+                startActivity(fullScreenIntent);
 
                 break;
             case R.id.test_button_masterItem:

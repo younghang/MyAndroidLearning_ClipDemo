@@ -30,6 +30,7 @@ public class TaskShowToDoList {
     {
         public void showToDoList(String messageToDoList );
         public void showDailyList(List<DailyTaskData> mDailyList,ListData todayListData);
+        public void showTodayMission(String todayMission);
     }
     private IShowToDoList showToDoList;
     private Context context;
@@ -42,9 +43,11 @@ public class TaskShowToDoList {
     {
         final StringBuilder stringBuilder = new StringBuilder();
 
+
         new Thread(new Runnable() {
             @Override
             public void run() {
+                String todayMissionStr="";
                 List<ListData> listDatas=new DBListInfoManager(context).getDatas("待办事项");
                 SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 Date nowDate= Calendar.getInstance().getTime();
@@ -126,10 +129,12 @@ public class TaskShowToDoList {
                         if (endDate.toString().equals(currentDate.toString())) {
 
                             if (toDoData.isCurrentDay()) {
+                                todayMissionStr+=toDoData.getContent();
                                 stringBuilder.append("[今日提醒]:" + toDoData.getContent() + "\n");
                             }
                             else
                             {
+                                todayMissionStr+=toDoData.getContent();
                                 stringBuilder.append("[今日任务]:" + toDoData.getContent() + "\n");
                             }
                         }
@@ -144,6 +149,7 @@ public class TaskShowToDoList {
                     }
                 }
                 showToDoList.showToDoList(stringBuilder.toString());
+                showToDoList.showTodayMission(todayMissionStr);
             }
         }).start();
     }

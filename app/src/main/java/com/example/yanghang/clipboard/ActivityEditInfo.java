@@ -89,7 +89,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
             isEdit = false;
 
         String catalogueName=listData.getCatalogue();
-        Log.d(MainFormActivity.TAG, "Initial: catalogueName="+catalogueName);
+//        Log.d(MainFormActivity.TAG, "Initial: catalogueName="+catalogueName);
 
         editRemark = (EditText) findViewById(R.id.edit_remark);
         createTimeView = (TextView) findViewById(R.id.item_info_create_time);
@@ -182,8 +182,8 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                     listData.setContent(fragment.getString());
                 }
                 listData.setRemarks(editRemark.getText().toString());
-                //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission
-                if (!listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME)&&!listData.getCatalogue().equals("dailyMission"))
+                //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission，为了能够更换目录
+                if (!specialCatalogueNames.contains(listData.getCatalogue()))
                 listData.setCatalogue(spinner.getSelectedItem().toString());
                 Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
                 intent.putExtra(MainFormActivity.LIST_DATA, listData);

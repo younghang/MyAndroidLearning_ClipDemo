@@ -22,12 +22,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.yanghang.clipboard.ActivityBangumi;
 import com.example.yanghang.clipboard.ActivityCalendar;
 import com.example.yanghang.clipboard.ActivityEditInfo;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarItemsData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarHelper;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarListView;
@@ -258,7 +260,14 @@ public class FragmentCalendar extends Fragment {
         listDataAdapter.setOnListDataLongClickListener(new ListDataAdapter.OnListDataLongClickListener() {
             @Override
             public void onLongClick(ListData data, int pos) {
-                Intent intent = new Intent(getActivity(), ActivityEditInfo.class);
+                Intent intent;
+                if (data.getCatalogue().equals("番剧")) {
+                    Toast.makeText(getActivity(), "不能从此处修改", Toast.LENGTH_SHORT).show();
+                    return;
+                } else {
+                    intent = new Intent(getActivity(), ActivityEditInfo.class);
+                }
+
                 intent.putExtra(LIST_DATA_POS, pos);
                 intent.putExtra(LIST_DATA, data);
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
