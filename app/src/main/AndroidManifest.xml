@@ -76,9 +76,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
-
-
-
+        <!--<receiver android:name=".Notification.ActivityNotification$UnLockScreenBroadcastReceiver">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.USER_PRESENT" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
 
         <activity android:name=".Notification.ActivityNotification"
             android:launchMode="singleInstance"

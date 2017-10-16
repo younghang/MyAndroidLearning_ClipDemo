@@ -7,12 +7,13 @@
         android:icon="@drawable/ic_save_white_24dp"
         android:title="@string/pref_header_general" />
     <header
-        android:fragment="com.example.yanghang.clipboard.SettingsActivity$AboutPreferenceFragment"
-        android:icon="@drawable/ic_info_24dp"
-        android:title="@string/pref_header_about" />
-    <header
         android:fragment="com.example.yanghang.clipboard.SettingsActivity$NotificationFragment"
         android:icon="@drawable/ic_notifications_white_24dp"
         android:title="@string/pref_header_notification"
         />
+    <header
+        android:fragment="com.example.yanghang.clipboard.SettingsActivity$AboutPreferenceFragment"
+        android:icon="@drawable/ic_info_24dp"
+        android:title="@string/pref_header_about" />
+
 </preference-headers>

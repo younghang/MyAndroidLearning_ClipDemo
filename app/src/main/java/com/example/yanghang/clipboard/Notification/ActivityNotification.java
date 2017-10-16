@@ -1,5 +1,6 @@
 package com.example.yanghang.clipboard.Notification;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -66,7 +67,7 @@ public class ActivityNotification extends SwipeBackActivity {
 
     }
 
-
+    UnLockScreenBroadcastReceiver receiver;
     void initial()
     {
         mSwipeBackLayout = getSwipeBackLayout();
@@ -80,11 +81,21 @@ public class ActivityNotification extends SwipeBackActivity {
         tvMessage= (TextView) findViewById(R.id.activity_notification_tv_message);
         tvMessage.setText(message);
 
+        final IntentFilter filter = new IntentFilter();
+        receiver=new UnLockScreenBroadcastReceiver();
+        filter.addAction(Intent.ACTION_USER_PRESENT);
+        registerReceiver(receiver, filter);
+
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (receiver!=null)
+        unregisterReceiver(receiver);
+    }
 
-
-//    @Override
+    //    @Override
 //    protected void onNewIntent(Intent intent) {
 //        super.onNewIntent(intent);
 //        PowerManager pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
@@ -95,6 +106,16 @@ public class ActivityNotification extends SwipeBackActivity {
 //            wl.release();
 //        }
 //    }
+public class UnLockScreenBroadcastReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Log.d("nihao", "UnLock onReceive: ");
+        finish();
+
+    }
+
+
+}
 
 
 }
