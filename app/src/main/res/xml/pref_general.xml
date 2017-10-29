@@ -5,7 +5,23 @@
         android:title="选择文件夹"
 
         />
-
+    <PreferenceCategory
+        android:title="全局"
+        >
+    <SwitchPreference
+        android:title="自动保存"
+        android:key="autoSavePreference"
+        android:defaultValue="false"
+        android:summary="每天自动保存文件"
+        />
+    <Preference
+        android:capitalize="words"
+        android:key="dataFileSimpleExpot"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="导出所有记录为易读文本" />
+</PreferenceCategory>
     <!-- NOTE: EditTextPreference accepts EditText attributes. -->
     <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
    <PreferenceCategory
@@ -16,24 +32,26 @@
            android:title="加密文本"
            android:key="encodePreference"
            android:defaultValue="false"
-           android:summaryOff="导出的记录文本明文可读"
+           android:summaryOff="导出的记录为json原始格式"
            android:summaryOn="导出的记录文本为密文"
            />
+
        <Preference
-           android:capitalize="words"
-           android:key="@string/dataFileName"
-           android:maxLines="1"
-           android:selectAllOnFocus="true"
-           android:singleLine="true"
-           android:title="导出所有记录" />
+           android:key="@string/dataImport"
+           android:title="导入记录项" />
+       <Preference
+       android:capitalize="words"
+       android:key="@string/dataFileName"
+       android:maxLines="1"
+       android:selectAllOnFocus="true"
+       android:singleLine="true"
+       android:title="导出所有记录" />
+
 
        <!-- NOTE: Hide buttons to simplify the UI. Users can touch outside the dialog to
             dismiss it. -->
        <!-- NOTE: ListPreference's summary should be set to its value by the activity code. -->
 
-       <Preference
-           android:key="@string/dataImport"
-           android:title="导入记录项" />
 
 
    </PreferenceCategory>

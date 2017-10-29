@@ -202,7 +202,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            Toast.makeText(getActivity(), "目前没有写完，不能修改", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), "目前没有写完，不能修改<不想修改>", Toast.LENGTH_SHORT).show();
                         }
                     })
                         .setCancelable(true).create();
@@ -335,8 +335,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         }
 
         private void showSpecialCatalogueNames() {
-            new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称")
-                    .setMessage("待办事项, collect_calendar_catalogue[diary luser weight] ，番剧 ，dailyMission").setCancelable(true).show();
+            new AlertDialog.Builder(getActivity()).setTitle("特殊的目录名称及说明")
+                    .setMessage("待办事项：\n\t#注释掉待办项" +
+                            "\ncollect_calendar_catalogue[diary luser weight]:\n\t日常记录所用" +
+                            "\n番剧：\n\t可以保存看过的动画片并添加记录" +
+                            "\ndailyMission:\n\t记录日常任务").setCancelable(true).show();
         }
 
         private void showLogFileDialog() {
@@ -447,6 +450,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         AlertDialog loadingDialog;
         private Preference filePathPreference;
         SwitchPreference encodePreference;
+        SwitchPreference autoSavePreference;
 
         private Preference fileNamePreference;
         private Preference catalogueNamePreference;
@@ -496,6 +500,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             catalogueNamePreference = findPreference(getResources().getString(R.string.dataCatalogueExport));
             catalogueImportPreference = findPreference(getResources().getString(R.string.dataCatalogueImport));
             encodePreference = (SwitchPreference) findPreference("encodePreference");
+            autoSavePreference=(SwitchPreference) findPreference("autoSavePreference");
             fileImport = findPreference(getResources().getString(R.string.dataImport));
 
             fileImport.setOnPreferenceClickListener(this);
@@ -503,6 +508,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             catalogueNamePreference.setOnPreferenceClickListener(this);
             filePathPreference.setOnPreferenceClickListener(this);
             fileNamePreference.setOnPreferenceClickListener(this);
+            autoSavePreference.setOnPreferenceClickListener(this);
 //            fileNamePreference.setOnPreferenceChangeListener(this);
 //            filePathPreference.setOnPreferenceChangeListener(this);
             fileNamePreference.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(fileNamePreference.getKey(), ""));
@@ -528,6 +534,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public boolean onPreferenceClick(Preference preference) {
             if (preference == fileNamePreference) {
                 showDialog(fileNamePreference);
+                return true;
+            }
+            if (preference == autoSavePreference) {
+                if (autoSavePreference.isChecked())
+                showAutoSaveDialog();
                 return true;
             }
             if (preference == catalogueNamePreference) {
@@ -560,6 +571,26 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             }
             return false;
         }
+
+        private void showAutoSaveDialog() {
+            if (!new File(filePathPreference.getSummary().toString()).exists()) {
+                Toast.makeText(getActivity(), "请先选择正确的保存路径↑", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.dialog_data_save, null);
+            final EditText editText = (EditText) view.findViewById(R.id.edit_text);
+            editText.setText(PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).getString("autoSaveKey",""));
+            AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+                    .setTitle("设置密码")
+                    .setView(view)
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().putString("autoSaveKey",editText.getText().toString()).apply();
+                        }
+                    }).show();
+        }
+
         private void loadClipsJson(final String filePath, final boolean encoded)
         {
             new Thread(new Runnable() {

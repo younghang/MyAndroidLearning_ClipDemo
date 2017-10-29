@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
+    android:orientation="vertical"
     android:fitsSystemWindows="true"
     android:background="@drawable/splash"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -9,18 +10,31 @@
     android:layout_height="match_parent"
     android:id="@+id/activity_notification_linearLayout"
     tools:context="com.example.yanghang.clipboard.Notification.ActivityNotification">
+    <TextView
+        android:id="@+id/activity_notification_tv_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:paddingTop="60dp"
+        android:layout_marginLeft="15dp"
+        android:gravity="center_vertical"
+        android:text="00:00"
+        android:textColor="@color/message_text"
+        android:textSize="36sp"
 
+        />
     <TextView
         android:id="@+id/activity_notification_tv_message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:paddingTop="300dp"
+        android:paddingTop="200dp"
         android:gravity="center"
         android:text="这里是消息"
         android:textColor="@color/message_text"
         android:textSize="20sp"
 
         />
+
 
 </LinearLayout>

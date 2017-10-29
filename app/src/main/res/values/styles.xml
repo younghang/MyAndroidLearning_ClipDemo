@@ -32,7 +32,7 @@
 
     <style name="borderless">
         <item name="android:borderlessButtonStyle">?android:attr/borderlessButtonStyle</item>
-
+        <item name="android:layout_width">60dp</item>
     </style>
 
     <style name="MyDialogStyle">

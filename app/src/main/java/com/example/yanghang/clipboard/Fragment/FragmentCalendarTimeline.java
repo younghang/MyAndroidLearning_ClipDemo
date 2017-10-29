@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -347,15 +348,16 @@ public class FragmentCalendarTimeline extends Fragment {
 
     @TargetApi(Build.VERSION_CODES.M)
     private void addTextView(String name, String tag) {
-        Button tv = new Button(getActivity());
+        Button tv = new Button(getActivity(),null,0,R.style.borderless);
         tv.setText(name);
         tv.setTag(tag);
+        tv.setMinWidth(dpToPx(50));
         tv.setOnClickListener(onClickListener);
         tv.setTextSize(16);
         tv.setGravity(Gravity.CENTER);
         tv.setPadding(dpToPx(5), dpToPx(5), dpToPx(5), dpToPx(5));
-        tv.setTextColor(getActivity().getColor(R.color.white));
-        tv.setTextAppearance(R.style.borderless);
+        tv.setTextColor(getActivity().getColor(R.color.message_text));
+
 
 //        LinearLayout layout = new LinearLayout(getActivity());
 //        layout.setLayoutParams( new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT));
@@ -371,7 +373,7 @@ public class FragmentCalendarTimeline extends Fragment {
         lp.setMargins(10, 5, 5, 5);
         view.setLayoutParams(lp);
 
-        view.setBackground(getActivity().getDrawable(R.drawable.button_background_green));
+        view.setBackground(getActivity().getDrawable(R.drawable.button_background_gray));
         return view;
     }
 

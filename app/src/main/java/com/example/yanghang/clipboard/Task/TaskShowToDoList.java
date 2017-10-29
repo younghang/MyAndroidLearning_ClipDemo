@@ -112,7 +112,7 @@ public class TaskShowToDoList {
                             if (hasSaved==false)
                             {
                                 for (int k=0;k<dailyListString.length;k++) {
-                                    if (dailyListString.equals(""))
+                                    if (dailyListString[k].equals("")||dailyListString[k].startsWith("#"))
                                         continue;
                                     Log.d(TAG, "run: currentStr="+dailyListString[k]);
                                     dailyList.add(new DailyTaskData(dailyListString[k], 0));

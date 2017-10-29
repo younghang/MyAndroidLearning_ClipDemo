@@ -1,5 +1,6 @@
 package com.example.yanghang.clipboard.Notification;
 
+import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,12 +22,15 @@ import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLa
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 import com.example.yanghang.clipboard.R;
 
+import java.text.SimpleDateFormat;
+
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class ActivityNotification extends SwipeBackActivity {
 
     String message;
     TextView tvMessage;
+    TextView tvTime;
     private SwipeBackLayout mSwipeBackLayout;
     private LinearLayout linearLayout;
     @Override
@@ -80,12 +84,36 @@ public class ActivityNotification extends SwipeBackActivity {
 
         tvMessage= (TextView) findViewById(R.id.activity_notification_tv_message);
         tvMessage.setText(message);
+        tvTime = (TextView) findViewById(R.id.activity_notification_tv_time);
+        SimpleDateFormat sDateFormat = new SimpleDateFormat("HH:mm");
+        String time = sDateFormat.format(new java.util.Date());
+        tvTime.setText(time);
+
 
         final IntentFilter filter = new IntentFilter();
         receiver=new UnLockScreenBroadcastReceiver();
         filter.addAction(Intent.ACTION_USER_PRESENT);
         registerReceiver(receiver, filter);
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        KeyguardManager mKeyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+        boolean flag = mKeyguardManager.inKeyguardRestrictedInputMode();
+        if (flag==false)
+        {
+            finish();
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        SimpleDateFormat sDateFormat = new SimpleDateFormat("HH:mm");
+        String time = sDateFormat.format(new java.util.Date());
+        tvTime.setText(time);
     }
 
     @Override

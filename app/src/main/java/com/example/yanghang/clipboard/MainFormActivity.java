@@ -62,6 +62,7 @@ import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdap
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
 import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskAdapter;
 import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskData;
+import com.example.yanghang.clipboard.Task.TaskAutoSave;
 import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
 import java.lang.reflect.Field;
@@ -122,7 +123,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 case MSG_FINISH_SORTING_DATA:
                     refreshLayout.setRefreshing(false);
                     listClipInfoAdapter.setDatas(listDatas);
-                    listClipInfoAdapter.notifyDataSetChanged();
+
                     recyclerView.setLayoutManager(new LinearLayoutManager(MainFormActivity.this, LinearLayoutManager.VERTICAL, false)); // 设置布局，否则无法正常使用
                     recyclerView.setAdapter(listClipInfoAdapter);
                     break;
@@ -164,7 +165,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     dbListInfoManager.updateDataByOrderId(todayMissionList.getOrderID(), todayMissionList.getCatalogue(), dailyTaskAdapter.getTotalProgress(), JSONArray.toJSONString(dailyTaskAdapter.getLists()), todayMissionList.getCreateDate());
                                     listClipInfoAdapter.setDatas(dbListInfoManager.getDatas(""));
-                                    listClipInfoAdapter.notifyDataSetChanged();
+
                                 }
                             }).setNegativeButton("取消", null)
                             .show();
@@ -405,6 +406,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 startActivity(intent);
             }
         });
+        new TaskAutoSave(getApplicationContext()).runAutoSave();
         /*
         修改用的
          */

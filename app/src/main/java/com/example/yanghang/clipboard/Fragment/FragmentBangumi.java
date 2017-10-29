@@ -411,6 +411,7 @@ public class FragmentBangumi extends Fragment {
                     }
                 }).setNegativeButton("取消", null).show();
 
+
     }
 
     private void showAlterEpisodesDialog(String message) {
