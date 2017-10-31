@@ -183,12 +183,23 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return true;
             }else if (preference==todoServiceSwitch)
             {
-                final Intent intent = new Intent();
-                // 为Intent设置Action属性
-                intent.setAction("TodoNotification.ScreenLock.Service");
-                intent.setPackage(getActivity().getPackageName());
-                getActivity().stopService(intent);
-                todoServiceSwitch.setEnabled(false);
+                if (todoServiceSwitch.isChecked())
+                {
+                    final Intent intent = new Intent();
+                    // 为Intent设置Action属性
+                    intent.setAction("TodoNotification.ScreenLock.Service");
+                    intent.setPackage(getActivity().getPackageName());
+                    getActivity().stopService(intent);
+//                    todoServiceSwitch.setEnabled(false);
+                }else {
+                    final Intent intent = new Intent();
+                    // 为Intent设置Action属性
+                    intent.setAction("TodoNotification.ScreenLock.Service");
+                    intent.setPackage(getActivity().getPackageName());
+                    getActivity().startService(intent);
+                    Toast.makeText(getActivity(),"通知服务开启",Toast.LENGTH_SHORT).show();
+                }
+
             }
             return false;
         }
@@ -242,10 +253,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
 
             todoServiceSwitch.setChecked(isToDoNotificationServiceAlive());
-            if (!todoServiceSwitch.isChecked())
-            {
-                todoServiceSwitch.setEnabled(false);
-            }
+//            if (!todoServiceSwitch.isChecked())
+//            {
+//                todoServiceSwitch.setEnabled(false);
+//            }
         }
         private boolean isToDoNotificationServiceAlive()
         {

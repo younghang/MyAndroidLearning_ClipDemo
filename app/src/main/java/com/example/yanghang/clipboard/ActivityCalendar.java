@@ -16,11 +16,14 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
+import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendarItem;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendarTimeline;
+import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 
+import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -37,6 +40,7 @@ public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnP
 
     //key:date "yyyy-mm-dd" format.
     public TreeMap<String, List<ListData>> listTreeMap = new TreeMap<>();
+    public CalendarImageManager calendarImageManager ;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -82,6 +86,7 @@ public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnP
         initialView();
 
 
+
     }
 
 
@@ -89,7 +94,7 @@ public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnP
         //把初始化加载放在这个地方，就能够避免两个Fragment线程冲突，导致加载出来的 List 数据错乱
         //但是会非常卡。所以我又把它去掉了
 //        loadDBToDataTree(DAY_FORMAT.format(Calendar.getInstance().getTime()));
-
+        calendarImageManager = new CalendarImageManager(this);
         navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         viewPager = (ViewPager) findViewById(R.id.calendar_viewPager);

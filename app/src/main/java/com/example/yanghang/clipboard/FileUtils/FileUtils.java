@@ -33,8 +33,8 @@ import javax.crypto.BadPaddingException;
  * Created by yanghang on 2016/12/6.
  */
 public class FileUtils {   //        getgetApplicationContext().getFilesDir().getAbsolutePath();
-    private static String CATALOGUE_FILE_NAME = "catalogue.json";
-    private static String CATALOGUE_NEW_FILE_NAME="new_catalogue.json";
+    private static String CATALOGUE_FILE_NAME = "catalogue";
+    private static String CATALOGUE_NEW_FILE_NAME="new_catalogue";
     private static String CATALOGUE_JSON_NAME = "catalogue";
     private static String CATALOGUE_NAME="catalogue";
     private static String CATALOGUE_DESCRIPTION="catalogue_description";
@@ -103,7 +103,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
     }
 
-    private static boolean saveJsonObjectToDisk(File file, JSONObject jsonObject,boolean encoded) {
+    public static boolean saveJsonObjectToDisk(File file, JSONObject jsonObject,boolean encoded) {
         FileOutputStream fileOutputStream;
         try {
 
@@ -129,7 +129,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         return true;
     }
 
-    private static JSONObject loadJsonFromDisk(File file,boolean encoded) throws BadPaddingException {
+    public static JSONObject loadJsonFromDisk(File file,boolean encoded) throws BadPaddingException {
         if (file == null)
             return null;
         FileInputStream fileInputStream;
@@ -158,7 +158,7 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         return null;
     }
 
-    private static File createFile(String fileName, String filePath) {
+    public static File createFile(String fileName, String filePath) {
         if (!new File(filePath).exists()) {
             boolean dirCreate = new File(filePath).mkdirs();
             if (!dirCreate) {

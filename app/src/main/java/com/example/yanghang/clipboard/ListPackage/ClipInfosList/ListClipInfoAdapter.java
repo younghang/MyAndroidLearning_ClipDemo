@@ -221,7 +221,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
     private int lastAnimatedPosition=-1;
     private boolean animationsLocked = false;
     private boolean delayEnterAnimation = true;
-    private void runEnterAnimation(final View view, int position) {
+    private void runEnterAnimation(final View view, final int position) {
 
 
         if (animationsLocked)
@@ -230,7 +230,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 //            return;
             if (position < lastAnimatedPosition)
                 return;
-            Log.d(TAG, "run EnterAnimation: ");
+//            Log.d(TAG, "run EnterAnimation: ");
 
             lastAnimatedPosition = position;
             view.setTranslationY(100);//相对于原始位置下方500
@@ -255,7 +255,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 
 
         if (position > lastAnimatedPosition) {//lastAnimatedPosition是int类型变量，一开始为-1，这两行代码确保了recycleview滚动式回收利用视图时不会出现不连续的效果
-            Log.d(TAG, "run First EnterAnimation: ");
+//            Log.d(TAG, "run First EnterAnimation: ");
             lastAnimatedPosition = position;
             view.setTranslationY(300);//相对于原始位置下方500
             view.setAlpha(0.f);//完全透明
@@ -274,6 +274,15 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
                         public void onAnimationEnd(Animator animation) {
                             view.clearAnimation();
                             animationsLocked = true;//确保仅屏幕一开始能够显示的item项才开启动画，也就是说屏幕下方还没有显示的item项滑动时是没有动画效果
+                        }
+
+
+
+                        @Override
+                        public void onAnimationStart(Animator animation) {
+                            super.onAnimationStart(animation);
+                            if (position<lastAnimatedPosition-5)
+                                view.clearAnimation();
                         }
                     })
                     .start();

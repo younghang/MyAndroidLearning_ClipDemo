@@ -12,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,14 +21,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.example.yanghang.clipboard.ActivityBangumi;
 import com.example.yanghang.clipboard.ActivityCalendar;
 import com.example.yanghang.clipboard.ActivityEditInfo;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
-import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarItemsData;
+import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemsData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
-import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarHelper;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarListView;
@@ -39,15 +36,9 @@ import com.example.yanghang.clipboard.OthersView.calendarlistview.library.sample
 import com.example.yanghang.clipboard.R;
 
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static android.app.Activity.RESULT_OK;
 import static com.example.yanghang.clipboard.MainFormActivity.LIST_DATA;
@@ -104,7 +95,7 @@ public class FragmentCalendar extends Fragment {
         dbListInfoManager=new DBListInfoManager(getActivity());
         initialView();
         initialCalendarView();
-        initialCalendarItem();
+
 
         //关键一步
         setHasOptionsMenu(true);
@@ -120,56 +111,18 @@ public class FragmentCalendar extends Fragment {
 
     }
 
-    private void initialCalendarItem() {
+    private void showAddCalendarItemDialog() {
         View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.calendar_add_item, null);
         RecyclerView recyclerView = view.findViewById(R.id.calendar_items_recyclerView);
         // 设置布局，否则无法正常使用
-        final List<CalendarItemsData> lists = new ArrayList<>();
-        lists.add(new CalendarItemsData("日记", "diary"));
-        lists.add(new CalendarItemsData("体重", "weight"));
-        lists.add(new CalendarItemsData("luser", "luser"));
-        lists.add(new CalendarItemsData("日语", "jp"));
-        lists.add(new CalendarItemsData("编程", "code"));
-        lists.add(new CalendarItemsData("画画", "paint"));
-        lists.add(new CalendarItemsData("懒惰","rest"));
-        lists.add(new CalendarItemsData("支出", "cost"));
-        lists.add(new CalendarItemsData("收入", "income"));
-        lists.add(new CalendarItemsData("火焰", "fire"));
-        lists.add(new CalendarItemsData("爱心", "like"));
-        lists.add(new CalendarItemsData("完成", "check"));
-        lists.add(new CalendarItemsData("标记", "star"));
-
+        final List<CalendarItemsData> lists = activityCalendar.calendarImageManager.getVisibleLists();
 
         CalendarAddItemsAdapter calendarItemAdapter = new CalendarAddItemsAdapter(lists, getActivity());
         calendarItemAdapter.setOnItemClickListener(new CalendarAddItemsAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
                 String remarkName=lists.get(position).getCalendarItemPic();
-                switch (remarkName)
-                {
-                    case "diary":
-                    case "weight":
-                    case "jp":
-                    case "luser":
-                    case "rest":
-                    case "like":
-                    case "fire":
-                    case "star":
-                    case "check":
-                    case "paint":
-                    case "code":
-                    case "cost":
-                    case "income":
-                        addCalendarItem(remarkName);
-                        break;
-
-                    default:
-                        Toast.makeText(getActivity(), lists.get(position).getCalendarItemName(), Toast.LENGTH_SHORT).show();
-
-                }
-
-
-
+                addCalendarItem(remarkName);
 
             }
         });
@@ -177,7 +130,7 @@ public class FragmentCalendar extends Fragment {
         recyclerView.setAdapter(calendarItemAdapter);
 
         loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
-                .setTitle("新建记录" + DAY_FORMAT.format(Calendar.getInstance().getTime())).create();
+                .setTitle("新建记录" + DAY_FORMAT.format(Calendar.getInstance().getTime())).show();
     }
     private void addCalendarItem(String strName)
     {
@@ -223,9 +176,7 @@ public class FragmentCalendar extends Fragment {
 
                 break;
             case R.id.action_calendar_add_item:
-
-                loadingDialog.show();
-
+                showAddCalendarItemDialog();
                 break;
 
         }
@@ -341,8 +292,8 @@ public class FragmentCalendar extends Fragment {
             public void onMonthChanged(String yearMonth) {
                 Calendar calendar = CalendarHelper.getCalendarByYearMonth(yearMonth);
                 toolbar.setTitle(YEAR_MONTH_YUE_FORMAT.format(calendar.getTime()));
-                Log.d(TAG, "onMonthChanged: yearmonth" + yearMonth);
-                Log.d(TAG, "onMonthChanged: currentSelectedDate=" + calendarGridView.getCurrentSelectedDate());
+//                Log.d(TAG, "onMonthChanged: yearmonth" + yearMonth);
+//                Log.d(TAG, "onMonthChanged: currentSelectedDate=" + calendarGridView.getCurrentSelectedDate());
 
                 if (calendarGridView.getCurrentSelectedDate() != null && !calendarGridView.getCurrentSelectedDate().equals("")) {
                     String strDay = calendarGridView.getCurrentSelectedDate().split("-")[2];
@@ -380,9 +331,10 @@ public class FragmentCalendar extends Fragment {
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
+                        List<String> visibleNames = activityCalendar.calendarImageManager.getVisibleNames();
 
                         for (String d : activityCalendar.listTreeMap.keySet()) {
-                            Log.d(TAG, "FragmentCalendar loadCalendarData run: currentDatekey"+d);
+//                            Log.d(TAG, "FragmentCalendar loadCalendarData run: currentDatekey"+d);
                             if (date.equals(d.substring(0, 7))) {
                                 CustomCalendarItemModel itemCalendarModel = calendarAdapter.getDayModelList().get(d);
                                 if (itemCalendarModel != null) {
@@ -394,49 +346,11 @@ public class FragmentCalendar extends Fragment {
                                         if (!listData.getCatalogue().equals(CALENDAR_CATALOGUE_NAME))
                                             continue;
                                         String remarkName=listData.getRemarks();
-                                        Log.d(TAG, "run: Remark="+remarkName);
-                                        switch (remarkName)
-                                        {
-                                            case "luser":
-                                                itemCalendarModel.setLuser(true);
-                                                break;
-                                            case "diary":
-                                                itemCalendarModel.setDiary(true);
-                                                break;
-                                            case "weight":
-                                                itemCalendarModel.setWeight(true);
-                                                break;
-                                            case "jp":
-                                                itemCalendarModel.setJP(true);
-                                                break;
-                                            case "rest":
-                                                itemCalendarModel.setRest(true);
-                                                break;
-                                            case "star":
-                                                itemCalendarModel.setStar(true);
-                                                break;
-                                            case "like":
-                                                itemCalendarModel.setLike(true);
-                                                break;
-                                            case "check":
-                                                itemCalendarModel.setCheck(true);
-                                                break;
-                                            case "fire":
-                                                itemCalendarModel.setFire(true);
-                                                break;
-                                            case "paint":
-                                                itemCalendarModel.setPaint(true);
-                                                break;
-                                            case "code":
-                                                itemCalendarModel.setCode(true);
-                                                break;
-                                            case "cost":
-                                                itemCalendarModel.setMoneySpend(true);
-                                                break;
-                                            case "income":
-                                                itemCalendarModel.setMoneyIncome(true);
-                                                break;
-                                        }
+//                                        Log.d(TAG, "run: Remark="+remarkName);
+//                                        if(activityCalendar.calendarImageManager.containsTag(remarkName)&&activityCalendar.calendarImageManager.getTagVisibility(remarkName))
+                                        //就这么一个优化就让程序由不能运行（就加了上面这句）到能运行
+                                        if(visibleNames.contains(remarkName))
+                                        itemCalendarModel.addImage(remarkName);
                                     }
 
                                 }

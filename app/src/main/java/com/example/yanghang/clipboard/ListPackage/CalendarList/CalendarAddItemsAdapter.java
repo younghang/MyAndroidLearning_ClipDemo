@@ -9,9 +9,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
+import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemsData;
 import com.example.yanghang.clipboard.R;
 
 import java.util.List;
+
+import static com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager.setImageSource;
 
 /**
  * Created by young on 2017/6/28.
@@ -46,57 +49,17 @@ public class CalendarAddItemsAdapter extends RecyclerView.Adapter<CalendarAddIte
 
     @Override
     public void onBindViewHolder(CalendarItemHolder holder, int position) {
+        if (!lists.get(position).getShowImage())
+        {
+            holder.itemView.setVisibility(View.GONE);
+            return;
+        }
         holder.tvItemName.setText(lists.get(position).getCalendarItemName());
         holder.itemView.setTag(position);
         String pic = lists.get(position).getCalendarItemPic();
         setImageSource(holder.imgItemPic,pic);
     }
-    public static void setImageSource(ImageView imageView,String pic){
-        switch (pic)
-        {
-            case "luser":
-                imageView.setImageResource(R.drawable.toilet_paper);
-                break;
-            case "diary":
-                imageView.setImageResource(R.drawable.diary1);
-                break;
-            case "weight":
-                imageView.setImageResource(R.drawable.weight_scale);
-                break;
-            case "star":
-                imageView.setImageResource(R.drawable.ic_star);
-                break;
-            case "fire":
-                imageView.setImageResource(R.drawable.ic_fire);
-                break;
-            case "check":
-                imageView.setImageResource(R.drawable.ic_check_circle_green_500_24dp);
-                break;
-            case "jp":
-                imageView.setImageResource(R.drawable.jp_learn);
-                break;
-            case "like":
-                imageView.setImageResource(R.mipmap.ic_like_normal);
-                break;
-            case "rest":
-                imageView.setImageResource(R.drawable.rest);
-                break;
-            case "code":
-                imageView.setImageResource(R.drawable.code);
-                break;
-            case "paint":
-                imageView.setImageResource(R.drawable.paint);
-                break;
-            case "cost":
-                imageView.setImageResource(R.drawable.spendmoney);
-                break;
-            case "income":
-                imageView.setImageResource(R.drawable.addmoney);
-                break;
-            default:
-                imageView.setImageResource(R.drawable.ic_star);
-        }
-    }
+
 
     public void setOnItemClickListener(OnItemClickListener listener) {
         if (listener != null) {

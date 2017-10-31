@@ -355,8 +355,8 @@ public class FragmentCalendarTimeline extends Fragment {
         tv.setOnClickListener(onClickListener);
         tv.setTextSize(16);
         tv.setGravity(Gravity.CENTER);
-        tv.setPadding(dpToPx(5), dpToPx(5), dpToPx(5), dpToPx(5));
-        tv.setTextColor(getActivity().getColor(R.color.message_text));
+        tv.setPadding(dpToPx(10), dpToPx(5), dpToPx(10), dpToPx(5));
+        tv.setTextColor(getActivity().getColor(R.color.black_80000000));
 
 
 //        LinearLayout layout = new LinearLayout(getActivity());
@@ -370,7 +370,7 @@ public class FragmentCalendarTimeline extends Fragment {
     private View initViewParams(View view) {
         //  动态添加布局
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,dpToPx(40) );
-        lp.setMargins(10, 5, 5, 5);
+        lp.setMargins(10, 5, 5,5);
         view.setLayoutParams(lp);
 
         view.setBackground(getActivity().getDrawable(R.drawable.button_background_gray));

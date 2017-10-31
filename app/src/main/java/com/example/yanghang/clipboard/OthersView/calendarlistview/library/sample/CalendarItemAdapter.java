@@ -13,6 +13,7 @@ import com.example.yanghang.clipboard.R;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.BaseCalendarItemAdapter;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.BaseCalendarItemModel;
 
+import static com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager.setImageSource;
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 /**
@@ -101,7 +102,7 @@ public class CalendarItemAdapter extends BaseCalendarItemAdapter<CustomCalendarI
     private  void setImage(ImageView imageView,String pic)
     {
 
-        CalendarAddItemsAdapter.setImageSource(imageView,pic);
+        setImageSource(imageView,pic);
         imageView.setVisibility(View.VISIBLE);
     }
 }

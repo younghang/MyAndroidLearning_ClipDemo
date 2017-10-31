@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:clickable="true"
+    android:orientation="vertical">
+    <LinearLayout
+
+        android:layout_gravity="center"
+        android:layout_margin="15dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:src="@mipmap/ic_launcher"
+            android:layout_gravity="left"
+            android:id="@+id/calendar_select_item_image"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="24dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="123"
+            android:layout_marginLeft="30dp"
+            android:textSize="18sp"
+            android:id="@+id/calendar_select_item_name"
+
+            android:layout_height="wrap_content" />
+        <Switch
+            android:paddingRight="30dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:id="@+id/calendar_select_item_switch"
+            android:layout_height="24dp" />
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:elevation="2dp"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:background="@color/light_gray" />
+</LinearLayout>

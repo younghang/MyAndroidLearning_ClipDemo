@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +16,13 @@ import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.Toast;
 
+import com.example.yanghang.clipboard.ActivityCalendar;
+import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemAdapter;
+import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemsData;
 import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.R;
+
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -26,8 +33,16 @@ public class FragmentCalendarItem extends Fragment {
     public FragmentCalendarItem() {
         // Required empty public constructor
     }
+    ActivityCalendar activityCalendar;
+
 
     private View mView;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        activityCalendar= (ActivityCalendar) context;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -41,6 +56,7 @@ public class FragmentCalendarItem extends Fragment {
     private Button btnStart;
     private Button btnEnd;
     private CardView cardView;
+    private RecyclerView recyclerView;
     boolean reset=false;
     private void initialView()
     {
@@ -81,9 +97,19 @@ public class FragmentCalendarItem extends Fragment {
                 reset=!reset;
             }
         });
-
-
+        recyclerView = mView.findViewById(R.id.fragment_calendar_item_recycleView);
+        List<CalendarItemsData> lists = activityCalendar.calendarImageManager.getLists();
+        calendarItemAdapter = new CalendarItemAdapter(lists, getActivity(), new CalendarItemAdapter.OnCalendarItemVisibilityChanged() {
+            @Override
+            public void onChanged() {
+                activityCalendar.calendarImageManager.setLists(calendarItemAdapter.getLists());
+                activityCalendar.calendarImageManager.saveImageLists();
+            }
+        });
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        recyclerView.setAdapter(calendarItemAdapter);
     }
+    CalendarItemAdapter calendarItemAdapter;
 
 
 }

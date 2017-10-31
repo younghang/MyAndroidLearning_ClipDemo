@@ -52,5 +52,13 @@
             android:layout_marginRight="20dp"
             android:layout_marginLeft="20dp"
             android:layout_height="wrap_content" />
-    </LinearLayout>
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/fragment_calendar_item_recycleView"
+            >
+
+        </android.support.v7.widget.RecyclerView>
+            </LinearLayout>
+    
 </FrameLayout>
