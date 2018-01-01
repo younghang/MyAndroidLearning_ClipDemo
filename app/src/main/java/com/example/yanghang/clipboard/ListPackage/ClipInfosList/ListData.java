@@ -6,14 +6,18 @@ import android.util.Log;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
+import com.example.yanghang.clipboard.ActivityAccountBook;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
+import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +50,7 @@ public class ListData implements Serializable {
         Catalogue = catalogue;
     }
 
-    static String GetDate() {
+    public static String GetDate() {
         SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd\nHH:mm:ss");
         String date = sDateFormat.format(new java.util.Date());
         return date;
@@ -151,7 +155,24 @@ public class ListData implements Serializable {
                     strMessage="Error Data！";
                 }
                 break;
-
+            case "记账":
+                double expenditure=0;
+                double income=0;
+                List<AccountData> list = JSONArray.parseArray(Content, AccountData.class);
+                if (list==null)
+                {
+                    list= new ArrayList<>();
+                }
+                for (AccountData data : list) {
+                    if (data.getMoney()<0)
+                    {
+                        expenditure += data.getMoney();
+                    }else
+                        income+=data.getMoney();
+                }
+                DecimalFormat df = new DecimalFormat("0.00");
+                strMessage = "收入=" + df.format(income) + "     支出=" + df.format(Math.abs(expenditure)) + "     总算=" + df.format(income + expenditure);
+                break;
             case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
                 switch (Remarks){
                     case "diary":
@@ -175,6 +196,7 @@ public class ListData implements Serializable {
                                 "afternoon:"+afternoonDiary+
                                 "evening:"+eveningDiary;
                         break;
+
                 }
                 break;
 

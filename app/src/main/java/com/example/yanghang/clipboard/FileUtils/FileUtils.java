@@ -33,13 +33,13 @@ import javax.crypto.BadPaddingException;
  * Created by yanghang on 2016/12/6.
  */
 public class FileUtils {   //        getgetApplicationContext().getFilesDir().getAbsolutePath();
-    private static String CATALOGUE_FILE_NAME = "catalogue";
+    public static String CATALOGUE_FILE_NAME = "catalogue";
     private static String CATALOGUE_NEW_FILE_NAME="new_catalogue";
     private static String CATALOGUE_JSON_NAME = "catalogue";
     private static String CATALOGUE_NAME="catalogue";
     private static String CATALOGUE_DESCRIPTION="catalogue_description";
     private static String LISTDATA_CLIPS_NAME = "clips";
-    private static String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
+    public static String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
     private static String SAVE_FILE_CATALOGUE_ENCODE_SUFFIX = ".sphykey";
     public static String SEED="";
 

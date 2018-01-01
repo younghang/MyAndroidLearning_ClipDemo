@@ -80,7 +80,7 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
         if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
             // Let the view holder know that this item is being moved or dragged
-            CatalogueAdapter.ItemTouchHelperViewHolder itemViewHolder = (CatalogueAdapter.ItemTouchHelperViewHolder) ((CatalogueHolder) viewHolder);
+            CatalogueAdapter.ItemTouchHelperViewHolder itemViewHolder = (CatalogueAdapter.ItemTouchHelperViewHolder) ((CatalogueAdapter.CatalogueHolder) viewHolder);
             itemViewHolder.onItemSelected();
         }
 

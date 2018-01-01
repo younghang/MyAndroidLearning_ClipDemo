@@ -86,7 +86,7 @@ public class TaskShowToDoList {
                     {
                         if (toDoData.isDailyTask())
                         {
-                            Log.d(TAG, "run: "+toDoData.getContent());
+//                            Log.d(TAG, "run: "+toDoData.getContent());
                             String[] dailyListString = new String[]{};
                             dailyListString=toDoData.getContent().split("\n");
                             List<ListData> lists = new DBListInfoManager(context).searchDataByDate(todayString);

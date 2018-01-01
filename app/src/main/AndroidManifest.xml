@@ -45,7 +45,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainFormActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBarTransparentNavigation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -63,34 +63,34 @@
         <service
             android:name=".Notification.ServiceNotification"
             android:enabled="true"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
-                <action android:name="TodoNotification.ScreenLock.Service"></action>
+                <action android:name="TodoNotification.ScreenLock.Service" />
             </intent-filter>
         </service>
 
         <receiver android:name=".Notification.BootBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <!--<action android:name="android.intent.action.USER_PRESENT" />-->
+                <!-- <action android:name="android.intent.action.USER_PRESENT" /> -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </receiver>
-        <!--<receiver android:name=".Notification.ActivityNotification$UnLockScreenBroadcastReceiver">-->
-            <!--<intent-filter>-->
-                <!--<action android:name="android.intent.action.USER_PRESENT" />-->
-            <!--</intent-filter>-->
-        <!--</receiver>-->
+        <!-- <receiver android:name=".Notification.ActivityNotification$UnLockScreenBroadcastReceiver"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.USER_PRESENT" /> -->
+        <!-- </intent-filter> -->
+        <!-- </receiver> -->
 
-        <activity android:name=".Notification.ActivityNotification"
-            android:launchMode="singleInstance"
+        <activity
+            android:name=".Notification.ActivityNotification"
             android:excludeFromRecents="true"
-            android:theme="@style/AppTheme.NoActionBar"
-            >
-
-
-
-        </activity>
+            android:launchMode="singleInstance"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".ActivityAccountBook"
+            android:label="@string/title_activity_account_book"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

@@ -105,6 +105,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
         specialCatalogueNames.add(FragmentCalendar.CALENDAR_CATALOGUE_NAME);
         specialCatalogueNames.add("待办事项");
         specialCatalogueNames.add("番剧");
+        specialCatalogueNames.add("记账");
         specialCatalogueNames.add("dailyMission");
 
 
@@ -149,6 +150,9 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
             case "番剧":
                 fragment = FragmentEditInfo.newInstance(listData.getContent(), false);
                 break;
+            case "记账":
+                fragment= FragmentEditInfo.newInstance(listData.getContent(), false);
+                break;
             case "dailyMission"://只是不显示spinner
                 fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
                 break;
@@ -173,7 +177,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_checked:
-                if (listData.getCatalogue().equals("番剧"))
+                if (listData.getCatalogue().equals("番剧")||listData.getCatalogue().equals("记账"))
                 {
                     //对于新番，新建的时候只能设置Remake 不能通过ActivityEditInfo来设置content ，有单独的Activity来设置
                     listData.setContent("");
@@ -211,7 +215,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                     editRemark.requestFocus();
                     editRemark.setFocusableInTouchMode(true);
                 }
-                if (!listData.getCatalogue().equals("番剧"))
+                if (!listData.getCatalogue().equals("番剧")||!listData.getCatalogue().equals("记账"))
                 {
                     fragment.enableEdit();
                 }

@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutionException;
 
 public class ActivityBangumi extends AppCompatActivity {
 
+    //作为从MainFormActivity进入非ActivityEdit的返回Activity所共有
     public static final int RESULT_BANGUMI_ACTIVITY = 132456789;
     private RecyclerView recyclerView;
     private BangumiAdapter adapter;

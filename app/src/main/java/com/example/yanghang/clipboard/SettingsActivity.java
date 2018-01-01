@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,11 +21,16 @@ import android.preference.SwitchPreference;
 import android.support.annotation.Nullable;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -33,21 +39,40 @@ import android.widget.Toast;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.DBClipInfos.ListInfoDB;
+import com.example.yanghang.clipboard.FileUtils.AndroidFileUtil;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
+import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
+import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueExportAdapter;
+import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueExportData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
+import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdapter;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.ListPackage.FileList.SettingFileAdapter;
 import com.example.yanghang.clipboard.Log.CrashHandler;
+import com.example.yanghang.clipboard.Notification.ServiceNotification;
+
+import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.prefs.PreferenceChangeEvent;
 import java.util.prefs.PreferenceChangeListener;
+
+import javax.crypto.BadPaddingException;
+
+import static com.example.yanghang.clipboard.FileUtils.FileUtils.CATALOGUE_FILE_NAME;
+import static com.example.yanghang.clipboard.FileUtils.FileUtils.SAVE_FILE_CATALOGUE_JSON_SUFFIX;
+import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 
 public class SettingsActivity extends AppCompatPreferenceActivity {
@@ -183,20 +208,20 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return true;
             }else if (preference==todoServiceSwitch)
             {
-                if (todoServiceSwitch.isChecked())
+                //onClick在自己的change之后
+                if (!todoServiceSwitch.isChecked())
                 {
                     final Intent intent = new Intent();
                     // 为Intent设置Action属性
                     intent.setAction("TodoNotification.ScreenLock.Service");
                     intent.setPackage(getActivity().getPackageName());
                     getActivity().stopService(intent);
+                    Toast.makeText(getActivity(),"通知服务关闭",Toast.LENGTH_SHORT).show();
+
 //                    todoServiceSwitch.setEnabled(false);
                 }else {
-                    final Intent intent = new Intent();
-                    // 为Intent设置Action属性
-                    intent.setAction("TodoNotification.ScreenLock.Service");
-                    intent.setPackage(getActivity().getPackageName());
-                    getActivity().startService(intent);
+                    Intent serviceIntent = new Intent(getActivity(), ServiceNotification.class);
+                    getActivity().startService(serviceIntent);
                     Toast.makeText(getActivity(),"通知服务开启",Toast.LENGTH_SHORT).show();
                 }
 
@@ -248,6 +273,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             todoServiceSwitch = (SwitchPreference) findPreference("notification_todo_service_switch");
 
             todoServiceSwitch.setOnPreferenceClickListener(this);
+
             picPathPreference.setOnPreferenceClickListener(this);
             picPathPreference.setSummary(PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(picPathPreference.getKey(), ""));
 
@@ -296,6 +322,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         private Preference logFilePreference;
         private Preference specialCataloguePreference;
         private Preference referencePreference;
+        private Preference settingFilePreference;
         AlertDialog loadingDialog;
         File file;
 
@@ -308,11 +335,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             logFilePreference = findPreference("setting_about_log_file");
             specialCataloguePreference = findPreference("setting_about_special_catalogue");
             referencePreference = findPreference("setting_about_show_reference");
+            settingFilePreference = findPreference("setting_about_data_files");
 
             deleteFilePreference.setOnPreferenceClickListener(this);
             logFilePreference.setOnPreferenceClickListener(this);
             specialCataloguePreference.setOnPreferenceClickListener(this);
             referencePreference.setOnPreferenceClickListener(this);
+            settingFilePreference.setOnPreferenceClickListener(this);
 
             logFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(file.getAbsolutePath()));
             deleteFilePreference.setSummary(FileUtils.getAutoFileOrFilesSize(getActivity().getDatabasePath(ListInfoDB.DB_NAME).getAbsolutePath())+"  共"+MainFormActivity.TotalDataCount+"条记录");
@@ -337,12 +366,80 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 showReference();
                 return true;
             }
+            if (preference == settingFilePreference) {
+                showSettingFilesDialog();
+                return true;
+
+            }
             return false;
+        }
+        private void showSettingFilesDialog()
+        {
+            View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.dialog_setting_files, null);
+            final RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.setting_files_recyclerView);
+
+
+            loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
+                    .setTitle("配置文件,单击查看，长按删除")
+
+                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dismissDialog(loadingDialog);
+                        }
+                    }).create();
+
+            final List<String> fileNames = new ArrayList<>();
+            if (isFileExsits(CalendarImageManager.FileName))
+            {
+                fileNames.add( CalendarImageManager.FileName);
+            }
+            if (isFileExsits(CATALOGUE_FILE_NAME+SAVE_FILE_CATALOGUE_JSON_SUFFIX))
+            {
+                fileNames.add(CATALOGUE_FILE_NAME+SAVE_FILE_CATALOGUE_JSON_SUFFIX);
+            }
+
+            final SettingFileAdapter adapter = new SettingFileAdapter(fileNames, getActivity());
+            adapter.setOnItemClickListener(new ListClipInfoAdapter.OnItemClickListener() {
+                @Override
+                public void OnItemClick(View v, int position) {
+                    String fileStr="";
+                    String filePath = getActivity().getFilesDir().getAbsolutePath() + "/"+"temp.txt";
+                    File file = new File(getActivity().getFilesDir().getAbsolutePath() +"/"+adapter.getFileName(position));
+                    FileUtils.createFile("temp.txt", getActivity().getFilesDir().getAbsolutePath());
+                    try {
+                        fileStr=FileUtils.loadJsonFromDisk(file,false).toString();
+                        Log.d(TAG, "OnItemClick: fileStr="+fileStr);
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(getActivity(), fileStr, Toast.LENGTH_SHORT).show();
+
+                }
+
+                @Override
+                public boolean OnItemLongClick(View v, int position) {
+                    String FilePath=getActivity().getFilesDir().getAbsolutePath()+"/"+adapter.getFileName(position);
+                    Log.d(TAG, "SettingActivity OnItemLongClick: filePath="+FilePath);
+                    File file=new File(FilePath);
+                    file.delete();
+                    adapter.deleteFile(position);
+                    return true;
+                }
+            });
+            recyclerView.setItemAnimator(new DefaultItemAnimator());
+            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+            recyclerView.setAdapter(adapter);
+            loadingDialog.show();
         }
         private void showReference() {
             new AlertDialog.Builder(getActivity()).setTitle("参考项目")
                     .setMessage("SwipebackLayout    CalendarListView    DataChooseWheelViewDialog   NiMinBan" +
                             "").setCancelable(true).show();
+        }
+        private boolean isFileExsits(String fileName) {
+            File file = new File(getActivity().getFilesDir().getAbsolutePath() + "/" + fileName);
+            return file.exists();
         }
 
         private void showSpecialCatalogueNames() {
@@ -350,6 +447,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     .setMessage("待办事项：\n\t#注释掉待办项" +
                             "\ncollect_calendar_catalogue[diary luser weight]:\n\t日常记录所用" +
                             "\n番剧：\n\t可以保存看过的动画片并添加记录" +
+                            "\n记账: \n\t记账的"+
                             "\ndailyMission:\n\t记录日常任务").setCancelable(true).show();
         }
 
@@ -412,8 +510,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
 
             loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
-                    .setTitle("文件删除操作")
-                    .setPositiveButton("删除", new DialogInterface.OnClickListener() {
+                    .setTitle("文件删除操作").create();
+            loadingDialog.setButton(DialogInterface.BUTTON_NEGATIVE,"删除", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             loadingDialog.setCancelable(false);
@@ -424,13 +522,15 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             Toast.makeText(getActivity().getApplicationContext(), "数据已删除", Toast.LENGTH_SHORT).show();
                             dismissDialog(loadingDialog);
                         }
-                    })
-                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    });
+            loadingDialog.setButton(DialogInterface.BUTTON_POSITIVE,"取消", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dismissDialog(loadingDialog);
                         }
-                    }).create();
+                    });
+            Button positiveButton = loadingDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+            positiveButton.setTextColor(Color.RED);
             editText.setText("确定删除所有记录项?");
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);
@@ -784,70 +884,117 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             }
                             PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(preference.getKey(), str).apply();
                             preference.setSummary(str);
+                            View view1 = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.dialog_catalogue_export, null);
+                            final RecyclerView recyclerView = view1.findViewById(R.id.dialog_catalogue_export_recycleView);
+                            final List<CatalogueInfos> list = FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
+                            List<CatalogueExportData> lists = new ArrayList<>();
+//                            try {
+//                                String catalogues=PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("catalogue_export","");
+//                                Log.d(TAG, "onClick: catalogues="+catalogues);
+//                                lists = com.alibaba.fastjson.JSONArray.parseArray(catalogues, CatalogueExportData.class);
+//                            }catch (Exception e)
+//                            {
+//                                e.printStackTrace();
+//
+//                            }
 
-                            View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.loading, null);
+                                lists=new ArrayList<>();
+                                for (CatalogueInfos info:list)
+                                {
+                                    Log.d(TAG, "onClick: Catalogue Show="+info.getCatalogue());
+                                    lists.add(new CatalogueExportData(info.getCatalogue(), true));
+                                }
+                            lists.add(new CatalogueExportData(FragmentCalendar.CALENDAR_CATALOGUE_NAME, true));
+
+
+                            final CatalogueExportAdapter adapter = new CatalogueExportAdapter(lists, getActivity());
+                            AlertDialog alertDialog1=new AlertDialog.Builder(getActivity()).setView(view1).setTitle("选择要导出的目录")
+                                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString("catalogue_export", com.alibaba.fastjson.JSONArray.toJSONString(adapter.getLists())).apply();
+
+
+
+                            final View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.loading, null);
                             final EditText codeText = (EditText) view.findViewById(R.id.loadingEditText);
                             final ProgressBar progress = (ProgressBar) view.findViewById((R.id.loadingProgressBar));
                             if (encodePreference.isChecked() && preference == fileNamePreference) {
-                                loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
-                                        .setTitle("输入加密密码")
-                                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                loadingDialog.setCancelable(false);
-                                                preventDismissDialog(loadingDialog);
-                                                codeText.setVisibility(View.GONE);
-                                                progress.setVisibility(View.VISIBLE);
-                                                seed[0] = codeText.getText().toString();
-                                                new Thread(new Runnable() {
+
+
+                                                loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
+                                                        .setTitle("输入加密密码")
+                                                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                loadingDialog.setCancelable(false);
+                                                                preventDismissDialog(loadingDialog);
+                                                                codeText.setVisibility(View.GONE);
+                                                                progress.setVisibility(View.VISIBLE);
+                                                                seed[0] = codeText.getText().toString();
+
+                                                                new Thread(new Runnable() {
+                                                                    @Override
+                                                                    public void run() {
+                                                                        Message msg = new Message();
+                                                                        Bundle data = new Bundle();
+                                                                        try {
+
+                                                                            FileUtils.SEED = seed[0];
+                                                                            List<ListData> lists = new ArrayList<>();
+                                                                            DBListInfoManager manager = new DBListInfoManager(getActivity());
+                                                                            Log.d(TAG, "run: export catalogueName size="+adapter.getExportLists().size());
+//                                                                            for (String catalogueName : adapter.getExportLists())
+//                                                                            {
+//                                                                                Log.d(TAG, "run: export catalogueName="+catalogueName);
+//                                                                                lists.addAll(manager.getDatas(catalogueName));
+//                                                                            }
+                                                                            lists = manager.getDatas(adapter.getExportLists());
+                                                                            Log.d(TAG, "run: export catalogue list size="+lists.size());
+                                                                            boolean re = FileUtils.saveListData(lists, filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString(), true);
+                                                                            if (re)
+                                                                                data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
+                                                                            else
+                                                                                data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+
+
+                                                                        } catch (Exception e) {
+                                                                            data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
+                                                                        }
+                                                                        msg.setData(data);
+                                                                        handler.sendMessage(msg);
+                                                                    }
+                                                                }).start();
+                                                                return;
+                                                            }
+                                                        })
+                                                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                dismissDialog(loadingDialog);
+                                                            }
+                                                        }).create();
+                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                                    codeText.setTextColor(getActivity().getColor(R.color.message_text));
+                                                } else {
+                                                    codeText.setTextColor(getResources().getColor(R.color.message_text));
+                                                }
+                                                codeText.requestFocus();
+                                                codeText.setOnClickListener(new View.OnClickListener() {
                                                     @Override
-                                                    public void run() {
-                                                        Message msg = new Message();
-                                                        Bundle data = new Bundle();
-                                                        try {
+                                                    public void onClick(View v) {
 
-                                                            FileUtils.SEED = seed[0];
-                                                            boolean re = FileUtils.saveListData(new DBListInfoManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString(), true);
-                                                            if (re)
-                                                                data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
-                                                            else
-                                                                data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
-
-
-                                                        } catch (Exception e) {
-                                                            data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
-                                                        }
-                                                        msg.setData(data);
-                                                        handler.sendMessage(msg);
+                                                        codeText.requestFocus();
+                                                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                                                        imm.showSoftInput(codeText, InputMethodManager.HIDE_IMPLICIT_ONLY);
                                                     }
-                                                }).start();
-                                                return;
-                                            }
-                                        })
-                                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialog, int which) {
-                                                dismissDialog(loadingDialog);
-                                            }
-                                        }).create();
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    codeText.setTextColor(getActivity().getColor(R.color.message_text));
-                                } else {
-                                    codeText.setTextColor(getResources().getColor(R.color.message_text));
-                                }
-                                codeText.requestFocus();
-                                codeText.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
+                                                });
+                                                codeText.requestFocus();
+                                                progress.setVisibility(View.INVISIBLE);
+                                                loadingDialog.show();
 
-                                        codeText.requestFocus();
-                                        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-                                        imm.showSoftInput(codeText, InputMethodManager.HIDE_IMPLICIT_ONLY);
-                                    }
-                                });
-                                codeText.requestFocus();
-                                progress.setVisibility(View.INVISIBLE);
-                                loadingDialog.show();
+
+
 
                             } else {
                                 loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
@@ -865,7 +1012,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                     try {
                                         Thread.sleep(500);
                                         if (preference == fileNamePreference) {
-                                            boolean re = FileUtils.saveListData(new DBListInfoManager(getActivity()).getDatas(""), filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString(), false);
+                                            List<ListData> lists = new ArrayList<>();
+                                            DBListInfoManager manager = new DBListInfoManager(getActivity());
+                                            Log.d(TAG, "run: export catalogueName size="+adapter.getExportLists().size());
+
+                                            for (String catalogueName : adapter.getExportLists())
+                                            {
+                                                Log.d(TAG, "run: export catalogueName="+catalogueName);
+                                                lists.addAll(manager.getDatas(catalogueName));
+                                            }
+                                            boolean re = FileUtils.saveListData(lists, filePathPreference.getSummary().toString(), fileNamePreference.getSummary().toString(), false);
                                             if (re) data.putInt(MSG_FILE, MSG_SAVING_FILE_FINISH);
                                             else data.putInt(MSG_FILE, MSG_SAVING_FILE_FAILED);
 
@@ -883,7 +1039,13 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                     handler.sendMessage(msg);
                                 }
                             }).start();
-                        }
+                        } }
+                                    }).create();
+                            recyclerView.setItemAnimator(new DefaultItemAnimator());
+                            recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+                            recyclerView.setAdapter(adapter);
+                            alertDialog1.show();
+
                         }
                     })
                     .setNegativeButton("取消", null)

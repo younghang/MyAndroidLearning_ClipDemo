@@ -22,7 +22,7 @@ import java.util.List;
  * Created by yanghang on 2016/12/3.
  */
 
-public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueHolder> implements SimpleItemTouchHelperCallback.ItemTouchHelperAdapter {
+public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueAdapter.CatalogueHolder> implements SimpleItemTouchHelperCallback.ItemTouchHelperAdapter {
     List<CatalogueInfos> mDatas;
     Context context;
     LayoutInflater inflater;
@@ -178,9 +178,9 @@ public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueHolder> impl
         void onItemClear();
     }
 
-}
 
-class CatalogueHolder extends RecyclerView.ViewHolder implements
+
+public class CatalogueHolder extends RecyclerView.ViewHolder implements
         CatalogueAdapter.ItemTouchHelperViewHolder {
 
     TextView tvCatalogue;
@@ -208,5 +208,5 @@ class CatalogueHolder extends RecyclerView.ViewHolder implements
 //        cardView.setBackgroundColor(Color.parseColor("#227b7474"));
     }
 }
-
+}
 

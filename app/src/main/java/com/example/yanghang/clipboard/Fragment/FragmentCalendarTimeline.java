@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.yanghang.clipboard.ActivityCalendar;
+import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemsData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.R;
@@ -137,6 +138,10 @@ public class FragmentCalendarTimeline extends Fragment {
             @Override
             public void onClick(View view) {
                 currentTag = (view).getTag().toString();
+                if (currentTag.equals(""))
+                {
+                    currentTag=((Button)view).getText().toString();
+                }
                 mSegmentHorzontal.setSelectedIndex(0);
                 tvTag.setText(((Button) view).getText());
 //                Log.d(TAG, "onClick: Tag=" + currentTag);
@@ -149,19 +154,17 @@ public class FragmentCalendarTimeline extends Fragment {
 
         horizontalScrollView = mView.findViewById(R.id.calendar_horizontalScrollView);
         linearLayout = mView.findViewById(R.id.calendar_timeline_linearLayout);
-        addTextView("日常任务","dailyMission");
-        addTextView("luser", "luser");
-        addTextView("日记", "diary");
-        addTextView("体重", "weight");
-        addTextView("日语", "jp");
-        addTextView("收入","income");
-        addTextView("支出","cost");
-        addTextView("火焰", "fire");
-        addTextView("编程", "code");
-        addTextView("画画", "paint");
-        addTextView("爱心", "like");
-        addTextView("完成", "check");
-        addTextView("标记", "star");
+        List<CalendarItemsData> list=activityCalendar.calendarImageManager.getVisibleLists();
+        for (CalendarItemsData item : list) {
+            if (activityCalendar.calendarImageManager.englishName.contains(item.getCalendarItemPic()))
+            {
+                addTextView(item.getCalendarItemName(),item.getCalendarItemPic());
+            }
+            else {
+                addTextView(item.getCalendarItemName(),"");
+            }
+        }
+
 
 
         //因为他的ChartView 有问题，必须在主线程中，先初始化的时候将几个数据存储大小设定好

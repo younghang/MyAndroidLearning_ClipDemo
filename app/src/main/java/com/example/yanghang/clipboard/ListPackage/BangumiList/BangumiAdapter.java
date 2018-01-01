@@ -18,7 +18,7 @@ import java.util.List;
  * Created by young on 2017/7/3.
  */
 
-public class BangumiAdapter extends RecyclerView.Adapter<QuarterAnimationHolder> {
+public class BangumiAdapter extends RecyclerView.Adapter<BangumiAdapter.QuarterAnimationHolder> {
 
     private List<BangumiData> datas;
     private Context mContext;
@@ -36,6 +36,7 @@ public class BangumiAdapter extends RecyclerView.Adapter<QuarterAnimationHolder>
     public String getItemName(int pos) {
         return datas.get(pos).getName();
     }
+
     public void addItem(BangumiData bangumiData) {
         datas.add(bangumiData);
         notifyItemInserted(datas.size());
@@ -67,7 +68,7 @@ public class BangumiAdapter extends RecyclerView.Adapter<QuarterAnimationHolder>
     @Override
     public void onBindViewHolder(final QuarterAnimationHolder holder, int position) {
         holder.tvAnimationName.setText(datas.get(position).getName());
-        holder.tvScore.setText(datas.get(position).getGrades()+"");
+        holder.tvScore.setText(datas.get(position).getGrades() + "");
         holder.tvScore.setTextColor(getScoreColor(datas.get(position).getGrades()));
         holder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,23 +82,21 @@ public class BangumiAdapter extends RecyclerView.Adapter<QuarterAnimationHolder>
                 return mItemClickListener.OnItemLongClick(view, holder.getAdapterPosition());
             }
         });
-        holder.tvProgress.setText(datas.get(position).getProgress()+"");
+        holder.tvProgress.setText(datas.get(position).getProgress() + "");
         holder.tvProgress.setTextColor(Color.GREEN);
 
     }
 
     private int getScoreColor(int grades) {
-        if (grades >=90) {
+        if (grades >= 90) {
             return Color.parseColor("#ff0000");
-        }else if (grades>=85)
-        {
+        } else if (grades >= 85) {
             return Color.parseColor("#ff5588");
-        }
-        else if (grades >= 80) {
+        } else if (grades >= 80) {
             return Color.parseColor("#ff5500");
         } else if (grades >= 70) {
             return Color.parseColor("#d99610");
-        } else if (grades>=60)
+        } else if (grades >= 60)
             return Color.parseColor("#d4b16b");
         else return Color.BLACK;
 
@@ -117,19 +116,20 @@ public class BangumiAdapter extends RecyclerView.Adapter<QuarterAnimationHolder>
     public BangumiData getItem(int position) {
         return datas.get(position);
     }
-}
 
-class QuarterAnimationHolder extends RecyclerView.ViewHolder {
-    TextView tvAnimationName;
-    CardView cardView;
-    TextView tvScore;
-    TextView tvProgress;
 
-    public QuarterAnimationHolder(View itemView) {
-        super(itemView);
-        tvAnimationName = itemView.findViewById(R.id.item_bangumi_tv_animation_name);
-        cardView = itemView.findViewById(R.id.item_bangumi_CardView);
-        tvScore = itemView.findViewById(R.id.item_bangumi_score);
-        tvProgress = itemView.findViewById(R.id.item_bangumi_progress);
+    public class QuarterAnimationHolder extends RecyclerView.ViewHolder {
+        TextView tvAnimationName;
+        CardView cardView;
+        TextView tvScore;
+        TextView tvProgress;
+
+        public QuarterAnimationHolder(View itemView) {
+            super(itemView);
+            tvAnimationName = itemView.findViewById(R.id.item_bangumi_tv_animation_name);
+            cardView = itemView.findViewById(R.id.item_bangumi_CardView);
+            tvScore = itemView.findViewById(R.id.item_bangumi_score);
+            tvProgress = itemView.findViewById(R.id.item_bangumi_progress);
+        }
     }
 }

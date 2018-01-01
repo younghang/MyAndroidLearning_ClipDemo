@@ -10,7 +10,7 @@
     <android.support.design.widget.AppBarLayout
 
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:theme="@style/AppTheme.AppBarOverlay"
         app:elevation="0dp">
         <!--标题栏-->
@@ -20,7 +20,6 @@
             android:layout_height="wrap_content"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
-
 
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:theme="@style/ThemeOverlay.AppCompat.ActionBar">
@@ -32,11 +31,11 @@
                 android:background="@null"
                 android:focusableInTouchMode="true"
                 android:hint="备注"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:textSize="18sp"
                 android:singleLine="true"
-                android:text="" />
+                android:text=""
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
         </android.support.v7.widget.Toolbar>
 

@@ -7,7 +7,9 @@
         <Preference android:title="清除记录数据"
             android:key="setting_about_delete_data_file">
         </Preference>
-
+        <Preference android:title="其他文件"
+            android:key="setting_about_data_files">
+        </Preference>
     </PreferenceCategory>
     <PreferenceCategory android:title="关于">
         <Preference android:title="author"

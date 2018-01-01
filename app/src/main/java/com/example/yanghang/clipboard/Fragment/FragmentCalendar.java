@@ -122,6 +122,8 @@ public class FragmentCalendar extends Fragment {
             @Override
             public void OnItemClick(View v, int position) {
                 String remarkName=lists.get(position).getCalendarItemPic();
+                if (!activityCalendar.calendarImageManager.englishName.contains(remarkName))
+                    remarkName=lists.get(position).getCalendarItemName();
                 addCalendarItem(remarkName);
 
             }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:gravity="center"
+    android:clickable="true"
+    android:orientation="vertical">
+<FrameLayout
+    android:layout_gravity="center"
+    android:layout_margin="15dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+
+   >
+    <TextView
+
+        android:textSize="18sp"
+        android:text="12345674879879"
+        android:id="@+id/calendar_item_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <ProgressBar
+
+        android:layout_gravity="center"
+        android:id="@+id/calendar_item_image"
+        android:layout_width="30dp"
+        android:layout_height="30dp" />
+
+
+</FrameLayout>
+
+</LinearLayout>

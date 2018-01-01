@@ -346,6 +346,8 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 Intent intent;
                 if (data.getCatalogue().equals("番剧")) {
                     intent = new Intent(MainFormActivity.this, ActivityBangumi.class);
+                } else if (data.getCatalogue().equals("记账")) {
+                    intent = new Intent(MainFormActivity.this, ActivityAccountBook.class);
                 } else {
                     intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 }
@@ -525,14 +527,18 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                     if (result == -1)
                         Toast.makeText(MainFormActivity.this, "存储该行数据出错", Toast.LENGTH_SHORT).show();
                     else
+                    {
                         listClipInfoAdapter.addItem(listData);
+                        recyclerView.scrollToPosition(0);
+                    }
+
                     return;
                 }
                 if (resultCode == ActivityBangumi.RESULT_BANGUMI_ACTIVITY) {
 
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
                     int pos = data.getIntExtra(LIST_DATA_POS, 0);
-                    Log.d(TAG, "onActivityResult: content=" + JSON.toJSONString(listData.getContent()));
+//                    Log.d(TAG, "onActivityResult: content=" + JSON.toJSONString(listData.getContent()));
 
 //                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
                     listClipInfoAdapter.editItem(pos, listData);

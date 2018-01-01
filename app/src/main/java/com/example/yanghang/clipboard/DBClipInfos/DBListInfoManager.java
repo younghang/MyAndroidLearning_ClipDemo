@@ -25,6 +25,16 @@ public class DBListInfoManager {
     public static final String KEY_ORDERID = "orderid";
     public static final String KEY_CATALOGUE = "catalogue";
 
+
+    //换太麻烦了，有空再考虑
+    public static final String ACCOUNT_TABLE_NAME = "accounts";
+    public static final String ACCOUNT_TIME = "accounttime";
+    public static final String ACCOUNT_MONEY = "money";
+    public static final String ACCOUNT_REMARK= "remark";
+    public static final String ACCOUNT_CONTENT = "content";
+    public static final String ACCOUNT_COLOR = "color";
+    public static final String ACCOUNT_TYPE= "type";
+
     // 执行open（）打开数据库时，保存返回的数据库对象
     private SQLiteDatabase mSQLiteDatabase = null;
 
@@ -241,6 +251,40 @@ public class DBListInfoManager {
 
         return mSQLiteDatabase.rawQuery(queryStr, null);
     }
+    public List<ListData> getDatas(List<String> catalogues)
+    {
+        List<ListData> mDatas = new ArrayList<ListData>();
+        open();
+        Cursor cursor = fetchAllDataDescByOrderID();
+        if (cursor == null) {
+//            mDatas.add(new ListData("ceshi", "magnet:?xt=urn:btih:4fc4a218aca38d73147585ff51773fc834e08810", 0, currentCatalogue));
+
+        } else {
+            if (cursor.moveToFirst()) {
+                int remarkIndex = cursor.getColumnIndex(DBListInfoManager.KEY_REMARK);
+                int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
+                int datetimeIndex = cursor.getColumnIndex(DBListInfoManager.KEY_DATETIME);
+                int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+                int catalogueIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CATALOGUE);
+                while (!cursor.isAfterLast()) {
+                    String remark = cursor.getString(remarkIndex);
+                    String content = cursor.getString(contentIndex);
+                    String datetime = cursor.getString(datetimeIndex);
+                    int orderID = cursor.getInt(orderIdIndex);
+                    String catalogue = cursor.getString(catalogueIndex);
+                    if (catalogues.contains(catalogue)) {
+                        ListData listData = new ListData(remark, content, datetime, orderID, catalogue);
+                        mDatas.add(listData);
+                    }
+                    cursor.moveToNext();
+                }
+            }
+            cursor.close();
+        }
+        close();
+        return mDatas;
+    }
+
 
     public List<ListData> getDatas(String currentCatalogue) {
         List<ListData> mDatas = new ArrayList<ListData>();

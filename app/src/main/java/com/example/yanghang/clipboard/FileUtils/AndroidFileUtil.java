@@ -37,7 +37,7 @@ public class AndroidFileUtil {
             return getPdfFileIntent(filePath);
         }else if(end.equals("chm")){
             return getChmFileIntent(filePath);
-        }else if(end.equals("txt")){
+        }else if(end.equals("txt")||end.equals("json")){
             return getTextFileIntent(filePath,false);
         }else{
             return getAllIntent(filePath);

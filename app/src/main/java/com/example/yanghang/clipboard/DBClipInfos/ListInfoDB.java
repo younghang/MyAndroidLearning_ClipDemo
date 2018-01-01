@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class ListInfoDB extends SQLiteOpenHelper {
 
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
     public static final String DB_NAME = "clipdata.db";
 
     public ListInfoDB(Context context) {
@@ -28,8 +28,7 @@ public class ListInfoDB extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table clipinfos(_id  INTEGER PRIMARY KEY AUTOINCREMENT,remark text,content text,datetime text,orderid INTEGER unique,catalogue text default 'default')");
-
-    }
+         }
 
      @Override
      public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
@@ -37,6 +36,11 @@ public class ListInfoDB extends SQLiteOpenHelper {
 //         db.execSQL("create table clipinfos(_id  INTEGER PRIMARY KEY AUTOINCREMENT,remark text,content text,datetime text,orderid INTEGER unique,catalogue text default 'default')");
 //         db.execSQL("insert into clipinfos select * from _temp_clipinfos");
 //         db.execSQL("drop table _temp_clipinfos");
+         if (oldVersion==2&&newVersion==3)
+         {
+             db.execSQL("create table accounts(_id integer primary key autoincrement,accounttime text,money real,remark text,content text,color text,type text)");
+         }
+
 
      }
 }

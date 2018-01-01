@@ -96,6 +96,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
             @Override
             public boolean onLongClick(View v) {
                 int pos = holder.getAdapterPosition();
+
                 return mItemClickListener.OnItemLongClick(v, pos);
 
             }
@@ -128,12 +129,15 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 
     public void editItem(int pos, ListData ls) {
         mDatas.set(pos, ls);
+
+//        animationsLocked=false;
         notifyItemChanged(pos);
     }
 
     public void addItem(ListData data) {
         mDatas.add(0, data);
-        notifyDataSetChanged();
+//        notifyDataSetChanged(); 加了个scrollToPosition 就不用更新整个DataSet了
+        notifyItemInserted(0);
     }
 
     public List<ListData> getDatas() {
@@ -217,7 +221,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
         void onDeleteBtnCilck(View view, int position);
     }
 
-    //添加载入动画,从别的地方抄来的，稍加修改，大部分都是这样的
+    //添加载入动画,从别的地方抄来的，稍加修改，此app大部分代码都是这样的
     private int lastAnimatedPosition=-1;
     private boolean animationsLocked = false;
     private boolean delayEnterAnimation = true;
@@ -230,7 +234,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 //            return;
             if (position < lastAnimatedPosition)
                 return;
-//            Log.d(TAG, "run EnterAnimation: ");
+            Log.d(TAG, "run EnterAnimation: ");
 
             lastAnimatedPosition = position;
             view.setTranslationY(100);//相对于原始位置下方500
@@ -276,14 +280,6 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
                             animationsLocked = true;//确保仅屏幕一开始能够显示的item项才开启动画，也就是说屏幕下方还没有显示的item项滑动时是没有动画效果
                         }
 
-
-
-                        @Override
-                        public void onAnimationStart(Animator animation) {
-                            super.onAnimationStart(animation);
-                            if (position<lastAnimatedPosition-5)
-                                view.clearAnimation();
-                        }
                     })
                     .start();
         }

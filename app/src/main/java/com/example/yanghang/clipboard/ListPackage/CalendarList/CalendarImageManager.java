@@ -36,7 +36,7 @@ public class CalendarImageManager {
     private Context context;
     private String fileAbsolutePath="";
     public static  String FileName="calendarItemList.json";
-    private List<String> englishName;
+    public List<String> englishName;
 
     public CalendarImageManager(Context context) {
         this.context=context;
@@ -80,6 +80,9 @@ public class CalendarImageManager {
         loadItemDatas();
         List<CalendarItemsData> list=new ArrayList<CalendarItemsData>();
         for (CalendarItemsData item : lists) {
+            if (item == null) {
+                continue;
+            }
             if (item.getShowImage())
                 list.add(item);
         }
@@ -130,6 +133,9 @@ public class CalendarImageManager {
     {
         for (CalendarItemsData item:lists)
         {
+            if (item == null) {
+                continue;
+            }
             if (item.getCalendarItemName().equals(tag)||item.getCalendarItemPic().equals(tag))
             {
                 return item.getShowImage();

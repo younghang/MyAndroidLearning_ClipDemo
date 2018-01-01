@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:id="@+id/calendar_item_footer_ll"
+    android:gravity="center"
+    android:clickable="true"
+
+    android:orientation="vertical">
+
+    <ImageView
+        app:srcCompat="@drawable/add_gray"
+        android:layout_margin="15dp"
+        android:layout_gravity="center"
+        android:id="@+id/calendar_item_footer_image"
+        android:layout_width="30dp"
+        android:layout_height="30dp" />
+
+
+</LinearLayout>
