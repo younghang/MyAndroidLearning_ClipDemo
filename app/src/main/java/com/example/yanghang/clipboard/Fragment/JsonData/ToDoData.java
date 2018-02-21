@@ -55,6 +55,7 @@ public class ToDoData {
     }
 
     private String content;
+    //格式就是yyyy-mm-dd
     private String endTime;
     private boolean isFinished;
     //是否仅当日显示

@@ -10,9 +10,9 @@
     <style name="AppTheme.NoActionBarTransparentNavigation">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="android:statusBarColor">@color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
 
-        <item name="android:navigationBarColor">@color/transparent</item>
+        <item name="android:navigationBarColor">#000</item>
     </style>
 </resources>

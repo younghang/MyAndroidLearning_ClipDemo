@@ -107,6 +107,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
         specialCatalogueNames.add("番剧");
         specialCatalogueNames.add("记账");
         specialCatalogueNames.add("dailyMission");
+        specialCatalogueNames.add("日子");
 
 
         List<String> catalogueNames = new ArrayList<>();
@@ -148,8 +149,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                 fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
                 break;
             case "番剧":
-                fragment = FragmentEditInfo.newInstance(listData.getContent(), false);
-                break;
+            case "日子":
             case "记账":
                 fragment= FragmentEditInfo.newInstance(listData.getContent(), false);
                 break;

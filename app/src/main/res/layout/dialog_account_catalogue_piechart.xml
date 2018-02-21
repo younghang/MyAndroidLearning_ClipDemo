@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="10dp"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+<LinearLayout android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bgColor"
+   >
+
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/dialog_account_mPieChart"
+            android:layout_width="300dp"
+            android:layout_height="500dp"
+            android:layout_weight="1"/>
+    <TextView
+        android:layout_marginTop="-80dp"
+        android:layout_gravity="center"
+        android:id="@+id/dialog_account_mPieChart_tv"
+        android:layout_width="wrap_content"
+        android:textSize="26sp"
+        android:textColor="@color/colorAccentPre"
+        android:text="123"
+        android:layout_height="wrap_content" />
+
+
+
+</LinearLayout>
+</android.support.v7.widget.CardView>

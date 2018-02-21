@@ -130,7 +130,8 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
     public void editItem(int pos, ListData ls) {
         mDatas.set(pos, ls);
 
-//        animationsLocked=false;
+        //这里加这句话不知道为什么就没事了，不然修改但是不改，确定后就会出Bug
+        animationsLocked=false;
         notifyItemChanged(pos);
     }
 

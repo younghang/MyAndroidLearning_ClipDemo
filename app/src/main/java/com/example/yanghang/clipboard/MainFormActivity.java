@@ -344,13 +344,21 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 //不要用 listDatas.get
                 ListData data = listClipInfoAdapter.getItemData(position);
                 Intent intent;
-                if (data.getCatalogue().equals("番剧")) {
-                    intent = new Intent(MainFormActivity.this, ActivityBangumi.class);
-                } else if (data.getCatalogue().equals("记账")) {
-                    intent = new Intent(MainFormActivity.this, ActivityAccountBook.class);
-                } else {
-                    intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
+                switch (data.getCatalogue())
+                {
+                    case "番剧":
+                        intent = new Intent(MainFormActivity.this, ActivityBangumi.class);
+                        break;
+                    case "记账":
+                        intent = new Intent(MainFormActivity.this, ActivityAccountBook.class);
+                        break;
+                    case "日子":
+                        intent = new Intent(MainFormActivity.this, ActivitySpecialDays.class);
+                        break;
+                    default:
+                        intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
                 }
+
                 intent.putExtra(LIST_DATA, listClipInfoAdapter.getItemData(position));
                 intent.putExtra(LIST_DATA_POS, position);
                 startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);

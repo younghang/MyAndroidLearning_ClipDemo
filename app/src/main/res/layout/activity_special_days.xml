@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:fitsSystemWindows="true"
+    android:id="@+id/activity_special_day_ll"
+    android:layout_width="match_parent"
+android:background="@color/white"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+android:id="@+id/activity_special_day_container"
+    android:layout_width="match_parent"
+
+    android:layout_height="match_parent"
+    android:theme="@style/AppTheme.AppBarOverlay">
+
+    <fragment
+        android:id="@+id/activity_special_day_contentView_back"
+        class="com.example.yanghang.clipboard.Fragment.FragmentSpecialDayText"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+    </fragment>
+    <FrameLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:id="@+id/activity_special_day_contentView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    </FrameLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/activity_special_day_fab"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        app:backgroundTint="@color/bgColor"
+
+        app:borderWidth="0dp"
+
+        app:elevation="2dp"
+
+        app:srcCompat="@drawable/ic_swap_horiz_grey_400_24dp"
+
+
+        />
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@color/transparent"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:elevation="0dp">
+        <!--标题栏-->
+        <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/activity_special_day_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/transparent"
+            android:minHeight="?attr/actionBarSize"
+
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
+
+        </android.support.v7.widget.Toolbar>
+
+        <!--大图-->
+
+        <!--选项卡-->
+
+    </android.support.design.widget.AppBarLayout>
+
+
+</FrameLayout>
+
+
+</LinearLayout>

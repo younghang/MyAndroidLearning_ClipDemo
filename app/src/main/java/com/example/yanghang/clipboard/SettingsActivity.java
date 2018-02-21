@@ -434,7 +434,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         }
         private void showReference() {
             new AlertDialog.Builder(getActivity()).setTitle("参考项目")
-                    .setMessage("SwipebackLayout    CalendarListView    DataChooseWheelViewDialog   NiMinBan" +
+                    .setMessage("SwipebackLayout    CalendarListView    DataChooseWheelViewDialog   NiMinBan   TimePickerDialog   ClockView..." +
                             "").setCancelable(true).show();
         }
         private boolean isFileExsits(String fileName) {
@@ -448,6 +448,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             "\ncollect_calendar_catalogue[diary luser weight]:\n\t日常记录所用" +
                             "\n番剧：\n\t可以保存看过的动画片并添加记录" +
                             "\n记账: \n\t记账的"+
+                            "\n日子: \n\t特别日 纪念日等"+
                             "\ndailyMission:\n\t记录日常任务").setCancelable(true).show();
         }
 

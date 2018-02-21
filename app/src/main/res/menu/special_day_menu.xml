@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_calendar"
+        android:orderInCategory="100"
+        android:title="跳转日期"
+        android:icon="@drawable/ic_today_gray_24dp"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/menu_editable"
+        android:icon="@drawable/ic_edit_gray_24dp"
+        android:orderInCategory="190"
+        android:title="编辑"
+        app:showAsAction="ifRoom" />
+</menu>

@@ -9,14 +9,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -26,23 +28,30 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
-import com.example.yanghang.clipboard.ListPackage.AccountList.AccountCatalogueDialogFragment;
+import com.example.yanghang.clipboard.Fragment.AccountCatalogueDialogPieChartFragment;
+import com.example.yanghang.clipboard.Fragment.AccountCatalogueDialogSelectCategoriesFragment;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountDataAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.AutoFixText.AutofitTextView;
+import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLayout;
+import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
+import com.github.mikephil.charting.data.PieEntry;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.yanghang.clipboard.ActivityBangumi.RESULT_BANGUMI_ACTIVITY;
 
-public class ActivityAccountBook extends AppCompatActivity {
+public class ActivityAccountBook extends SwipeBackActivity {
 
     private static final String TAG = "ActivityAccountBook";
     RecyclerView accountRecycleView;
+    private SwipeBackLayout mSwipeBackLayout;
     AccountDataAdapter accountDataAdapter;
     TextView accountMonth;
     TextView accountYear;
@@ -59,11 +68,22 @@ public class ActivityAccountBook extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final Window window = getWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            window.setFlags(
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
+
         setContentView(R.layout.activity_account_book);
         toolbar = (Toolbar) findViewById(R.id.accountToolbar);
         toolbar.setTitle("");
         setSupportActionBar(toolbar);
 
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.setStatusBarColor(getResources().getColor(R.color.bgColor));
+        }
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -84,9 +104,30 @@ public class ActivityAccountBook extends AppCompatActivity {
         new AnalyseContentTask().execute(listData.getContent());
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_donut:
+                AccountCatalogueDialogPieChartFragment fragment = new AccountCatalogueDialogPieChartFragment();
+                //通过bundle对象向Fragment传值
+                Bundle bundle = new Bundle();
+                bundle.putString("TEXT_IN_CENTER", listData.getRemarks());
+                bundle.putDouble("EXPENDITURE",mExpenditure);
+                fragment.setArguments(bundle);
+                fragment.show(getSupportFragmentManager(),entries);
+
+                break;
+        }
+        return true;
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.account_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
 
     private void initialView() {
-        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_white_24dp);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back_green_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -97,6 +138,12 @@ public class ActivityAccountBook extends AppCompatActivity {
                 finish();
             }
         });
+        mSwipeBackLayout = getSwipeBackLayout();
+        //设置可以滑动的区域，推荐用屏幕像素的一半来指定
+        mSwipeBackLayout.setEdgeSize(100);
+        //设定滑动关闭的方向，SwipeBackLayout.EDGE_ALL表示向下、左、右滑动均可。EDGE_LEFT，EDGE_RIGHT，EDGE_BOTTOM
+        mSwipeBackLayout.setEdgeTrackingEnabled(SwipeBackLayout.EDGE_LEFT);
+
 
         catalogueNameEdit = (TextView) findViewById(R.id.bangumi_edit_catalogue);
         catalogueNameEdit.setOnClickListener(new View.OnClickListener() {
@@ -167,13 +214,12 @@ public class ActivityAccountBook extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            Intent intent = new Intent(ActivityAccountBook.this, MainFormActivity.class);
-            intent.putExtra(MainFormActivity.LIST_DATA, listData);
-            intent.putExtra(MainFormActivity.LIST_DATA_POS, posInListData);
-            setResult(RESULT_BANGUMI_ACTIVITY, intent);
+
         }
         return super.onKeyDown(keyCode, event);
     }
+
+
 
     private void showAlterDialog(final int position)
     {
@@ -188,8 +234,8 @@ public class ActivityAccountBook extends AppCompatActivity {
         accountDialogCatalogueName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final AccountCatalogueDialogFragment fragment = new AccountCatalogueDialogFragment();
-                fragment.setOnSaveCatalogNameClick(new AccountCatalogueDialogFragment.Click() {
+                final AccountCatalogueDialogSelectCategoriesFragment fragment = new AccountCatalogueDialogSelectCategoriesFragment();
+                fragment.setOnSaveCatalogNameClick(new AccountCatalogueDialogSelectCategoriesFragment.Click() {
                     @Override
                     public void click(String name) {
                         accountDialogCatalogueName.setText(name);
@@ -265,8 +311,8 @@ public class ActivityAccountBook extends AppCompatActivity {
         accountDialogCatalogueName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final AccountCatalogueDialogFragment fragment = new AccountCatalogueDialogFragment();
-                fragment.setOnSaveCatalogNameClick(new AccountCatalogueDialogFragment.Click() {
+                final AccountCatalogueDialogSelectCategoriesFragment fragment = new AccountCatalogueDialogSelectCategoriesFragment();
+                fragment.setOnSaveCatalogNameClick(new AccountCatalogueDialogSelectCategoriesFragment.Click() {
                     @Override
                     public void click(String name) {
                         accountDialogCatalogueName.setText(name);
@@ -353,7 +399,17 @@ public class ActivityAccountBook extends AppCompatActivity {
         listData.setContent(content);
 //        Log.d(TAG, "saveToDataBase: content=" + content);
         dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), catalogueNameEdit.getText().toString(), content, listData.getCreateDate());
+        //顺便同时回传数据
+        Intent intent = new Intent(ActivityAccountBook.this, MainFormActivity.class);
+        intent.putExtra(MainFormActivity.LIST_DATA, listData);
+        intent.putExtra(MainFormActivity.LIST_DATA_POS, posInListData);
+        setResult(RESULT_BANGUMI_ACTIVITY, intent);
     }
+
+    private Map<String, Double> dataSet = new HashMap<>();
+    ArrayList<PieEntry> entries = new ArrayList<PieEntry>();
+    double mExpenditure=0;
+
     public class AnalyseContentTask extends AsyncTask<String ,String,List<AccountData>>
     {
         List<AccountData> list;
@@ -362,6 +418,8 @@ public class ActivityAccountBook extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            dataSet.clear();
+            entries.clear();
             refreshLayout.setRefreshing(true);
         }
 
@@ -394,10 +452,27 @@ public class ActivityAccountBook extends AppCompatActivity {
             for (AccountData data : list) {
                 if (data.getMoney()<0)
                 {
+                    String type=data.getType();
+                    if (dataSet.containsKey(type))
+                    {
+                        double valueTemp=dataSet.get(type)+data.getMoney();
+                        dataSet.put(type,valueTemp);
+                    }
+                    else
+                    {
+                        dataSet.put(type,data.getMoney());
+                    }
                     expenditure += data.getMoney();
                 }else
                     income+=data.getMoney();
             }
+            for (Map.Entry<String, Double> d : dataSet.entrySet()) {
+                DecimalFormat df = new DecimalFormat("0.00");
+                double valueD=Math.abs(d.getValue()/expenditure*100);
+                float valueF=Float.parseFloat(df.format(valueD));
+                entries.add(new PieEntry(valueF, d.getKey()));
+            }
+            mExpenditure=expenditure;
 //            List<AccountData> Alist = new ArrayList<>();
 //            Alist.addAll(list);
 //            list.clear();

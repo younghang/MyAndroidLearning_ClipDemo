@@ -1,62 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.yanghang.clipboard.ActivityAccountBook">
+    android:background="@color/white"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
+
         android:layout_width="match_parent"
-        android:minHeight="?actionBarSize"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:background="@color/white"
+        android:minHeight="?actionBarSize"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:elevation="0dp">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/accountToolbar"
             android:layout_width="match_parent"
-
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/white"
+
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:theme="@style/ThemeOverlay.AppCompat.ActionBar" >
+            app:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
             <TextView
                 android:id="@+id/bangumi_edit_catalogue"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:background="@null"
                 android:focusableInTouchMode="true"
-                android:hint="备注"
                 android:gravity="center"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                android:textSize="18sp"
+                android:hint="备注"
                 android:singleLine="true"
-                android:text="" />
+                android:text=""
+                android:textColor="@color/colorAccentPre"
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
         </android.support.v7.widget.Toolbar>
 
     </android.support.design.widget.AppBarLayout>
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <include
-        android:layout_marginTop="?actionBarSize"
         android:id="@+id/include"
         layout="@layout/content_activity_account_book"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_width="match_parent" />
+        />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
+
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
         app:srcCompat="@drawable/ic_add_white_24dp"
 
 
-          />
+        />
 
-</android.support.design.widget.CoordinatorLayout>
+</FrameLayout>
+</LinearLayout>

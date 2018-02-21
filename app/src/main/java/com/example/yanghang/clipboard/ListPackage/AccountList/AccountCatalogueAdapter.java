@@ -19,32 +19,34 @@ import java.util.List;
 
 public class AccountCatalogueAdapter extends RecyclerView.Adapter {
     private static final String TAG = "nihao";
-    List<AccountCatalogue> lists;
+    List<AccountCatalogue> showLists ;
     Context context;
     LayoutInflater inflater;
     List<Integer> orders = new ArrayList<>();
     List<AccountCatalogue> originLists;
     CataloguesChanged cataloguesChanged;
-    public interface CataloguesChanged{
+
+    public interface CataloguesChanged {
         public void addCatalogue(String name);
 
         public void removeCatalogue();
+
         void longClick(int pos);
     }
-    public void setCataloguesChanged(CataloguesChanged cataloguesChanged)
-    {
-        this.cataloguesChanged=cataloguesChanged;
+
+    public void setCataloguesChanged(CataloguesChanged cataloguesChanged) {
+        this.cataloguesChanged = cataloguesChanged;
     }
 
     public AccountCatalogueAdapter(List<AccountCatalogue> lists, Context context) {
 
         this.context = context;
         inflater = LayoutInflater.from(context);
-        this.lists.add(0,new AccountCatalogue("..."));
-        originLists=lists;
-        for (AccountCatalogue accountCatalogue:lists)
-        {
-            this.lists.add(accountCatalogue);
+        this.showLists= new ArrayList<>();
+        this.showLists.add(0, new AccountCatalogue("..."));
+        originLists = lists;
+        for (AccountCatalogue accountCatalogue : lists) {
+            this.showLists.add(accountCatalogue);
         }
     }
 
@@ -58,35 +60,43 @@ public class AccountCatalogueAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder container, int position) {
         final ItemHolder holder = (ItemHolder) container;
-        holder.catalogueName.setText(lists.get(position).getCatalogueName());
+        holder.catalogueName.setText(showLists.get(position).getCatalogueName());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Log.d(TAG, "onClick: list size="+lists.size());
-                if (holder.getAdapterPosition()!=0)
-                {
-//                    if (lists.get(holder.getAdapterPosition()).getSubCatalogue()==null)
+//                Log.d(TAG, "onClick: list size="+showLists.size());
+                if (holder.getAdapterPosition() != 0) {
+//                    if (showLists.get(holder.getAdapterPosition()).getSubCatalogue()==null)
 //                        return;
-                    lists = lists.get(holder.getAdapterPosition()).getSubCatalogue();
-                    if (lists==null)
-                    {
-                        lists = new ArrayList<>();
-                    }
-                    lists.add(0,new AccountCatalogue("..."));
-                    orders.add(holder.getAdapterPosition());
-                    notifyDataSetChanged();
-                    cataloguesChanged.addCatalogue(getCurrentAccountCatalogue().getCatalogueName());
+                    showLists.remove(0);
+                    showLists = showLists.get(holder.getAdapterPosition()-1).getSubCatalogue();
 
-                }else
-                {
-                    if (orders.size()>0)
-                    {
-                        orders.remove(orders.size()-1);
-                        lists.remove(0);
-                        lists=getCurrentList();
-                        notifyDataSetChanged();
-                        cataloguesChanged.removeCatalogue();
+                    if (showLists == null) {
+                        showLists = new ArrayList<>();
                     }
+
+                    orders.add(holder.getAdapterPosition());
+                    Log.d(TAG, "onClick: Position="+holder.getAdapterPosition());
+
+                    showLists.add(0, new AccountCatalogue("..."));
+                    notifyDataSetChanged();
+                    AccountCatalogue catalogue=getCurrentAccountCatalogue();
+                    if (catalogue!=null)
+                    {
+                        cataloguesChanged.addCatalogue(catalogue.getCatalogueName());
+                    }
+
+
+                } else {
+                    if (orders.size() == 0)
+                        return;
+                    showLists.remove(0);
+                    orders.remove(orders.size() - 1);
+
+                    showLists = getCurrentList();
+                    showLists.add(0, new AccountCatalogue("..."));
+                    notifyDataSetChanged();
+                    cataloguesChanged.removeCatalogue();
 
                 }
 
@@ -100,52 +110,60 @@ public class AccountCatalogueAdapter extends RecyclerView.Adapter {
             }
         });
     }
-    public List<AccountCatalogue> getLists()
-    {
+
+    public List<AccountCatalogue> getLists() {
         return originLists;
     }
-    public void addNewCatalogue(String catalogue)
-    {
+
+    public void addNewCatalogue(String catalogue) {
         getCurrentList().add(new AccountCatalogue(catalogue));
     }
-    public AccountCatalogue getCurrentAccountCatalogue()
-    {
-        List<AccountCatalogue> list=originLists;
 
-        for (int i=0;i<orders.size()-1;i++)
-        {
-            list = list.get(orders.get(i)).getSubCatalogue();
+    public AccountCatalogue getCurrentAccountCatalogue() {
+        List<AccountCatalogue> list = originLists;
+
+        for (int i = 0; i < orders.size() - 1; i++) {
+            list = list.get(orders.get(i)-1).getSubCatalogue();
         }
-        return list.get(orders.get(orders.size()-1));
+        int index=orders.size() - 1;
+        if (index<0||index>(list.size()-1))
+        {
+            return null;
+        }else
+        {
+           return list.get(orders.get(index)-1);
+        }
+
     }
-    public void removeItem(int pos)
-    {
+
+    public void removeItem(int pos) {
         getCurrentList().remove(pos);
         notifyItemRemoved(pos);
     }
 
+    //没有用
+    private List<AccountCatalogue> getOriginListsCopy__No() {
+        List<AccountCatalogue> list = new ArrayList<>();
+        for (AccountCatalogue catalogue : originLists) {
+            list.add(catalogue);//此处不除，复制也没用
+        }
+        return list;
+    }
+
+
     private List<AccountCatalogue> getCurrentList() {
-        List<AccountCatalogue> list=lists;
+        List<AccountCatalogue> list = originLists;
 
-        for (int i=0;i<orders.size();i++)
-        {
-            list = list.get(orders.get(i)).getSubCatalogue();
+        for (int i = 0; i < orders.size(); i++) {
+            list = list.get(orders.get(i)-1).getSubCatalogue();
         }
         return list;
     }
-    private List<AccountCatalogue> getOriginCurrentList() {
-        List<AccountCatalogue> list=lists;
 
-        for (int i=0;i<orders.size();i++)
-        {
-            list = list.get(orders.get(i)).getSubCatalogue();
-        }
-        return list;
-    }
 
     @Override
     public int getItemCount() {
-        return lists.size();
+        return showLists.size();
     }
 
     class ItemHolder extends RecyclerView.ViewHolder {
