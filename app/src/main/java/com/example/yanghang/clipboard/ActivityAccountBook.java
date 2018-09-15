@@ -7,12 +7,16 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Message;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -40,6 +44,7 @@ import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLa
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 import com.github.mikephil.charting.data.PieEntry;
 
+import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.example.yanghang.clipboard.ActivityBangumi.RESULT_BANGUMI_ACTIVITY;
+import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 public class ActivityAccountBook extends SwipeBackActivity {
 
@@ -69,6 +75,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         final Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             window.setFlags(
@@ -119,12 +126,80 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 fragment.show(getSupportFragmentManager(),entries,accountDataAdapter);
 
                 break;
+            case R.id.action_search:
+                break;
         }
         return true;
     }
+    SearchView searchView;
+    SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
+        @Override
+        public boolean onQueryTextSubmit(final String query) {
+//            Log.v(TAG, "开始查询");
+            new SearchContentTask().execute(query);
+            refreshLayout.setRefreshing(true);
+
+            return true;
+        }        @Override
+        public boolean onQueryTextChange(String newText) {
+            return false;
+        }
+
+
+    };
+    public class SearchContentTask extends AsyncTask<String ,String,List<AccountData>>
+    {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        List<AccountData> tempLists = new ArrayList<>();
+
+        @Override
+        protected void onPostExecute(List<AccountData> accountData) {
+            super.onPostExecute(accountData);
+            refreshLayout.setRefreshing(false);
+            accountDataAdapter.setData(tempLists);
+        }
+
+        @Override
+        protected List<AccountData> doInBackground(String... strings) {
+
+
+            tempLists = new ArrayList<>();
+            for (AccountData data : accountDataAdapter.getData()) {
+                if (data.getType().equals(strings[0]))
+                {
+                    tempLists.add(data);
+                }
+            }
+            return tempLists;
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.account_menu, menu);
+        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        if (searchView != null) {
+//            Toast.makeText(MainFormActivity.this, "null searchview", Toast.LENGTH_SHORT).show();
+//            searchView.setBackground(getDrawable(R.drawable.ic_search_green));
+            searchView.setOnQueryTextListener(onQueryTextListener);
+            SearchView.SearchAutoComplete textView = (SearchView.SearchAutoComplete) searchView
+                    .findViewById(
+                            android.support.v7.appcompat.R.id.search_src_text
+                    );
+            textView.setTextColor(Color.GREEN);
+
+//            try {
+//                Field mCursorDrawableRes = TextView.class.getDeclaredField("mCursorDrawableRes");
+//                mCursorDrawableRes.setAccessible(true);
+//                mCursorDrawableRes.set(textView, R.drawable.cursor_color);
+//            } catch (Exception e) {
+//
+//            }
+        }
         return super.onCreateOptionsMenu(menu);
     }
 

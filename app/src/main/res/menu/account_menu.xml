@@ -3,10 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search_green"
+        android:orderInCategory="86"
+        android:title="搜索"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_donut"
         android:orderInCategory="100"
-        android:title="跳转日期"
+        android:title="图示"
         android:icon="@drawable/ic_donut_large_white_24dp"
         app:showAsAction="always" />
-
 </menu>
