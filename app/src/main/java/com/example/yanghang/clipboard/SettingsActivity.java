@@ -530,8 +530,8 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             dismissDialog(loadingDialog);
                         }
                     });
-            Button positiveButton = loadingDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
-            positiveButton.setTextColor(Color.RED);
+//            Button positiveButton = loadingDialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+//            positiveButton.setTextColor(Color.RED);
             editText.setText("确定删除所有记录项?");
             editText.setFocusable(false);
             editText.setFocusableInTouchMode(false);

@@ -11,6 +11,7 @@ import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
@@ -23,6 +24,8 @@ import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -78,27 +81,47 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
     View mView;
     private String textInCenter="";
     private Double expenditure=0.0;
+
+    @Nullable
     @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView: ");
         textInCenter = getArguments().getString("TEXT_IN_CENTER");
         expenditure=getArguments().getDouble("EXPENDITURE");
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.alertDialog);
-        LayoutInflater inflater = getActivity().getLayoutInflater();
+        // 设置背景透明
+        getDialog().getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-        mView = inflater.inflate(R.layout.dialog_account_catalogue_piechart, null);
-        builder.setView(mView);
+        getDialog().requestWindowFeature(Window.FEATURE_NO_TITLE);
+        mView =inflater.inflate(R.layout.dialog_account_catalogue_piechart, container);
         initialPieChart();
 
+        return mView;
 
-        Dialog dialog=builder.create();
-        WindowManager.LayoutParams lp=dialog.getWindow().getAttributes();
+    }
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateDialog: ");
+//        textInCenter = getArguments().getString("TEXT_IN_CENTER");
+//        expenditure=getArguments().getDouble("EXPENDITURE");
+        // The only reason you might override this method when using onCreateView() is
+        // to modify any dialog characteristics. For example, the dialog includes a
+        // title by default, but your custom layout might not need it. So here you can
+        // remove the dialog title, but you must call the superclass to get the Dialog.
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+
+//        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.alertDialog);
+
+//        WindowManager.LayoutParams lp=dialog.getWindow().getAttributes();
         //模糊度
-        dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND, WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+//        dialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND, WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
 
-        lp.alpha=0.9f;//（0.0-1.0）
+//        lp.alpha=0.9f;//（0.0-1.0）
         // 透明度，黑暗度为
-        lp.dimAmount=0.9f;
-        dialog.getWindow().setAttributes(lp);
+//        lp.dimAmount=0.9f;
+//        dialog.getWindow().setAttributes(lp);
         return dialog;
     }
     PieChart mPieChart;
