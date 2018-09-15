@@ -19,27 +19,34 @@ namespace FileServer
     {
 
         private static byte[] result = new byte[1024];
-        
+
         private Socket server = null;
         private bool CLOSE_SEVER = false;
         public void RunServer()
         {
-            Socket server = new Socket(
+            Close();
+            server = new Socket(
             AddressFamily.InterNetwork,
             SocketType.Stream,
             ProtocolType.Tcp);
 
 
             IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint ipep = new IPEndPoint(ipAddress, 20300);
-            try{
-            server.Bind(ipep);
-            }
-            catch(SocketException)
+            int IPIndex = MainWindow.LocalServerIPAddressIndex;
+            if (IPIndex == -1)
             {
-            	UpdateMessage("默认端口20300被占用，或其他错误，服务未能成功启动");
-            	return;
+                IPIndex = 0;
+            }
+            IPAddress ipAddress = ipHostInfo.AddressList[IPIndex];
+            IPEndPoint ipep = new IPEndPoint(ipAddress, 20300);
+            try
+            {
+                server.Bind(ipep);
+            }
+            catch (SocketException)
+            {
+                UpdateMessage("默认端口20300被占用，或其他错误，服务未能成功启动");
+                return;
             }
             server.Listen(5);
             string st = string.Format("IP:{0}  Port:{1}  \n", ipep.Address, ipep.Port);
@@ -60,19 +67,24 @@ namespace FileServer
         public event OnClientConnect OnClientRequest;
         private void ReceiveMessage(object clientSocket)
         {
-            Socket myClientSocket = (Socket)clientSocket; 
-            OnClientRequest(myClientSocket); 
+            Socket myClientSocket = (Socket)clientSocket;
+            OnClientRequest(myClientSocket);
         }
-      
+
         public void Close()
         {
-            CLOSE_SEVER = true;
+            
+            if (server != null)
+            {
+                CLOSE_SEVER = true;
+                server.Shutdown(SocketShutdown.Both);                
+                server.Close();
+                server.Dispose();
+            }
 
-            server.Shutdown(SocketShutdown.Both);
-            server.Close();
         }
 
-       
+
 
     }
 }

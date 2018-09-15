@@ -22,6 +22,7 @@ public class ConnectThread extends Thread {
 
     public static void closeSocket() {
         try {
+            if (socket!=null)
             socket.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -42,16 +43,20 @@ public class ConnectThread extends Thread {
     private void SendMessage() {
 
         try {
+//            Log.v(MainFormActivity.TAG, "开始连接Server IP= "+strMessage.IP);
             socket = new Socket(strMessage.IP, strMessage.Port);
-            socket.setSoTimeout(5000);
+//            Log.v(MainFormActivity.TAG, "本地IP= "+socket.getLocalAddress());
+            socket.setSoTimeout(2000);
             String strinfo = strMessage.Message;
             byte[] buffers = strinfo.getBytes("UTF-8");
+//            Log.v(MainFormActivity.TAG, "转换字节准备发送");
             BufferedOutputStream bf = new BufferedOutputStream(socket.getOutputStream());
             bf.write(buffers);
             bf.flush();
             onConnect.OnSuccess();
 
         } catch (ConnectException e) {
+            e.printStackTrace();
             Log.v(MainFormActivity.TAG, "连接失败");
             onConnect.OnFail("连接失败");
         } catch (Exception e) {

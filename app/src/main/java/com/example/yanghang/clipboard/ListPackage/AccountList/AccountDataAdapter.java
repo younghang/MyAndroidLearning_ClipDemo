@@ -75,7 +75,8 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
         final AccountDataHolder holder= (AccountDataHolder) viewHolder;
-        double money=accounts.get(position).getMoney();
+        AccountData accountData= accounts.get(position);
+        double money=accountData.getMoney();
         holder.tvMoney.setText(Double.toString(money));
         if (money<0)
         {
@@ -83,8 +84,12 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
         }else {
             holder.tvMoney.setTextColor(Color.RED);
         }
-        holder.createTimeTextView.setText(accounts.get(position).getAccountTime().replace("\n","  "));
-        holder.contentTextView.setText(accounts.get(position).getContent());
+        holder.createTimeTextView.setText(accountData.getAccountTime().replace("\n","  "));
+
+        holder.contentTextView.setText(accountData.getContent().equals("")?accountData.getType():accountData.getType()+": "+accountData.getContent());
+        if (accountData.getType().equals(accountData.getContent()))
+            holder.contentTextView.setText(accountData.getContent());
+
         int color = Color.parseColor("#000000");
         try {
             color = Color.parseColor(accounts.get(position).getColor());

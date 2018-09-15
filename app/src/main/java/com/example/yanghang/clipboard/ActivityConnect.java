@@ -125,6 +125,7 @@ public class ActivityConnect extends SwipeBackActivity {
 
         };
 
+
         btnConnect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -133,25 +134,30 @@ public class ActivityConnect extends SwipeBackActivity {
                 btnConnect.setBackground(getDrawable(R.drawable.corner_background_green_dark));
                 btnConnect.setEnabled(false);
                 tvProgressInfo.setText("连接发送中");
-                ConnectThread connectThread=new ConnectThread(onConnect);
-                String strinfo = "";
+                ConnectThread connectThread= new ConnectThread(onConnect);
+                String strInfo = "";
                 ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                 // 将文本内容放到系统剪贴板里。
                 try {
                     ClipData.Item cp = cm.getPrimaryClip().getItemAt(0);
-                    strinfo = cp.getText().toString();
-                    connectThread.strMessage = new ConnectThread.MessageInformation(editIP.getText().toString(), Integer.parseInt(editPort.getText().toString()), strinfo);
-                    connectThread.start();
+                    strInfo = cp.getText().toString();
+
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Toast.makeText(ActivityConnect.this, "没有信息可发送", Toast.LENGTH_SHORT).show();
-                    onConnect.OnFail("无信息");
+                    Toast.makeText(ActivityConnect.this, "没有信息被复制", Toast.LENGTH_SHORT).show();
                 }
+                connectThread.strMessage = new ConnectThread.MessageInformation(editIP.getText().toString(), Integer.parseInt(editPort.getText().toString()), strInfo);
+                connectThread.start();
 
             }
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        ConnectThread.closeSocket();
 
+    }
 }
 

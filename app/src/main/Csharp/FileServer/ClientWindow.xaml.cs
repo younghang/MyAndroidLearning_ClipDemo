@@ -29,6 +29,7 @@ namespace FileServer
         private ClientServer clientServer;
         private PhoneServer phoneServer;
         private string CurrentFile;
+        private Boolean IsPhoneSeverWorking=false;
         public void InitialPhoneServer(Socket socket)
         {
             clientServer = new ClientServer(socket);
@@ -41,7 +42,8 @@ namespace FileServer
 
         private void DisconnectClient()
         {
-            this.Dispatcher.Invoke(()=> {
+            this.Dispatcher.Invoke(() =>
+            {
                 btnSend.IsEnabled = false;
                 btnFile.IsEnabled = false;
             });
@@ -101,14 +103,31 @@ namespace FileServer
             //op.InitialDirectory = _dir;你可以指定文件夹
             op.RestoreDirectory = true;
             op.ShowDialog();
-            txtMessage.Text = op.FileName;            
+
+            Run run = new Run(op.FileName);
+            Paragraph paragraph = new Paragraph(run);
+            txtMessage.Document.Blocks.Add(paragraph);
             CurrentFile = op.FileName;
         }
         public void ConnectPhoneServer()
         {
-          
+            try
+            {
                 phoneServer.ConnectPhoneServer();
-            
+                IsPhoneSeverWorking = true;
+            }
+            catch (Exception e)
+            {
+                IsPhoneSeverWorking = false;
+                UpdateMessage("启动客服端服务出错,无法向客服端发送信息");
+                this.Dispatcher.Invoke(() =>
+                {
+                    btnSend.IsEnabled = false;
+                    btnFile.IsEnabled = false;
+                });
+            }
+
+
         }
 
         public void DealRequest()
@@ -122,27 +141,33 @@ namespace FileServer
         }
 
 
-
+        private string GetTxtMessage()
+        {
+            TextRange textRange = new TextRange(txtMessage.Document.ContentStart, txtMessage.Document.ContentEnd);
+            return textRange.Text;
+        }
         private void txtMessage_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (txtMessage.Text == "在此处发送消息")
+            string richText = GetTxtMessage();
+
+            if (richText == "在此处发送消息\r\n")
             {
-                txtMessage.Text = "";
+                txtMessage.Document.Blocks.Clear();
             }
         }
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-            if (txtMessage.Text == CurrentFile)
+            if (GetTxtMessage() == (CurrentFile + "\r\n"))
             {
                 phoneServer.SendFile(CurrentFile);
 
             }
             else
-                phoneServer.SendMessage(txtMessage.Text);
-           
-            richTextBox.AppendText(txtMessage.Text+"\n");
-            txtMessage.Text = "";
+                phoneServer.SendMessage(GetTxtMessage());
+
+            richTextBox.AppendText(GetTxtMessage() + "\n");
+            txtMessage.Document.Blocks.Clear();
         }
     }
 }

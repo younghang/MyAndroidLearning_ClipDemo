@@ -57,12 +57,25 @@
 					Height="50"
 					Name="dragPanel"
 					Orientation="Horizontal">
-					<Button
+                    <Button
+						x:Name="btn_Setting"
+						Click="btnSetting"
+						Height="40"
+						Width="40"
+                        ToolTip="设置"
+                        Margin="430,0,10,0"
+						FontSize="30">
+                        <Button.OpacityMask>
+                            <ImageBrush
+								ImageSource="gear.png" />
+                        </Button.OpacityMask>
+                    </Button>
+                    <Button
 						x:Name="btn_Mini"
 						Height="40"
 						Width="40"
 						FontSize="30"
-						Margin="480,0,10,0"
+						Margin="0,0,10,0"
 						Click="btnMininue"
 						BorderThickness="0"
 						ToolTip="最小化"
@@ -77,6 +90,7 @@
 						Click="btnClose"
 						Height="40"
 						Width="40"
+                        ToolTip="关闭"
 						FontSize="30">
 						<Button.OpacityMask>
 							<ImageBrush

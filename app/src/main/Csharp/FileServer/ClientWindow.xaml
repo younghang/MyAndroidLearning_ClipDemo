@@ -95,11 +95,11 @@
 					Background="#FFDEDEDE">
                  
                     <Canvas  >
-                        <TextBox
+                        <RichTextBox
                             Padding="10"
 							Height="81"
-							TextWrapping="Wrap"
-							Text="在此处发送消息"
+							 
+						
 							Canvas.Top="294"
                             FontSize="16"
 							 	x:Name="txtMessage"
@@ -107,8 +107,14 @@
 							CaretBrush="#FFF5F0F0"
 							BorderThickness="0"
                             Width="600"
-							Background="#FF4FD15D"    MouseEnter="txtMessage_MouseEnter"
-						 />
+							Background="#FF4FD15D"    MouseEnter="txtMessage_MouseEnter"  
+						 >
+                            <FlowDocument>
+                                <Paragraph>
+                                    <Run Foreground="Blue" FontSize="24" FontFamily="Consolas" Text="在此处发送消息"/>
+                                </Paragraph>
+                            </FlowDocument>
+                        </RichTextBox>
                         <Button
 							Content="发送"
 							x:Name="btnSend"

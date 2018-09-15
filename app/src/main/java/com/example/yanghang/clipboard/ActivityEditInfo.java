@@ -28,11 +28,13 @@ import com.example.yanghang.clipboard.Fragment.FragmentToDo;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLayout;
+import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary.OnFragmentInteractionListener{
+public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary.OnFragmentInteractionListener{
     public static int RESULT_ADD_NEW = 345;
     public static int RESULT_NOTHING_NEW = 678;
 
@@ -42,7 +44,7 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
     Spinner spinner;
     List<CatalogueInfos> mCatalogue;
     List<String> specialCatalogueNames = new ArrayList<>();
-
+    private SwipeBackLayout mSwipeBackLayout;
     private ListData listData;
     private int pos;
     private ArrayAdapter<String> arr_adapter;
@@ -80,6 +82,11 @@ public class ActivityEditInfo extends AppCompatActivity implements FragmentDiary
                 finish();
             }
         });
+        mSwipeBackLayout = getSwipeBackLayout();
+        //设置可以滑动的区域，推荐用屏幕像素的一半来指定
+        mSwipeBackLayout.setEdgeSize(100);
+        //设定滑动关闭的方向，SwipeBackLayout.EDGE_ALL表示向下、左、右滑动均可。EDGE_LEFT，EDGE_RIGHT，EDGE_BOTTOM
+        mSwipeBackLayout.setEdgeTrackingEnabled(SwipeBackLayout.EDGE_BOTH);
         Bundle bundle = getIntent().getExtras();
         listData = (ListData) bundle.get(MainFormActivity.LIST_DATA);
         pos = (int) bundle.get(MainFormActivity.LIST_DATA_POS);

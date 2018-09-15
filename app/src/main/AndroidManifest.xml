@@ -91,8 +91,10 @@
             android:name=".ActivityAccountBook"
             android:label="@string/title_activity_account_book"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".ActivitySpecialDays"
-            android:theme="@style/AppTheme.NoActionBarTransparentNavigation" ></activity>
+        <activity
+            android:name=".ActivitySpecialDays"
+            android:theme="@style/AppTheme.NoActionBarTransparentNavigation" />
+
     </application>
 
 </manifest>

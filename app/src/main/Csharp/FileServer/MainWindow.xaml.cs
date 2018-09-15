@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -34,6 +35,10 @@ namespace FileServer
         Server server = null;
         public void RunServer()
         {
+            //setPortFireWall("20300", "fileServer");
+            //INetFwManger.NetFwAddApps("fileServer", this.GetType().Assembly.Location);
+            //开启公用网络防火墙通行
+            INetFwManger.NetFwAddPorts("fileServerPort", 20300, "TCP");
             Server server = new Server();
             server.UpdateMessage += SetString;
             server.OnClientRequest += OnClientRequest;
@@ -92,7 +97,30 @@ namespace FileServer
 
 
 
+        
+        void btnSetting(object sender, RoutedEventArgs e)
+        {
+            IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
+          
+            SettingWindow settingWindow = new SettingWindow();
+            
+            IPAddress[] address = ipHostInfo.AddressList;
+            settingWindow.ipLists.Clear();
+            for (int i = 0; i < address.Length; i++)
+            {
+                settingWindow.ipLists.Add(address[i].ToString());
+            }
+            settingWindow.ReStartServer += RestartServer;
+            settingWindow.Show();
 
+        }
+        public static int LocalServerIPAddressIndex=-1;
+        void RestartServer(int IPIndex)
+        {
+            LocalServerIPAddressIndex = IPIndex;            
+            serverThread = new Thread(new ThreadStart(RunServer));
+            serverThread.Start();
+        }
         void btnMininue(object sender, RoutedEventArgs e)
         {
             this.WindowState = System.Windows.WindowState.Minimized;
@@ -110,6 +138,31 @@ namespace FileServer
         {
             //			this.DragMove();
             //			e.Handled=true;
+        }
+        void setPortFireWall(string port,string inname)
+        {
+          
+            string str = " netsh advfirewall firewall add rule name=" + inname + " dir=in action=allow protocol=TCP localport= " + port;
+            System.Diagnostics.Process pro = new System.Diagnostics.Process();//实例化进程
+            pro.StartInfo.FileName = "cmd.exe";//设置要运行的程序文件
+            pro.StartInfo.UseShellExecute = false;//是否使用操作系统shell程序启动
+            pro.StartInfo.RedirectStandardInput = true;//是否接受来自应用程序的调用
+            pro.StartInfo.RedirectStandardOutput = true;//是否接受来自应用程序的输出信息
+            pro.StartInfo.RedirectStandardError = true;//是否接受重定向错误信息
+            pro.StartInfo.CreateNoWindow = true;//不显示窗口信息
+            pro.Start();//启动程序
+
+            //向cmd窗口发送输入信息
+            pro.StandardInput.WriteLine(str + "&exit");
+
+            pro.StandardInput.AutoFlush = true;
+
+            //获取窗口输出的信息
+            string info = pro.StandardOutput.ReadToEnd();
+
+            pro.WaitForExit();//等待程序运行完退出程序
+            pro.Close();//关闭进程
+            SetString(info + "\n" + "Port=" + port );
         }
 
 

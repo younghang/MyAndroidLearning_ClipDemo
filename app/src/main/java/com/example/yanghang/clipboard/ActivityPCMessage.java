@@ -379,15 +379,22 @@ public class ActivityPCMessage extends SwipeBackActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        try {
+
             Log.v(MainFormActivity.TAG, "onStop send disconnect");
-            bo.write(0xfc);
-            bo.flush();
-            ConnectThread.socket.close();
-            phoneServer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        bo.write(0xfc);
+                        bo.flush();
+                        ConnectThread.socket.close();
+                        phoneServer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
     }
 
     @Override

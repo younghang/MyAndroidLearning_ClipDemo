@@ -12,6 +12,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -104,6 +105,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
         new AnalyseContentTask().execute(listData.getContent());
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -114,7 +116,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 bundle.putString("TEXT_IN_CENTER", listData.getRemarks());
                 bundle.putDouble("EXPENDITURE",mExpenditure);
                 fragment.setArguments(bundle);
-                fragment.show(getSupportFragmentManager(),entries);
+                fragment.show(getSupportFragmentManager(),entries,accountDataAdapter);
 
                 break;
         }
@@ -228,7 +230,10 @@ public class ActivityAccountBook extends SwipeBackActivity {
         final EditText accountMoneyEdit = view.findViewById(R.id.accountDialogMoney);
         final EditText accountContentEdit = view.findViewById(R.id.accountDialogContent);
         final TextView accountDialogCatalogueName = view.findViewById(R.id.accountDialogCatalogueName);
-        accountDialogCatalogueName.setText(accountDataAdapter.getItem(position).getType().equals("")?"吃饭":accountDataAdapter.getItem(position).getType());
+
+        String type=accountDataAdapter.getItem(position).getType().equals("")?"吃饭":accountDataAdapter.getItem(position).getType();
+        selectCatalogueName=type;
+        accountDialogCatalogueName.setText(type);
         accountMoneyEdit.setText(Double.toString(Math.abs(accountDataAdapter.getItem(position).getMoney())));
         accountContentEdit.setText(accountDataAdapter.getItem(position).getContent());
         accountDialogCatalogueName.setOnClickListener(new View.OnClickListener() {
@@ -282,7 +287,9 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 }
                 if (!isIncome)
                     money*=-1;
-                AccountData accountData = new AccountData(accountDataAdapter.getItem(position).getAccountTime(), "", money, "#cccccc", selectCatalogueName, accountContentEdit.getText().toString());
+                String content=accountContentEdit.getText().toString();
+
+                AccountData accountData = new AccountData(accountDataAdapter.getItem(position).getAccountTime(), "", money, "#cccccc", selectCatalogueName, content);
                 accountDataAdapter.editItem(position,accountData);
                 saveToDataBase();
                 if (alertDialog!=null)
@@ -352,8 +359,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 if (!isIncome)
                     money*=-1;
                 String content=accountContentEdit.getText().toString();
-                if (content.equals(""))
-                    content=selectCatalogueName;
+
                 AccountData accountData = new AccountData(ListData.GetDate(), "", money, "#cccccc", selectCatalogueName,content );
                 accountDataAdapter.addItem(accountData);
                 accountRecycleView.scrollToPosition(0);

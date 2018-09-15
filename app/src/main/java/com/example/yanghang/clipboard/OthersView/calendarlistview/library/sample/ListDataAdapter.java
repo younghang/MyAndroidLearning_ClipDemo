@@ -30,8 +30,18 @@ public class ListDataAdapter extends BaseCalendarListAdapter<ListData> {
     }
     public void setDataItem(int pos,String date,ListData data)
     {
-        dateDataMap.get(date).set(pos, data);
-        notifyDataSetChanged();
+        if  (dateDataMap.get(date)==null)
+        {
+            List<ListData> listDatas = new ArrayList<>();
+            listDatas.add(data);
+            dateDataMap.put(date, listDatas);
+            setDateDataMap(dateDataMap);
+
+        }
+            dateDataMap.get(date).set(pos, data);
+            notifyDataSetChanged();
+
+
     }
     public void addDataItem(String date,ListData data)
     {

@@ -69,7 +69,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
         holder.tvMessage.setText(strMessage);
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
         holder.tvRemarks.init((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE));
-        holder.tvRemarks.startScroll();
+
 //        holder.tvMessage.setMaxHeight((int) mContext.getResources().getDimension(R.dimen.max_height_item));
         holder.tvMessage.setEllipsize(TextUtils.TruncateAt.END);
         holder.mCardView.setOnClickListener(new View.OnClickListener() {

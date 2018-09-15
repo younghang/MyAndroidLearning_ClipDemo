@@ -8,11 +8,14 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
@@ -23,6 +26,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.alibaba.fastjson.JSONArray;
+import com.example.yanghang.clipboard.ActivityAccountBook;
+import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
+import com.example.yanghang.clipboard.ListPackage.AccountList.AccountDataAdapter;
 import com.example.yanghang.clipboard.R;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -38,6 +45,8 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
@@ -54,13 +63,18 @@ import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 public class AccountCatalogueDialogPieChartFragment extends DialogFragment implements OnChartValueSelectedListener {
 
-    public void show(FragmentManager fragmentManager,ArrayList<PieEntry> entries ) {
+    public void show(FragmentManager fragmentManager,ArrayList<PieEntry> entries,AccountDataAdapter adapter ) {
         mEntries=entries;
+        accountAdapter=adapter;
+        lists=accountAdapter.getData();
+        accountAdapter.setData(new ArrayList<AccountData>());
         show(fragmentManager, "AccountCatalogueDialogSelectCategoriesFragment");
     }
-
-
+    List<AccountData> lists;
+    List<AccountData> tempLists;
+    AccountDataAdapter accountAdapter;
     ArrayList<PieEntry> mEntries;
+    RecyclerView recyclerView;
     View mView;
     private String textInCenter="";
     private Double expenditure=0.0;
@@ -93,6 +107,10 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
         //饼状图
         mPieChart = (PieChart) mView.findViewById(R.id.dialog_account_mPieChart);
         mTextPartText = mView.findViewById(R.id.dialog_account_mPieChart_tv);
+        recyclerView = mView.findViewById(R.id.dialog_account_recycleView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
+        recyclerView.setAdapter(accountAdapter);
+
         DecimalFormat df = new DecimalFormat("0.00");
         mTextPartText.setText("当月支出"+df.format(Math.abs(expenditure))+"￥");
 
@@ -166,7 +184,21 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
     //设置数据
     private void setData(ArrayList<PieEntry> entries) {
         PieDataSet dataSet = new PieDataSet(entries, textInCenter+"各支出占比");
-        dataSet.setSliceSpace(3f);//设置不同区域之间的间距
+        float sliceSpace=3f;
+        float minValue=100f;
+        for (PieEntry pieEntry : entries) {
+            float value=pieEntry.getValue();
+            if (value<minValue)
+                minValue=value;
+        }
+        float space= (float) (minValue/100*56*2*Math.PI);
+        Log.d(TAG, "setData: "+space);
+        if (space<sliceSpace)
+        {
+
+            sliceSpace=space;
+        }
+        dataSet.setSliceSpace(sliceSpace);//设置不同区域之间的间距
         dataSet.setSelectionShift(5f);//--选中饼状图时，向外扩张的大小.
 
         //数据和颜色
@@ -195,16 +227,55 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
 
     @Override
     public void onValueSelected(Entry e, Highlight h) {
-        Log.d(TAG, "onValueSelected: "+((PieEntry)e).getLabel());
+//        Log.d(TAG, "onValueSelected: "+((PieEntry)e).getLabel());
 //        Log.d(TAG, "onValueSelected: "+e.getY()+"    "+h.getY());
+
         DecimalFormat df = new DecimalFormat("0.00");
         mTextPartText.setText(((PieEntry)e).getLabel()+"--"+df.format(Math.abs(h.getY()*expenditure/100))+"￥");
+        new AnalyseContentTask().execute(((PieEntry)e).getLabel());
+    }
+    public class AnalyseContentTask extends AsyncTask<String ,String,List<AccountData>>
+    {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
 
+        @Override
+        protected void onPostExecute(List<AccountData> accountData) {
+            super.onPostExecute(accountData);
+            accountAdapter.setData(tempLists);
+        }
+
+        @Override
+        protected List<AccountData> doInBackground(String... strings) {
+
+            if (lists==null)
+            {
+                return new ArrayList<>();
+            }
+            Log.d(TAG, "doInBackground: "+strings);
+            tempLists = new ArrayList<>();
+            for (AccountData data : lists) {
+                if (data.getType().equals(strings[0]))
+                {
+                    tempLists.add(data);
+                }
+            }
+            return tempLists;
+        }
     }
 
     @Override
     public void onNothingSelected() {
         DecimalFormat df = new DecimalFormat("0.00");
         mTextPartText.setText("当月支出"+df.format(Math.abs(expenditure))+"￥");
+        accountAdapter.setData(new ArrayList<AccountData>());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        accountAdapter.setData(lists);
     }
 }

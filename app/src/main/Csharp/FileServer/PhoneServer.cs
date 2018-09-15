@@ -36,6 +36,7 @@ namespace FileServer
             socket.Receive(sendBytes);
             //这边都是简单粗暴，对于FileInfo直接发送四个字节，而不是while 每1k字节的发送
             //java 那边是1k 1k 的接收的。
+            //现在都改了，需要先发送信息字节长度
             byte[] buffer = new byte[1024 * 4];
             long fileLength = 0;
             FileStream fs = new FileStream(filePath , FileMode.Open);

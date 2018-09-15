@@ -15,7 +15,7 @@ import com.example.yanghang.clipboard.R;
 /**
  * Created by young on 2016/3/22 0022.
  */
-public class AlwaysMarqueeTextView extends TextView implements View.OnClickListener {
+public class AlwaysMarqueeTextView extends android.support.v7.widget.AppCompatTextView   {
 
     public boolean isStarting = true;//是否开始滚动
     private float textLength = 0f;//文本长度
@@ -43,7 +43,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
     private void initView() {
 
 
-        setOnClickListener(this);
+//        setOnClickListener(this);
     }
 
     @Override
@@ -58,6 +58,14 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
         }
 //        Log.v(MainFormActivity.TAG,"  onMeasure width: "+width);
         super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), heightMeasureSpec);
+    }
+
+    @Override
+    protected void onVisibilityChanged(View changedView, int visibility) {
+        super.onVisibilityChanged(changedView, visibility);
+        if (visibility == GONE) {
+            isStarting=false;
+        }
     }
 
     public void init(WindowManager windowManager) {
@@ -117,6 +125,7 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
                 @Override
                 public void run() {
                     while (isStarting) {
+
                         try {
                             Thread.sleep(100);
                         } catch (InterruptedException e) {
@@ -138,6 +147,19 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
     }
 
     @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        isStarting=false;
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        isStarting=true;
+        startScroll();
+    }
+
+    @Override
     public void onDraw(Canvas canvas) {
 //        Log.v(MainFormActivity.TAG,"  onDraw viewWidth: "+viewWidth);
         if (textLength < getWidth()) {
@@ -154,15 +176,15 @@ public class AlwaysMarqueeTextView extends TextView implements View.OnClickListe
 
     }
 
-    @Override
-    public void onClick(View v) {
-        isStarting = !isStarting;
-        if (isStarting)
-            stopScroll();
-        else
-            startScroll();
-
-    }
+//    @Override
+//    public void onClick(View v) {
+//        isStarting = !isStarting;
+//        if (isStarting)
+//            stopScroll();
+//        else
+//            startScroll();
+//
+//    }
 
     public static class SavedState extends BaseSavedState {
         public static final Parcelable.Creator<SavedState> CREATOR

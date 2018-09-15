@@ -144,6 +144,14 @@ public class PhoneServer {
         isRunning=false;
         receiveData();
     }
+    private class NetWorkThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+
+        }
+    }
+
 
     private void receiveFile() {
         isRunning=true;
