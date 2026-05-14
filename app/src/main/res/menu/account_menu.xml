@@ -8,7 +8,7 @@
         android:orderInCategory="86"
         android:title="搜索"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="always" />
+        app:showAsAction="always|collapseActionView" />
     <item
         android:id="@+id/action_donut"
         android:orderInCategory="100"

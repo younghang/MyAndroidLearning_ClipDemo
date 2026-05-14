@@ -12,6 +12,9 @@ import android.widget.TextView;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.R;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,6 +29,9 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
     private CatalogueAdapter.OnItemClickListener mItemClickListener;
 
     public AccountDataAdapter(List<AccountData> accounts, Context mContext) {
+        if (accounts == null) {
+            accounts = new ArrayList<AccountData>();
+        }
         this.accounts = accounts;
         this.mContext = mContext;
     }
@@ -47,6 +53,9 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
     }
 
     public void setData(List<AccountData> list) {
+        if (list == null) {
+            list = new ArrayList<AccountData>();
+        }
         this.accounts = list;
         notifyDataSetChanged();
     }
@@ -77,7 +86,7 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
         final AccountDataHolder holder= (AccountDataHolder) viewHolder;
         AccountData accountData= accounts.get(position);
         double money=accountData.getMoney();
-        holder.tvMoney.setText(Double.toString(money));
+        holder.tvMoney.setText(formatMoney(money));
         if (money<0)
         {
             holder.tvMoney.setTextColor(Color.GREEN);
@@ -117,8 +126,15 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
         });
     }
 
+    private static String formatMoney(double money) {
+        return BigDecimal.valueOf(money).setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
     @Override
     public int getItemCount() {
+        if (accounts == null) {
+            return 0;
+        }
         return accounts.size();
     }
     public class AccountDataHolder extends RecyclerView.ViewHolder {

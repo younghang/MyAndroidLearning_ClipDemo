@@ -1,12 +1,14 @@
 package com.example.yanghang.clipboard.Notification;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -36,20 +38,28 @@ public class ServiceNotification extends Service {
     }
 
     private static final int NOTIFICATION_NOTIFY = 666;
+    private static final String NOTIFICATION_CHANNEL_ID = "todo_notification";
+    private static final String NOTIFICATION_CHANNEL_NAME = "Todo Notification";
     private static final String MSG_TODAY_MISSION = "msg_today_mission";
     NotificationManager notificationManager;
+    private boolean isScreenOnReceiverRegistered = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        createNotificationChannel();
+        startForeground(NOTIFICATION_NOTIFY, buildNotification("\u4eca\u65e5\u4efb\u52a1", "\u6b63\u5728\u68c0\u67e5\u4eca\u65e5\u4efb\u52a1"));
         initial();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        this.unregisterReceiver(mScreenOnReceiver);
+        if (isScreenOnReceiverRegistered) {
+            this.unregisterReceiver(mScreenOnReceiver);
+            isScreenOnReceiverRegistered = false;
+        }
     }
 
     void initial() {
@@ -65,6 +75,7 @@ public class ServiceNotification extends Service {
             IntentFilter mScreenOnFilter = new IntentFilter("android.intent.action.SCREEN_ON");
 //            if (!mScreenOnReceiver.isOrderedBroadcast())
             this.registerReceiver(mScreenOnReceiver, mScreenOnFilter);
+            isScreenOnReceiverRegistered = true;
 
         }
         startMission();
@@ -93,12 +104,12 @@ public class ServiceNotification extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
 
     void showTodayMissionNotification(String message) {
-        Notification notification = new NotificationCompat.Builder(getApplicationContext())
+        Notification notification = new NotificationCompat.Builder(getApplicationContext(), NOTIFICATION_CHANNEL_ID)
 //                    .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.drawable.splash))
                 .setSmallIcon(R.drawable.rest)
                 .setTicker("今日任务")
@@ -113,8 +124,35 @@ public class ServiceNotification extends Service {
 
 //        notification.flags |= Notification.FLAG_INSISTENT;
 
-        notificationManager.notify(NOTIFICATION_NOTIFY, notification);
+        startForeground(NOTIFICATION_NOTIFY, notification);
 
+    }
+
+    private Notification buildNotification(String title, String message) {
+        return new NotificationCompat.Builder(getApplicationContext(), NOTIFICATION_CHANNEL_ID)
+//                    .setLargeIcon(BitmapFactory.decodeResource(getResources(),R.drawable.splash))
+                .setSmallIcon(R.drawable.rest)
+                .setTicker(title)
+//                    .setContentInfo(message)
+                .setContentTitle(title).setContentText(message)
+
+//                .setAutoCancel(true)
+                .setVisibility(VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setDefaults(Notification.DEFAULT_ALL)
+//                    .setLights(Color.GREEN,0,0)
+                .build();
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        NotificationChannel channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW);
+        notificationManager.createNotificationChannel(channel);
     }
 
     void startMission() {
@@ -137,11 +175,7 @@ public class ServiceNotification extends Service {
                         //this is the message that will be shown when the device reboot
                         if (todayMission.equals(""))
                         {
-                            final Intent intent = new Intent();
-                            // 为Intent设置Action属性
-                            intent.setAction("TodoNotification.ScreenLock.Service");
-                            intent.setPackage(getPackageName());
-                            stopService(intent);
+                            stopSelf();
                             return;
                         }
                         Message msg = new Message();

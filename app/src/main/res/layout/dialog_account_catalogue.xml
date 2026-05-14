@@ -26,6 +26,16 @@
             android:layout_height="46dp"
             android:layout_weight="1"></androidx.recyclerview.widget.RecyclerView>
 
+        <Button
+            android:id="@+id/dialog_account_catalogue_resetDefaultBtn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="56dp"
+            android:layout_height="match_parent"
+            android:background="@color/transparent"
+            android:text="默认"
+            android:textColor="@color/colorAccent"
+            android:textSize="14sp" />
+
         <ImageButton
             android:id="@+id/dialog_account_catalogue_addNewCatalogueBtn"
             android:layout_width="60dp"

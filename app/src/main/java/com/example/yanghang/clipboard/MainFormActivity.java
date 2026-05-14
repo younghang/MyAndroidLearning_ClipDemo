@@ -47,7 +47,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
@@ -87,6 +86,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
     public static String TAG = "nihao";
     public static boolean IsDelete = false;
+    public static final String PREF_CATALOGUE_CHANGED = "catalogue_changed";
 
     DBListInfoManager dbListInfoManager;
     Toolbar toolbar;
@@ -158,7 +158,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                             .setPositiveButton("更新", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
-                                    dbListInfoManager.updateDataByOrderId(todayMissionList.getOrderID(), todayMissionList.getCatalogue(), dailyTaskAdapter.getTotalProgress(), JSONArray.toJSONString(dailyTaskAdapter.getLists()), todayMissionList.getCreateDate());
+                                    TaskShowToDoList.updateDailyMissionList(dbListInfoManager, TaskShowToDoList.getTodayString(), dailyTaskAdapter.getLists());
                                     listClipInfoAdapter.setDatas(dbListInfoManager.getDatas(""));
 
                                 }
@@ -224,6 +224,15 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean(PREF_CATALOGUE_CHANGED, false)) {
+            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).edit().putBoolean(PREF_CATALOGUE_CHANGED, false).apply();
+            refreshCatalogueDrawer();
+        }
+    }
+
     private void InitialView() {
         dbListInfoManager = new DBListInfoManager(MainFormActivity.this.getApplicationContext());
 //        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
@@ -250,9 +259,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                FileUtils.saveCatalogue(getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
-                String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
-                FileUtils.saveCatalogue(filePath, catalogueAdapter.getDatas(), false, "");
+                saveCatalogueToInternal();
             }
 
             @Override
@@ -393,7 +400,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 Bundle data = new Bundle();
                 MainFormActivity.this.dailyList = mDailyList;
                 MainFormActivity.this.todayMissionList = listData;
-                if (mDailyList == null || listData == null||mDailyList.isEmpty())
+                if (mDailyList == null || mDailyList.isEmpty())
                     return;
                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_CHECK_DAILY_DATA);
                 msg.setData(data);
@@ -438,21 +445,13 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
     private void InitLeftDrawerView() {
         catalogueRecycler = (RecyclerView) findViewById(R.id.rv_catalogue);
-        catalogues = FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
-        if (catalogues==null||catalogues.size()==0)
-        {
-            String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
-            catalogues = FileUtils.loadCatalogue(filePath);
-        }
+        catalogues = loadCatalogueList();
 
         // 设置布局，否则无法正常使用
         linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         catalogueRecycler.setLayoutManager(linearLayoutManager);
 
         catalogueAdapter = new CatalogueAdapter(catalogues, MainFormActivity.this);
-        if (!catalogueAdapter.contains("default")) {
-            catalogueAdapter.addItem(new CatalogueInfos("default", ""));
-        }
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(catalogueAdapter);
 
         final ItemTouchHelper mItemTouchHelper = new ItemTouchHelper(callback);
@@ -504,6 +503,43 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         });
 
 
+    }
+
+    private void refreshCatalogueDrawer() {
+        if (catalogueAdapter == null) {
+            return;
+        }
+        catalogues = loadCatalogueList();
+        catalogueAdapter.setDatas(catalogues);
+        FileUtils.saveCatalogue(getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
+    }
+
+    private List<CatalogueInfos> loadCatalogueList() {
+        List<CatalogueInfos> catalogueList = FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
+        if (catalogueList==null||catalogueList.size()==0)
+        {
+            String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
+            catalogueList = FileUtils.loadCatalogue(filePath);
+        }
+        if (catalogueList == null) {
+            catalogueList = new ArrayList<CatalogueInfos>();
+        }
+        if (!containsCatalogue(catalogueList, "default")) {
+            catalogueList.add(0, new CatalogueInfos("default", ""));
+        }
+        return catalogueList;
+    }
+
+    private boolean containsCatalogue(List<CatalogueInfos> catalogueList, String catalogueName) {
+        if (catalogueList == null) {
+            return false;
+        }
+        for (int i = 0; i < catalogueList.size(); i++) {
+            if (catalogueList.get(i).getCatalogue().equals(catalogueName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -785,9 +821,14 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        saveCatalogueToInternal();
+    }
+
+    private void saveCatalogueToInternal() {
+        if (catalogueAdapter == null) {
+            return;
+        }
         FileUtils.saveCatalogue(getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
-        String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
-        FileUtils.saveCatalogue(filePath, catalogueAdapter.getDatas(), false, "");
     }
 
     private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {

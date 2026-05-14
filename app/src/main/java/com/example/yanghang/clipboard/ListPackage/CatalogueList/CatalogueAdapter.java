@@ -55,6 +55,14 @@ public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueAdapter.Cata
         return mDatas;
     }
 
+    public void setDatas(List<CatalogueInfos> datas) {
+        mDatas = datas;
+        if (mDatas == null) {
+            mDatas = new ArrayList<CatalogueInfos>();
+        }
+        notifyDataSetChanged();
+    }
+
     public CatalogueInfos getItem(int pos) {
         return mDatas.get(pos);
     }

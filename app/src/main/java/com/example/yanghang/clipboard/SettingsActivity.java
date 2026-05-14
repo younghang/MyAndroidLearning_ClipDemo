@@ -669,9 +669,14 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
             }
             if (preference == catalogueImportPreference) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                Intent intent = new Intent(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+                        ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_GET_CONTENT);
                 intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                }
                 startActivityForResult(intent, REQUEST_CODE_CATALOGUE);
                 return true;
             }
@@ -748,6 +753,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                             }
                         }
                         FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), true, "");
+                        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putBoolean(MainFormActivity.PREF_CATALOGUE_CHANGED, true).apply();
                         dbListInfoManager.insertDatas(listsNew);
                         data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
                     } catch (Exception e) {
@@ -758,6 +764,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     handler.sendMessage(msg);
                 }
             }).start();
+        }
+
+        private void takePersistableReadPermission(Intent data, Uri uri) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT || data == null || uri == null) {
+                return;
+            }
+            int takeFlags = data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
+            if (takeFlags == 0) {
+                return;
+            }
+            try {
+                getActivity().getContentResolver().takePersistableUriPermission(uri, takeFlags);
+            } catch (SecurityException e) {
+                Log.v(TAG, e.toString());
+            }
         }
 
         @Override
@@ -836,8 +857,18 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
 
             } else if (resultCode == RESULT_OK && requestCode == REQUEST_CODE_CATALOGUE) {
+                if (data == null) {
+                    Toast.makeText(getActivity(), "Catalogue import failed: file is empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Uri uri = data.getData();
-                final String file = FileUtils.getFilePathFromContentUri(getActivity(), uri);
+                if (uri == null) {
+                    Toast.makeText(getActivity(), "Catalogue import failed: file is empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                takePersistableReadPermission(data, uri);
+                final Uri catalogueUri = uri;
+                final String file = catalogueUri.toString();
                 //存储设置值和读取设置值，需要手动完成,不具备自动关联
                 PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putString(catalogueImportPreference.getKey(), file).apply();
                 catalogueImportPreference.setSummary(file);
@@ -852,8 +883,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Bundle data = new Bundle();
 
                         try {
-                            List<CatalogueInfos> lists = FileUtils.loadCatalogueFromDisk(MyApplication.getAppContext(),file);
+                            List<CatalogueInfos> lists = FileUtils.loadCatalogueFromDisk(MyApplication.getAppContext(),catalogueUri);
                             List<CatalogueInfos> catalogue = FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
+                            if (catalogue == null) {
+                                catalogue = new ArrayList<CatalogueInfos>();
+                            }
 
                             CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());
 
@@ -865,6 +899,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                             }
                             FileUtils.saveCatalogue(getActivity().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), true, "");
+                            PreferenceManager.getDefaultSharedPreferences(getActivity()).edit().putBoolean(MainFormActivity.PREF_CATALOGUE_CHANGED, true).apply();
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FINISH);
                         } catch (Exception e) {
                             data.putInt(MSG_FILE, MSG_LOADING_FILE_FAILED);

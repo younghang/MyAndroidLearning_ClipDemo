@@ -202,11 +202,20 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
     }
     //设置数据
     private void setData(ArrayList<PieEntry> entries) {
+        if (entries == null || entries.isEmpty()) {
+            mPieChart.clear();
+            mPieChart.invalidate();
+            return;
+        }
         PieDataSet dataSet = new PieDataSet(entries, textInCenter+"各支出占比");
         float sliceSpace=3f;
         float minValue=100f;
+        float totalValue=0f;
         for (PieEntry pieEntry : entries) {
-            float value=pieEntry.getValue();
+            totalValue += pieEntry.getValue();
+        }
+        for (PieEntry pieEntry : entries) {
+            float value=totalValue <= 0f ? 0f : pieEntry.getValue() / totalValue * 100f;
             if (value<minValue)
                 minValue=value;
         }
@@ -250,7 +259,7 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
 //        Log.d(TAG, "onValueSelected: "+e.getY()+"    "+h.getY());
 
         DecimalFormat df = new DecimalFormat("0.00");
-        mTextPartText.setText(((PieEntry)e).getLabel()+"--"+df.format(Math.abs(h.getY()*expenditure/100))+"￥");
+        mTextPartText.setText(((PieEntry)e).getLabel()+"--"+df.format(Math.abs(((PieEntry)e).getValue()))+"￥");
         new AnalyseContentTask().execute(((PieEntry)e).getLabel());
     }
     public class AnalyseContentTask extends AsyncTask<String ,String,List<AccountData>>

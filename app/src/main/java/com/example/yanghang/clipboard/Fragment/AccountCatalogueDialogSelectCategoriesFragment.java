@@ -2,6 +2,7 @@ package com.example.yanghang.clipboard.Fragment;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentManager;
@@ -34,6 +35,7 @@ import java.util.List;
 
 public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragment {
     private static final String TAG ="nihao" ;
+    private static final String PREF_ACCOUNT_CATALOGUES = "account_catalogues";
 
     public void show(FragmentManager fragmentManager) {
 
@@ -47,6 +49,7 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
     RecyclerView recyclerView;
     RecyclerView horizontalRecyclerView;
     ImageButton btnAddNewCatalogue;
+    Button btnResetDefaultCatalogue;
     Button btnSelectCatalogue;
     AccountCatalogueAdapter accountCatalogueAdapter;
     AccountCatalogueNamesAdapter accountCatalogueNamesAdapter;
@@ -72,7 +75,7 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
 
 
         recyclerView = view.findViewById(R.id.dialog_account_catalogue_recyclerView);
-        accountCatalogueAdapter = new AccountCatalogueAdapter(initialCatalogues(),getActivity());
+        accountCatalogueAdapter = new AccountCatalogueAdapter(loadCatalogues(),getActivity());
         accountCatalogueAdapter.setCataloguesChanged(new AccountCatalogueAdapter.CataloguesChanged() {
             @Override
             public void addCatalogue(String name) {
@@ -81,12 +84,15 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
 
             @Override
             public void removeCatalogue() {
-                accountCatalogueNamesAdapter.deleteItem(accountCatalogueNamesAdapter.getItemCount()-1);
+                if (accountCatalogueNamesAdapter != null && accountCatalogueNamesAdapter.getItemCount() > 0) {
+                    accountCatalogueNamesAdapter.deleteItem(accountCatalogueNamesAdapter.getItemCount()-1);
+                }
             }
 
             @Override
             public void longClick(int pos) {
                 accountCatalogueAdapter.removeItem(pos);
+                saveCatalogues();
             }
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
@@ -105,8 +111,29 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 String name = editText.getText().toString();
                                 accountCatalogueAdapter.addNewCatalogue(name);
+                                saveCatalogues();
                             }
                         }).setNegativeButton("取消", null).show();
+            }
+        });
+
+        btnResetDefaultCatalogue = view.findViewById(R.id.dialog_account_catalogue_resetDefaultBtn);
+        btnResetDefaultCatalogue.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new AlertDialog.Builder(getActivity())
+                        .setTitle("恢复默认分类")
+                        .setMessage("会清空你手动添加的记账分类，恢复为默认分类。")
+                        .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                accountCatalogueAdapter.setLists(initialCatalogues());
+                                accountCatalogueNamesAdapter.setData(new ArrayList<String>());
+                                clearSavedCatalogues();
+                            }
+                        })
+                        .setNegativeButton("取消", null)
+                        .show();
             }
         });
 
@@ -151,6 +178,53 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
 
 
 
+    private List<AccountCatalogue> loadCatalogues() {
+        String saved = PreferenceManager.getDefaultSharedPreferences(getActivity()).getString(PREF_ACCOUNT_CATALOGUES, "");
+        if (saved != null && !saved.trim().equals("")) {
+            try {
+                List<AccountCatalogue> list = JSONArray.parseArray(saved, AccountCatalogue.class);
+                removeBackItems(list);
+                if (list != null && !list.isEmpty()) {
+                    return list;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return initialCatalogues();
+    }
+
+    private void saveCatalogues() {
+        if (accountCatalogueAdapter == null) {
+            return;
+        }
+        List<AccountCatalogue> list = accountCatalogueAdapter.getLists();
+        removeBackItems(list);
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+                .putString(PREF_ACCOUNT_CATALOGUES, JSONArray.toJSONString(list))
+                .apply();
+    }
+
+    private void clearSavedCatalogues() {
+        PreferenceManager.getDefaultSharedPreferences(getActivity()).edit()
+                .remove(PREF_ACCOUNT_CATALOGUES)
+                .apply();
+    }
+
+    private void removeBackItems(List<AccountCatalogue> list) {
+        if (list == null) {
+            return;
+        }
+        for (int i = list.size() - 1; i >= 0; i--) {
+            AccountCatalogue catalogue = list.get(i);
+            if (catalogue == null || "...".equals(catalogue.getCatalogueName())) {
+                list.remove(i);
+            } else {
+                removeBackItems(catalogue.getSubCatalogue());
+            }
+        }
+    }
+
     private List<AccountCatalogue> initialCatalogues() {
         AccountCatalogue accountCatalogue0=new AccountCatalogue("吃饭");
         accountCatalogue0.setSubCatalogue(new ArrayList<AccountCatalogue>());
@@ -164,7 +238,6 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
         accountCatalogue.addSubCatalogueName("零食");
         accountCatalogue.addSubCatalogueName("饮料");
         accountCatalogue.addSubCatalogueName("外卖");
-        accountCatalogue.addSubCatalogueName("其他");
 
         AccountCatalogue accountCatalogue1=new AccountCatalogue("购物");
         accountCatalogue1.setSubCatalogue(new ArrayList<AccountCatalogue>());
@@ -172,16 +245,20 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
         accountCatalogue1.addSubCatalogueName("服装时尚");
         accountCatalogue1.addSubCatalogueName("报销");
         accountCatalogue1.addSubCatalogueName("实验耗材");
-        accountCatalogue1.addSubCatalogueName("其他");
 
         AccountCatalogue accountCatalogue3=new AccountCatalogue("工资");
 
         AccountCatalogue accountCatalogue4=new AccountCatalogue("出行");
+        AccountCatalogue accountCatalogue6=new AccountCatalogue("房租");
+
 
         AccountCatalogue accountCatalogue5=new AccountCatalogue("其他");
         accountCatalogue5.setSubCatalogue(new ArrayList<AccountCatalogue>());
         accountCatalogue5.addSubCatalogueName("日常生活用品");
-        accountCatalogue5.addSubCatalogueName("其他");
+        accountCatalogue5.addSubCatalogueName("水电");
+        accountCatalogue5.addSubCatalogueName("看病");
+        accountCatalogue5.addSubCatalogueName("买药");
+        accountCatalogue5.addSubCatalogueName("住宿");
 
         AccountCatalogue accountCatalogue2=new AccountCatalogue("Top");
         accountCatalogue2.setSubCatalogue(new ArrayList<AccountCatalogue>());
@@ -190,6 +267,7 @@ public class AccountCatalogueDialogSelectCategoriesFragment extends DialogFragme
         accountCatalogue2.addSubCatalogue(accountCatalogue1);
         accountCatalogue2.addSubCatalogue(accountCatalogue3);
         accountCatalogue2.addSubCatalogue(accountCatalogue4);
+        accountCatalogue2.addSubCatalogue(accountCatalogue6);
         accountCatalogue2.addSubCatalogue(accountCatalogue5);
         return accountCatalogue2.getSubCatalogue();
     }

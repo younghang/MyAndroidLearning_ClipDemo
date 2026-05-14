@@ -206,6 +206,11 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
         return lists;
     }
 
+    public static List<CatalogueInfos> loadCatalogueFromDisk(Context context, Uri uri)
+    {
+        return loadCatalogueUri(context, uri);
+    }
+
     public static List<CatalogueInfos> loadCatalogue(String filePath)  {
 
         List<CatalogueInfos> mList=null ;
@@ -237,10 +242,15 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
     }
     private static List<CatalogueInfos> loadCatalogueFile(Context context,File file)
     {
+        return loadCatalogueUri(context, fileToUri(context,file));
+    }
+
+    private static List<CatalogueInfos> loadCatalogueUri(Context context, Uri uri)
+    {
         List<CatalogueInfos> mList = new ArrayList<>();
         JSONArray jsonArray=null;
         try {
-            JSONObject json = loadJsonFromDisk(context,fileToUri(context,file),false);
+            JSONObject json = loadJsonFromDisk(context,uri,false);
             if (json==null)
             {
                 return mList;
@@ -253,9 +263,11 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
 
         } catch (JSONException e) {
             try {
-                for (int i = 0; i < jsonArray.length(); i++) {
-                    CatalogueInfos catalogueInfos = new CatalogueInfos(jsonArray.getString(i),"");
-                    mList.add(catalogueInfos);
+                if (jsonArray != null) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        CatalogueInfos catalogueInfos = new CatalogueInfos(jsonArray.getString(i),"");
+                        mList.add(catalogueInfos);
+                    }
                 }
             }
             catch (JSONException ea)
@@ -270,7 +282,7 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
     }
 
     public static boolean saveCatalogue(String filePath, List<CatalogueInfos> mList, boolean newFile,String fileName)  {
-        if (mList.size()==0||mList==null)
+        if (mList==null||mList.size()==0)
             return false;
         //此为判断是否保存到其他位置，另存为，并非加载储存在默认位置的目录
         if (fileName.equals(""))//默认位置

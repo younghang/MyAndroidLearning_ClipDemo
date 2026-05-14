@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 
-import androidx.annotation.RequiresApi;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -43,9 +42,10 @@ import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLa
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 import com.github.mikephil.charting.data.PieEntry;
 
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +69,8 @@ public class ActivityAccountBook extends SwipeBackActivity {
     String selectCatalogueName = "";
     private ListData listData;
     private int posInListData;
+    private List<AccountData> allAccountData = new ArrayList<>();
+    private String currentSearchQuery = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -133,61 +135,43 @@ public class ActivityAccountBook extends SwipeBackActivity {
         @Override
         public boolean onQueryTextSubmit(final String query) {
 //            Log.v(TAG, "开始查询");
-            new SearchContentTask().execute(query);
-            refreshLayout.setRefreshing(true);
-
+            applySearchQuery(query);
             return true;
         }        @Override
         public boolean onQueryTextChange(String newText) {
-            return false;
+            applySearchQuery(newText);
+            return true;
         }
 
 
     };
-    public class SearchContentTask extends AsyncTask<String ,String,List<AccountData>>
-    {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        List<AccountData> tempLists = new ArrayList<>();
-
-        @Override
-        protected void onPostExecute(List<AccountData> accountData) {
-            super.onPostExecute(accountData);
-            refreshLayout.setRefreshing(false);
-            accountDataAdapter.setData(tempLists);
-        }
-
-        @Override
-        protected List<AccountData> doInBackground(String... strings) {
-
-
-            tempLists = new ArrayList<>();
-            for (AccountData data : accountDataAdapter.getData()) {
-                if (data.getType().equals(strings[0])||data.getContent().contains(strings[0]))
-                {
-                    tempLists.add(data);
-                }
-            }
-            return tempLists;
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.account_menu, menu);
-        searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchItem.setIcon(R.drawable.ic_search_green);
+        searchView = (SearchView) searchItem.getActionView();
         if (searchView != null) {
 //            Toast.makeText(MainFormActivity.this, "null searchview", Toast.LENGTH_SHORT).show();
 //            searchView.setBackground(getDrawable(R.drawable.ic_search_green));
+            searchView.setIconifiedByDefault(true);
+            searchView.setQueryHint("搜索类型/备注");
+            searchView.setSubmitButtonEnabled(true);
             searchView.setOnQueryTextListener(onQueryTextListener);
+            searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    applySearchQuery("");
+                    return false;
+                }
+            });
             SearchView.SearchAutoComplete textView = (SearchView.SearchAutoComplete) searchView
                     .findViewById(
                            R.id.search_src_text
                     );
             textView.setTextColor(Color.GREEN);
+            textView.setHintTextColor(Color.GRAY);
 
 //            try {
 //                Field mCursorDrawableRes = TextView.class.getDeclaredField("mCursorDrawableRes");
@@ -297,6 +281,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
 
     private void showAlterDialog(final int position)
     {
+        final AccountData oldAccountData = accountDataAdapter.getItem(position);
         View view = LayoutInflater.from(ActivityAccountBook.this).inflate(R.layout.dialog_add_new_account, null);
         Button saveAccount = view.findViewById(R.id.accountDialogSave);
         final EditText accountMoneyEdit = view.findViewById(R.id.accountDialogMoney);
@@ -326,8 +311,10 @@ public class ActivityAccountBook extends SwipeBackActivity {
         RadioGroup radioGroup = (RadioGroup)view. findViewById(R.id.incomeOrExpenditure);
         if (accountDataAdapter.getItem(position).getMoney()<0)
         {
+            isIncome=false;
             radioGroup.check(R.id.rb1);
         }else {
+            isIncome=true;
             radioGroup.check(R.id.rb2);
         }
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -361,14 +348,14 @@ public class ActivityAccountBook extends SwipeBackActivity {
                     money*=-1;
                 String content=accountContentEdit.getText().toString();
 
-                AccountData accountData = new AccountData(accountDataAdapter.getItem(position).getAccountTime(), "", money, "#cccccc", selectCatalogueName, content);
-                accountDataAdapter.editItem(position,accountData);
+                AccountData accountData = new AccountData(oldAccountData.getAccountTime(), "", money, "#cccccc", selectCatalogueName, content);
+                replaceAccountData(oldAccountData, accountData);
                 saveToDataBase();
+                applyCurrentFilter();
                 if (alertDialog!=null)
                 {
                     alertDialog.dismiss();
                 }
-                new AnalyseContentTask().execute(listData.getContent());
 
             }
         });
@@ -386,6 +373,8 @@ public class ActivityAccountBook extends SwipeBackActivity {
         final EditText accountMoneyEdit = view.findViewById(R.id.accountDialogMoney);
         final EditText accountContentEdit = view.findViewById(R.id.accountDialogContent);
         final TextView accountDialogCatalogueName = view.findViewById(R.id.accountDialogCatalogueName);
+        selectCatalogueName="吃饭";
+        isIncome=false;
         accountDialogCatalogueName.setText("吃饭");
         accountDialogCatalogueName.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -433,14 +422,14 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 String content=accountContentEdit.getText().toString();
 
                 AccountData accountData = new AccountData(ListData.GetDate(), "", money, "#cccccc", selectCatalogueName,content );
-                accountDataAdapter.addItem(accountData);
+                allAccountData.add(0, accountData);
                 accountRecycleView.scrollToPosition(0);
                 saveToDataBase();
+                applyCurrentFilter();
                 if (alertDialog!=null)
                 {
                     alertDialog.dismiss();
                 }
-                new AnalyseContentTask().execute(listData.getContent());
 
             }
         });
@@ -464,16 +453,16 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 .setTitle("Alert").setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        accountDataAdapter.deleteItem(pos);
+                        allAccountData.remove(accountDataAdapter.getItem(pos));
                         saveToDataBase();
-                        new AnalyseContentTask().execute(listData.getContent());
+                        applyCurrentFilter();
                     }
                 }).setNegativeButton("取消", null).show();
 
     }
     private void saveToDataBase() {
         DBListInfoManager dbListInfoManager = new DBListInfoManager(ActivityAccountBook.this);
-        String content = JSONArray.toJSONString(accountDataAdapter.getData());
+        String content = JSONArray.toJSONString(allAccountData);
         listData.setContent(content);
 //        Log.d(TAG, "saveToDataBase: content=" + content);
         dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), catalogueNameEdit.getText().toString(), content, listData.getCreateDate());
@@ -484,20 +473,110 @@ public class ActivityAccountBook extends SwipeBackActivity {
         setResult(RESULT_BANGUMI_ACTIVITY, intent);
     }
 
-    private Map<String, Double> dataSet = new HashMap<>();
+    private void replaceAccountData(AccountData oldAccountData, AccountData newAccountData) {
+        int index = allAccountData.indexOf(oldAccountData);
+        if (index >= 0) {
+            allAccountData.set(index, newAccountData);
+        }
+    }
+
+    private static boolean containsQuery(String text, String query) {
+        return text != null && text.contains(query);
+    }
+
+    private void applyCurrentFilter() {
+        applySearchQuery(currentSearchQuery);
+    }
+
+    private void applySearchQuery(String query) {
+        currentSearchQuery = query == null ? "" : query.trim();
+        if (currentSearchQuery.equals("")) {
+            showAccountData(allAccountData);
+        } else {
+            showAccountData(filterAccountData(currentSearchQuery));
+        }
+    }
+
+    private List<AccountData> filterAccountData(String query) {
+        List<AccountData> result = new ArrayList<>();
+        for (AccountData data : allAccountData) {
+            if (containsQuery(data.getType(), query)||containsQuery(data.getContent(), query)||containsQuery(data.getAccountTime(), query))
+            {
+                result.add(data);
+            }
+        }
+        return result;
+    }
+
+    private void showAccountData(List<AccountData> accountData) {
+        if (accountData == null) {
+            accountData = new ArrayList<>();
+        }
+        AccountSummary summary = buildAccountSummary(accountData);
+        accountDataAdapter.setData(accountData);
+        accountIncome.setText(formatMoney(summary.income));
+        accountExpenditure.setText(formatMoney(summary.expenditure));
+        BigDecimal money = summary.income.subtract(summary.expenditure);
+
+        accountMoney.setText(formatMoney(money.abs()));
+        if (money.signum() < 0)
+        {
+            accountMoneyImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_expenditure));
+        }else {
+            accountMoneyImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_income));
+        }
+    }
+
+    private AccountSummary buildAccountSummary(List<AccountData> accountData) {
+        AccountSummary summary = new AccountSummary();
+        dataSet.clear();
+        entries.clear();
+        if (accountData == null) {
+            return summary;
+        }
+        for (AccountData data : accountData) {
+            BigDecimal money = moneyOf(data.getMoney());
+            if (money.signum() < 0)
+            {
+                BigDecimal expenditure = money.abs();
+                String type=data.getType();
+                BigDecimal valueTemp = dataSet.containsKey(type) ? dataSet.get(type).add(expenditure) : expenditure;
+                dataSet.put(type,valueTemp);
+                summary.expenditure = summary.expenditure.add(expenditure);
+            }else {
+                summary.income = summary.income.add(money);
+            }
+        }
+        for (Map.Entry<String, BigDecimal> d : dataSet.entrySet()) {
+            entries.add(new PieEntry(d.getValue().floatValue(), d.getKey()));
+        }
+        mExpenditure=summary.expenditure.doubleValue();
+        return summary;
+    }
+
+    private static BigDecimal moneyOf(double money) {
+        return BigDecimal.valueOf(money).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static String formatMoney(BigDecimal money) {
+        return money.setScale(2, RoundingMode.HALF_UP).toPlainString();
+    }
+
+    private static class AccountSummary {
+        BigDecimal income = BigDecimal.ZERO;
+        BigDecimal expenditure = BigDecimal.ZERO;
+    }
+
+    private Map<String, BigDecimal> dataSet = new LinkedHashMap<>();
     ArrayList<PieEntry> entries = new ArrayList<PieEntry>();
     double mExpenditure=0;
 
     public class AnalyseContentTask extends AsyncTask<String ,String,List<AccountData>>
     {
         List<AccountData> list;
-        double income=0;
-        double expenditure=0;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            dataSet.clear();
-            entries.clear();
             refreshLayout.setRefreshing(true);
         }
 
@@ -505,19 +584,9 @@ public class ActivityAccountBook extends SwipeBackActivity {
         protected void onPostExecute(List<AccountData> accountData) {
             super.onPostExecute(accountData);
             refreshLayout.setRefreshing(false);
-            DecimalFormat df = new DecimalFormat("0.00");
-            accountDataAdapter.setData(accountData);
-            accountIncome.setText(df.format(income));
-            accountExpenditure.setText(df.format(Math.abs(expenditure)));
-            double money=income+expenditure;
-
-            accountMoney.setText(df.format(Math.abs(money)));
-            if (money<0)
-            {
-                accountMoneyImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_expenditure));
-            }else {
-                accountMoneyImage.setImageDrawable(getResources().getDrawable(R.drawable.ic_income));
-            }
+            allAccountData = accountData;
+            currentSearchQuery = "";
+            showAccountData(allAccountData);
         }
 
         @Override
@@ -527,30 +596,6 @@ public class ActivityAccountBook extends SwipeBackActivity {
             {
                 return new ArrayList<>();
             }
-            for (AccountData data : list) {
-                if (data.getMoney()<0)
-                {
-                    String type=data.getType();
-                    if (dataSet.containsKey(type))
-                    {
-                        double valueTemp=dataSet.get(type)+data.getMoney();
-                        dataSet.put(type,valueTemp);
-                    }
-                    else
-                    {
-                        dataSet.put(type,data.getMoney());
-                    }
-                    expenditure += data.getMoney();
-                }else
-                    income+=data.getMoney();
-            }
-            for (Map.Entry<String, Double> d : dataSet.entrySet()) {
-                DecimalFormat df = new DecimalFormat("0.00");
-                double valueD=Math.abs(d.getValue()/expenditure*100);
-                float valueF=Float.parseFloat(df.format(valueD));
-                entries.add(new PieEntry(valueF, d.getKey()));
-            }
-            mExpenditure=expenditure;
 //            List<AccountData> Alist = new ArrayList<>();
 //            Alist.addAll(list);
 //            list.clear();

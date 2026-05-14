@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.example.yanghang.clipboard.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,6 +24,9 @@ public class AccountCatalogueNamesAdapter extends RecyclerView.Adapter{
 
     public AccountCatalogueNamesAdapter(Context context, List<String> catalogueNames) {
         this.context = context;
+        if (catalogueNames == null) {
+            catalogueNames = new ArrayList<>();
+        }
         this.catalogueNames = catalogueNames;
         inflater = LayoutInflater.from(context);
     }
@@ -34,20 +38,32 @@ public class AccountCatalogueNamesAdapter extends RecyclerView.Adapter{
         return myHolder;
     }
     public void addItem(String bangumiData) {
+        if (catalogueNames == null) {
+            catalogueNames = new ArrayList<>();
+        }
         catalogueNames.add(bangumiData);
         notifyItemInserted(catalogueNames.size());
     }
 
     public void setData(List<String> list) {
+        if (list == null) {
+            list = new ArrayList<>();
+        }
         this.catalogueNames = list;
         notifyDataSetChanged();
     }
     public void deleteItem(int pos) {
+        if (catalogueNames == null || pos < 0 || pos >= catalogueNames.size()) {
+            return;
+        }
         catalogueNames.remove(pos);
         notifyItemRemoved(pos);
     }
 
     public void editItem(int pos, String accountData) {
+        if (catalogueNames == null || pos < 0 || pos >= catalogueNames.size()) {
+            return;
+        }
         catalogueNames.set(pos, accountData);
         notifyItemChanged(pos);
     }
@@ -64,6 +80,9 @@ public class AccountCatalogueNamesAdapter extends RecyclerView.Adapter{
 
     @Override
     public int getItemCount() {
+        if (catalogueNames == null) {
+            return 0;
+        }
         return catalogueNames.size();
     }
     class MyHolder extends RecyclerView.ViewHolder{

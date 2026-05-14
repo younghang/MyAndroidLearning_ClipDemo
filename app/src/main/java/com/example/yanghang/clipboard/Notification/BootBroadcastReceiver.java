@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import androidx.core.content.ContextCompat;
+
 /**
  * Created by young on 2017/10/10.
  */
@@ -19,8 +21,8 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
         //后边的XXX.class就是要启动的服务
         Intent service = new Intent(context,ServiceNotification.class);
         //启动应用，参数为需要自动启动的应用的包名
-        intent.setAction("TodoNotification.ScreenLock.Service");
-        context.startService(service);
+        service.setAction("TodoNotification.ScreenLock.Service");
+        ContextCompat.startForegroundService(context, service);
     }
 
 }

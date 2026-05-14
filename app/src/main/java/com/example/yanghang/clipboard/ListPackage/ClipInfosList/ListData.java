@@ -14,7 +14,8 @@ import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 
 import java.io.Serializable;
-import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -156,8 +157,8 @@ public class ListData implements Serializable {
                 }
                 break;
             case "记账":
-                double expenditure=0;
-                double income=0;
+                BigDecimal expenditure=BigDecimal.ZERO;
+                BigDecimal income=BigDecimal.ZERO;
                 List<AccountData> list = JSONArray.parseArray(Content, AccountData.class);
                 if (list==null)
                 {
@@ -166,12 +167,11 @@ public class ListData implements Serializable {
                 for (AccountData data : list) {
                     if (data.getMoney()<0)
                     {
-                        expenditure += data.getMoney();
+                        expenditure = expenditure.add(moneyOf(data.getMoney()));
                     }else
-                        income+=data.getMoney();
+                        income = income.add(moneyOf(data.getMoney()));
                 }
-                DecimalFormat df = new DecimalFormat("0.00");
-                strMessage = "收入=" + df.format(income) + "     支出=" + df.format(Math.abs(expenditure)) + "     总算=" + df.format(income + expenditure);
+                strMessage = "收入=" + formatMoney(income) + "     支出=" + formatMoney(expenditure.abs()) + "     总算=" + formatMoney(income.add(expenditure));
                 break;
             case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
                 switch (Remarks){
@@ -208,5 +208,13 @@ public class ListData implements Serializable {
 
     public void setContent(String content) {
         Content = content;
+    }
+
+    private static BigDecimal moneyOf(double money) {
+        return BigDecimal.valueOf(money).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    private static String formatMoney(BigDecimal money) {
+        return money.setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 }
