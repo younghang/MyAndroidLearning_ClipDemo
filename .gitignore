@@ -1,7 +1,49 @@
-.gradle
-/local.properties
-/.idea/workspace.xml
-/.idea/libraries
+# Gradle
+.gradle/
+build/
+*/build/
+
+# Local Android/Gradle config
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Android generated files
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Build outputs
+*.apk
+*.ap_
+*.aab
+*.idsig
+app/app-release/
+app/app-release.apk
+app/app-release.rar
+
+# Gradle user-home directories accidentally created in the project root
+/caches/
+/daemon/
+/jdks/
+/native/
+/workers/
+/wrapper/
+
+# OS / editor
 .DS_Store
-/build
-/captures
+Thumbs.db
+.vscode/
+
+# Logs and crash dumps
+*.log
+*.hprof
+
+# Visual Studio / .NET helper project artifacts
+.vs/
+*.suo
+*.user
+**/[Bb]in/
+**/[Oo]bj/
