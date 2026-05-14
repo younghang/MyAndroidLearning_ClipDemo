@@ -1,7 +1,7 @@
 package com.example.yanghang.clipboard.ListPackage.CalendarItemList;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +13,6 @@ import android.widget.TextView;
 
 
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
-import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager;
 import com.example.yanghang.clipboard.R;
 
 import java.util.ArrayList;

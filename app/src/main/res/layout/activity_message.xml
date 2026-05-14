@@ -6,7 +6,7 @@
     android:background="@color/light_gray"
     tools:context="com.example.yanghang.clipboard.ActivityPCMessage">
 
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/messageToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,16 +14,16 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="@style/AppTheme.AppBarOverlay">
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_message"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/messageToolbar"
         >
 
-    </android.support.v7.widget.RecyclerView>
+    </androidx.recyclerview.widget.RecyclerView>
 
     <include
         layout="@layout/message_bottom"

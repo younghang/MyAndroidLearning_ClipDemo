@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -53,7 +53,13 @@ public class ActivityConnect extends SwipeBackActivity {
 
                     ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
                     // 将文本内容放到系统剪贴板里。
-                    String strinfo = cm.getPrimaryClip().getItemAt(0).getText().toString();
+                    String strinfo="";
+                    try{
+                         strinfo = cm.getPrimaryClip().getItemAt(0).getText().toString();
+                    }catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
                     Intent intent2 = new Intent(ActivityConnect.this, ActivityPCMessage.class);
                     intent2.putExtra(ActivityPCMessage.DIALOG_MESSAGE, strinfo);
                     startActivity(intent2);

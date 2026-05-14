@@ -96,8 +96,10 @@ public abstract class BaseCalendarListAdapter<T> extends com.example.yanghang.cl
                 }
             }
         }
-
-        return dateMapToPos.get(indexToTimeList.get(i - 1)) + 1;
+        if (i>=1){String indexStr=indexToTimeList.get(i - 1);
+        return dateMapToPos.get(indexStr) + 1;}
+        else
+        return 1;
     }
 
 

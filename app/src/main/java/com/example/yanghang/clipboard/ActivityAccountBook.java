@@ -7,16 +7,15 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Message;
-import android.support.annotation.RequiresApi;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Gravity;
+
+import androidx.annotation.RequiresApi;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,7 +43,6 @@ import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLa
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 import com.github.mikephil.charting.data.PieEntry;
 
-import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.example.yanghang.clipboard.ActivityBangumi.RESULT_BANGUMI_ACTIVITY;
-import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 public class ActivityAccountBook extends SwipeBackActivity {
 
@@ -169,7 +166,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
 
             tempLists = new ArrayList<>();
             for (AccountData data : accountDataAdapter.getData()) {
-                if (data.getType().equals(strings[0]))
+                if (data.getType().equals(strings[0])||data.getContent().contains(strings[0]))
                 {
                     tempLists.add(data);
                 }
@@ -188,7 +185,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
             searchView.setOnQueryTextListener(onQueryTextListener);
             SearchView.SearchAutoComplete textView = (SearchView.SearchAutoComplete) searchView
                     .findViewById(
-                            android.support.v7.appcompat.R.id.search_src_text
+                           R.id.search_src_text
                     );
             textView.setTextColor(Color.GREEN);
 

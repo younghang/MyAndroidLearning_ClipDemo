@@ -3,8 +3,8 @@ package com.example.yanghang.clipboard.ListPackage.ClipInfosList;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -15,16 +15,9 @@ import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONException;
-import com.example.yanghang.clipboard.Fragment.FragmentDiary;
-import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
-import com.example.yanghang.clipboard.Fragment.FragmentToDo;
-import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.OthersView.SlidingButtonView;
 import com.example.yanghang.clipboard.R;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;

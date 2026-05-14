@@ -1,21 +1,19 @@
 package com.example.yanghang.clipboard;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.PopupMenu;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -25,7 +23,6 @@ import com.example.yanghang.clipboard.Fragment.FragmentDiary;
 import com.example.yanghang.clipboard.Fragment.FragmentEditAbstract;
 import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
 import com.example.yanghang.clipboard.Fragment.FragmentToDo;
-import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLayout;

@@ -3,6 +3,7 @@ package com.example.yanghang.clipboard.ListPackage.CalendarList;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -25,6 +26,8 @@ import java.util.List;
 import javax.crypto.BadPaddingException;
 
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
+
+import androidx.core.content.FileProvider;
 
 /**
  * Created by young on 2017/10/29.
@@ -150,7 +153,8 @@ public class CalendarImageManager {
         JSONArray jsonArray=null;
         try {
             File file = FileUtils.createFile(FileName, context.getFilesDir().getAbsolutePath());
-            org.json.JSONObject json = FileUtils.loadJsonFromDisk(file,false);
+            Uri uri = FileProvider.getUriForFile(context, "com.yourapp.fileprovider", file);
+            org.json.JSONObject json = FileUtils.loadJsonFromDisk(context,uri,false);
             if (json==null)
             {
                 return mList;

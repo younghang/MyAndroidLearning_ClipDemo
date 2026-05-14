@@ -1,14 +1,15 @@
 package com.example.yanghang.clipboard;
 
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,19 +19,20 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.SwitchPreference;
-import android.support.annotation.Nullable;
-import android.support.graphics.drawable.VectorDrawableCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.vectordrawable.graphics.drawable.VectorDrawableCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -39,7 +41,6 @@ import android.widget.Toast;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.DBClipInfos.ListInfoDB;
-import com.example.yanghang.clipboard.FileUtils.AndroidFileUtil;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager;
@@ -51,25 +52,18 @@ import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdap
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.ListPackage.FileList.SettingFileAdapter;
 import com.example.yanghang.clipboard.Log.CrashHandler;
+import com.example.yanghang.clipboard.Log.MyApplication;
 import com.example.yanghang.clipboard.Notification.ServiceNotification;
-
-import org.json.JSONArray;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.prefs.PreferenceChangeListener;
 
 import javax.crypto.BadPaddingException;
-
+import androidx.core.content.FileProvider;
 import static com.example.yanghang.clipboard.FileUtils.FileUtils.CATALOGUE_FILE_NAME;
 import static com.example.yanghang.clipboard.FileUtils.FileUtils.SAVE_FILE_CATALOGUE_JSON_SUFFIX;
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
@@ -92,6 +86,11 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         super.onCreate(savedInstanceState);
         setupActionBar();
         replaceHeaderLayoutResId();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+            }
+        }
     }
 
     private void replaceHeaderLayoutResId() {
@@ -408,7 +407,9 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     File file = new File(getActivity().getFilesDir().getAbsolutePath() +"/"+adapter.getFileName(position));
                     FileUtils.createFile("temp.txt", getActivity().getFilesDir().getAbsolutePath());
                     try {
-                        fileStr=FileUtils.loadJsonFromDisk(file,false).toString();
+                        // 使用 FileProvider 将 File 转换为 Uri
+                        Uri uri =  FileProvider.getUriForFile(getContext(), "com.yourapp.fileprovider", file);
+                        fileStr=FileUtils.loadJsonFromDisk(getContext(),uri,false).toString();
                         Log.d(TAG, "OnItemClick: fileStr="+fileStr);
                     } catch (BadPaddingException e) {
                         e.printStackTrace();
@@ -675,11 +676,22 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 return true;
             }
             if (preference == fileImport) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                startActivityForResult(intent, REQUEST_CODE_FILE);
-                return true;
+
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.R) {  // Android 11 以上
+                    // 请求打开文件选择器Android 14
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.setType("*/*"); // 可以指定文件类型，例如 "application/json"
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
+                    startActivityForResult(intent, REQUEST_CODE_FILE);
+                    return true;
+                }else
+                {
+                    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                    intent.setType("*/*");//设置类型，我这里是任意类型，任意后缀的可以这样写。
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    startActivityForResult(intent, REQUEST_CODE_FILE);
+                    return true;
+                }
             }
             return false;
         }
@@ -703,7 +715,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     }).show();
         }
 
-        private void loadClipsJson(final String filePath, final boolean encoded)
+        private void loadClipsJson(Context context, Uri uri, final boolean encoded)
         {
             new Thread(new Runnable() {
                 @Override
@@ -712,7 +724,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     Bundle data = new Bundle();
                     List<ListData> listsNew = new ArrayList<ListData>();
                     try {
-                        List<ListData> lists = FileUtils.loadListDatas(filePath,encoded);
+                        List<ListData> lists = FileUtils.loadListDatas(context,uri,encoded);
                         List<CatalogueInfos> catalogue = FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
                         DBListInfoManager dbListInfoManager = new DBListInfoManager(getActivity());
                         CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());
@@ -778,7 +790,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
 
                         codeText.setVisibility(View.GONE);
                         loadingDialog.show();
-                        loadClipsJson(file,false);
+                        loadClipsJson(getContext(),uri,false);
                     }else if (suffix.equals("sphykey")){
                         loadingDialog = new AlertDialog.Builder(getActivity()).setView(view)
                                 .setTitle("输入解密密码")
@@ -791,7 +803,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                                         progress.setVisibility(View.VISIBLE);
                                         seed[0] = codeText.getText().toString();
                                         FileUtils.SEED = seed[0];
-                                        loadClipsJson(file,true);
+                                        loadClipsJson(getContext(),uri,true);
                                     }}).setNegativeButton("取消", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
@@ -840,7 +852,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         Bundle data = new Bundle();
 
                         try {
-                            List<CatalogueInfos> lists = FileUtils.loadCatalogueFromDisk(file);
+                            List<CatalogueInfos> lists = FileUtils.loadCatalogueFromDisk(MyApplication.getAppContext(),file);
                             List<CatalogueInfos> catalogue = FileUtils.loadCatalogue(getActivity().getFilesDir().getAbsolutePath());
 
                             CatalogueAdapter catalogueAdapter = new CatalogueAdapter(catalogue, getActivity());

@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.util.Log;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +15,6 @@ import android.view.ViewGroup;
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.ActivityEditInfo;
 import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
-import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.R;
 
 import java.util.ArrayList;
@@ -109,7 +108,7 @@ public class FragmentDiary extends FragmentEditAbstract {
         fragmentEditInfos.add(fragmentEditInfo3);
         fragmentPagerAdapter= new FragmentPagerAdapter(((ActivityEditInfo) getActivity()).getSupportFragmentManager()) {
             @Override
-            public android.support.v4.app.Fragment getItem(int position) {
+            public androidx.fragment.app.Fragment getItem(int position) {
                 return fragmentEditInfos.get(position);
             }
 

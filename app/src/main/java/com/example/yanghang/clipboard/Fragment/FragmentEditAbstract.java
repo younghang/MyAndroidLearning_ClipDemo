@@ -3,10 +3,12 @@ package com.example.yanghang.clipboard.Fragment;
 
 import android.os.Bundle;
 
+import androidx.fragment.app.Fragment;
+
 /**
  * Created by yanghang on 2017/1/18.
  */
-public abstract class FragmentEditAbstract extends android.support.v4.app.Fragment implements IEditText {
+public abstract class FragmentEditAbstract extends Fragment implements IEditText {
 
     protected static final String ARG_INFO = "information";
     protected static final String ARG_EDIT = "isedit";

@@ -1,8 +1,8 @@
 package com.example.yanghang.clipboard.ListPackage.MessageList;
 
 import android.content.Context;
-import android.support.v4.app.NotificationCompat;
-import android.support.v7.widget.RecyclerView;
+import androidx.core.app.NotificationCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;

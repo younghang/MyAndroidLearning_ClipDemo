@@ -6,12 +6,16 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.core.content.FileProvider;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.EncodeFile.AESUtils;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.Log.MyApplication;
 import com.example.yanghang.clipboard.MainFormActivity;
 
 import org.json.JSONArray;
@@ -23,24 +27,26 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 
 /**
  * Created by yanghang on 2016/12/6.
  */
-public class FileUtils {   //        getgetApplicationContext().getFilesDir().getAbsolutePath();
+public class FileUtils {   //        getApplicationContext().getFilesDir().getAbsolutePath();
     public static String CATALOGUE_FILE_NAME = "catalogue";
-    private static String CATALOGUE_NEW_FILE_NAME="new_catalogue";
-    private static String CATALOGUE_JSON_NAME = "catalogue";
-    private static String CATALOGUE_NAME="catalogue";
-    private static String CATALOGUE_DESCRIPTION="catalogue_description";
-    private static String LISTDATA_CLIPS_NAME = "clips";
-    public static String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
-    private static String SAVE_FILE_CATALOGUE_ENCODE_SUFFIX = ".sphykey";
+    private static final String CATALOGUE_NEW_FILE_NAME="new_catalogue";
+    private static final String CATALOGUE_JSON_NAME = "catalogue";
+    private static final String CATALOGUE_NAME="catalogue";
+    private static final String CATALOGUE_DESCRIPTION="catalogue_description";
+    private static final String LISTDATA_CLIPS_NAME = "clips";
+    public static final String SAVE_FILE_CATALOGUE_JSON_SUFFIX = ".json";
+    private static final String SAVE_FILE_CATALOGUE_ENCODE_SUFFIX = ".sphykey";
     public static String SEED="";
 
 
@@ -78,13 +84,14 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
 
     }
 
-    public static List<ListData> loadListDatas(String fileName,boolean encoded) throws Exception{
+    public static List<ListData> loadListDatas(Context context,Uri uri,boolean encoded) throws Exception{
         List<ListData> listDatas = new ArrayList<>();
-        File file = new File(fileName);
+
 
         JSONObject json;
-        if (file.exists()) {
-                json= loadJsonFromDisk(file,encoded);
+//        if (file.exists()) {
+            if (true) {
+                json= loadJsonFromDisk(context,uri,encoded);
             try {
                 JSONArray array = json.getJSONArray(LISTDATA_CLIPS_NAME);
                 for (int i = array.length()-1; i >-1; i--) {
@@ -110,7 +117,8 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             fileOutputStream = new FileOutputStream(file, false);
             ByteArrayInputStream bis;
             if (encoded) {
-                bis= new ByteArrayInputStream(AESUtils.encrypt(SEED,jsonObject.toString()).getBytes("utf-8"));
+//                bis= new ByteArrayInputStream(AESUtils.encrypt(SEED,jsonObject.toString()).getBytes("utf-8"));
+                bis= new ByteArrayInputStream(AESUtils.des(jsonObject.toString(),SEED, Cipher.ENCRYPT_MODE).getBytes("utf-8"));
             }else
             {
                 bis= new ByteArrayInputStream(jsonObject.toString().getBytes("utf-8"));
@@ -129,12 +137,13 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         return true;
     }
 
-    public static JSONObject loadJsonFromDisk(File file,boolean encoded) throws BadPaddingException {
-        if (file == null)
+    public static JSONObject loadJsonFromDisk(Context context,Uri uri,boolean encoded) throws BadPaddingException {
+        if (uri == null)
             return null;
-        FileInputStream fileInputStream;
+
+        InputStream fileInputStream;
         try {
-            fileInputStream = new FileInputStream(file);
+            fileInputStream = context.getContentResolver().openInputStream(uri);
             byte[] buffer = new byte[1024];
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int c = 0;
@@ -146,13 +155,23 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             JSONObject json;
             if (encoded)
             {
-                json = new JSONObject(AESUtils.decrypt(FileUtils.SEED,bos.toString("utf-8")));
+//                json = new JSONObject(AESUtils.decrypt(FileUtils.SEED,bos.toString("utf-8")));
+                json = new JSONObject(AESUtils.des(bos.toString("utf-8"),FileUtils.SEED,Cipher.DECRYPT_MODE));
             }else
-                json = new JSONObject(bos.toString("utf-8"));
+            {
+                String str=bos.toString("utf-8");
+                if(!TextUtils.isEmpty(str)) {
+                    json = new JSONObject(str);
+                }else {
+                    json=null;
+                }
+            }
+
             return json;
         }
         catch (Exception e)
         {
+            Log.v(MainFormActivity.TAG, e.toString());
             e.printStackTrace();
         }
         return null;
@@ -179,22 +198,21 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
         } else return file;
 
     }
-    public static List<CatalogueInfos> loadCatalogueFromDisk(String fileAbsoluteName)
+    public static List<CatalogueInfos> loadCatalogueFromDisk(Context context, String fileAbsoluteName)
     {
         List<CatalogueInfos> lists=null  ;
         File file = new File(fileAbsoluteName);
-        lists = loadCatalogueFile(file);
+        lists = loadCatalogueFile(context, file);
         return lists;
     }
 
     public static List<CatalogueInfos> loadCatalogue(String filePath)  {
 
-
-        List<CatalogueInfos> mList ;
+        List<CatalogueInfos> mList=null ;
         File file = new File(filePath + "/" + CATALOGUE_NEW_FILE_NAME+SAVE_FILE_CATALOGUE_JSON_SUFFIX);
 
         if (file.exists()) {
-            mList = loadCatalogueFile(file);
+            mList = loadCatalogueFile(MyApplication.getAppContext(),file);
             file.delete();
         }
         else {
@@ -202,22 +220,27 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
                 file= new File(filePath + "/" + CATALOGUE_FILE_NAME+SAVE_FILE_CATALOGUE_JSON_SUFFIX);
                 if (!file.exists())
                 {
-                    file.createNewFile();
+                    return null;
                 }
+                mList = loadCatalogueFile(MyApplication.getAppContext(),file);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            mList = loadCatalogueFile(file);
+
         }
         return mList;
 
     }
-    private static List<CatalogueInfos> loadCatalogueFile(File file)
+    public static Uri fileToUri(Context context, File file) {
+        // 使用 FileProvider 将 File 转换为 Uri
+        return FileProvider.getUriForFile(context, "com.yourapp.fileprovider", file);
+    }
+    private static List<CatalogueInfos> loadCatalogueFile(Context context,File file)
     {
         List<CatalogueInfos> mList = new ArrayList<>();
         JSONArray jsonArray=null;
         try {
-            JSONObject json = loadJsonFromDisk(file,false);
+            JSONObject json = loadJsonFromDisk(context,fileToUri(context,file),false);
             if (json==null)
             {
                 return mList;
@@ -247,6 +270,8 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
     }
 
     public static boolean saveCatalogue(String filePath, List<CatalogueInfos> mList, boolean newFile,String fileName)  {
+        if (mList.size()==0||mList==null)
+            return false;
         //此为判断是否保存到其他位置，另存为，并非加载储存在默认位置的目录
         if (fileName.equals(""))//默认位置
         {
@@ -276,7 +301,6 @@ public class FileUtils {   //        getgetApplicationContext().getFilesDir().ge
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-
             jsonArray.put(jsonObject);
         }
         try {

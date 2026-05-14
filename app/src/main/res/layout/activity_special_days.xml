@@ -35,7 +35,7 @@ android:id="@+id/activity_special_day_container"
 
     </FrameLayout>
 
-    <android.support.design.widget.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/activity_special_day_fab"
         android:layout_width="60dp"
         android:layout_height="60dp"
@@ -55,14 +55,14 @@ android:id="@+id/activity_special_day_container"
 
         />
 
-    <android.support.design.widget.AppBarLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:background="@color/transparent"
         android:theme="@style/AppTheme.AppBarOverlay"
         app:elevation="0dp">
         <!--标题栏-->
-        <android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+        <androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/activity_special_day_toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -73,13 +73,13 @@ android:id="@+id/activity_special_day_container"
             app:theme="@style/ThemeOverlay.AppCompat.ActionBar">
 
 
-        </android.support.v7.widget.Toolbar>
+        </androidx.appcompat.widget.Toolbar>
 
         <!--大图-->
 
         <!--选项卡-->
 
-    </android.support.design.widget.AppBarLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
 
 </FrameLayout>

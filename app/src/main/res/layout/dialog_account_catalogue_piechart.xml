@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView android:layout_height="wrap_content"
+<androidx.cardview.widget.CardView android:layout_height="wrap_content"
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardCornerRadius="10dp"
@@ -29,14 +29,14 @@
         android:textColor="@color/colorAccentPre"
         android:text="123"
         android:layout_height="wrap_content" />
-<android.support.v7.widget.RecyclerView
+<androidx.recyclerview.widget.RecyclerView
     android:id="@+id/dialog_account_recycleView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-</android.support.v7.widget.RecyclerView>
+</androidx.recyclerview.widget.RecyclerView>
 
 
 </LinearLayout>
 </ScrollView>
-</android.support.v7.widget.CardView>
+</androidx.cardview.widget.CardView>

@@ -8,14 +8,13 @@ import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.TextView;
 
 import com.example.yanghang.clipboard.R;
 
 /**
  * Created by young on 2016/3/22 0022.
  */
-public class AlwaysMarqueeTextView extends android.support.v7.widget.AppCompatTextView   {
+public class AlwaysMarqueeTextView extends androidx.appcompat.widget.AppCompatTextView   {
 
     public boolean isStarting = true;//是否开始滚动
     private float textLength = 0f;//文本长度

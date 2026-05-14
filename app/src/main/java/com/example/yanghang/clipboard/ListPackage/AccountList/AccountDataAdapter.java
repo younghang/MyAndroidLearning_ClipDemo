@@ -2,7 +2,7 @@ package com.example.yanghang.clipboard.ListPackage.AccountList;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -102,12 +102,14 @@ public class AccountDataAdapter extends RecyclerView.Adapter {
         holder.contentLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mItemClickListener!=null)
                 mItemClickListener.OnItemClick(v,holder.getAdapterPosition());
             }
         });
         holder.contentLayout.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                if (mItemClickListener!=null)
                 mItemClickListener.OnItemLongClick(v, holder.getAdapterPosition());
                 return true;
 

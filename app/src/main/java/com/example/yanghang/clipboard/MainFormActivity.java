@@ -1,6 +1,7 @@
 package com.example.yanghang.clipboard;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -12,26 +13,25 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
+import androidx.annotation.NonNull;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.ItemTouchHelper;
+
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -47,13 +47,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
-import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
-import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
-import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
@@ -67,7 +63,6 @@ import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.IllegalFormatCodePointException;
 import java.util.List;
 
 import permissions.dispatcher.NeedsPermission;
@@ -158,7 +153,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
                     recyclerView.setLayoutManager(new LinearLayoutManager(MainFormActivity.this, LinearLayoutManager.VERTICAL, false));
                     recyclerView.setAdapter(dailyTaskAdapter);
-                    new android.support.v7.app.AlertDialog.Builder(MainFormActivity.this).setView(dialogDailyTaskView)
+                    new androidx.appcompat.app.AlertDialog.Builder(MainFormActivity.this).setView(dialogDailyTaskView)
                             .setTitle("日常任务")
                             .setPositiveButton("更新", new DialogInterface.OnClickListener() {
                                 @Override
@@ -255,11 +250,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             public void onDrawerClosed(View drawerView) {
                 isSettingShow = false;
                 invalidateOptionsMenu();
-                FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
-                if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                        || !Environment.isExternalStorageRemovable()) {
-                    FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
-                }
+                FileUtils.saveCatalogue(getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
+                String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
+                FileUtils.saveCatalogue(filePath, catalogueAdapter.getDatas(), false, "");
             }
 
             @Override
@@ -445,13 +438,13 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
     private void InitLeftDrawerView() {
         catalogueRecycler = (RecyclerView) findViewById(R.id.rv_catalogue);
-        try {
-            catalogues = FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
-
-        } catch (Exception e) {
-            catalogues = FileUtils.loadCatalogue(getExternalFilesDir(null).getAbsolutePath());
-
+        catalogues = FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
+        if (catalogues==null||catalogues.size()==0)
+        {
+            String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
+            catalogues = FileUtils.loadCatalogue(filePath);
         }
+
         // 设置布局，否则无法正常使用
         linearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         catalogueRecycler.setLayoutManager(linearLayoutManager);
@@ -700,11 +693,11 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             searchView.setOnQueryTextListener(onQueryTextListener);
             SearchView.SearchAutoComplete textView = (SearchView.SearchAutoComplete) searchView
                     .findViewById(
-                            android.support.v7.appcompat.R.id.search_src_text
+                            R.id.search_src_text
                     );
             textView.setTextColor(Color.WHITE);
             try {
-                Field mCursorDrawableRes = TextView.class.getDeclaredField("mCursorDrawableRes");
+                @SuppressLint("SoonBlockedPrivateApi") Field mCursorDrawableRes = TextView.class.getDeclaredField("mCursorDrawableRes");
                 mCursorDrawableRes.setAccessible(true);
                 mCursorDrawableRes.set(textView, R.drawable.cursor_color);
             } catch (Exception e) {
@@ -792,11 +785,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        FileUtils.saveCatalogue(getApplicationContext().getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !Environment.isExternalStorageRemovable()) {
-            FileUtils.saveCatalogue(getApplicationContext().getExternalFilesDir(null).getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
-        }
+        FileUtils.saveCatalogue(getFilesDir().getAbsolutePath(), catalogueAdapter.getDatas(), false, "");
+        String filePath=PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("dataFilePathPreference",getFilesDir().getAbsolutePath());
+        FileUtils.saveCatalogue(filePath, catalogueAdapter.getDatas(), false, "");
     }
 
     private void setCatalogueChanged(String oldCatalogue, String newCatalogue) {
@@ -910,7 +901,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 dbListInfoManager.cancelDelete(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
 
             }
-        }).setDuration(Snackbar.LENGTH_LONG).show();
+        }).setDuration(BaseTransientBottomBar.LENGTH_LONG).show();
     }
 /*<========================================================================================>*/
 //        new Thread(new Runnable() {

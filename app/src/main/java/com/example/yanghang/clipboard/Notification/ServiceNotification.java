@@ -7,28 +7,23 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.preference.PreferenceManager;
-import android.support.annotation.IntDef;
-import android.support.v4.app.NotificationCompat;
+import androidx.annotation.IntDef;
+import androidx.core.app.NotificationCompat;
 import android.util.Log;
 
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskData;
-import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.R;
 import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
 import java.util.List;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC;
+import static androidx.core.app.NotificationCompat.VISIBILITY_PUBLIC;
 
 public class ServiceNotification extends Service {
     public ServiceNotification() {

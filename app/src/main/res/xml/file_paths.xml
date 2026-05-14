@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 共享内部存储的文件 -->
+    <files-path name="my_files" path="." />
+
+    <!-- 共享外部存储的文件 -->
+    <external-path name="external_files" path="." />
+</paths>

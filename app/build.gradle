@@ -2,38 +2,40 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 26
-    buildToolsVersion '26.0.2'
+    compileSdk 33
 
 
     defaultConfig {
         applicationId "com.example.yanghang.clipboard"
         minSdkVersion 19
-        targetSdkVersion 23
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
     }
+    buildToolsVersion '33.0.0'
 
 
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':chart')
-    compile project(':listview')
-    compile 'com.android.support:appcompat-v7:26.+'
-    compile 'com.android.support:design:26.+'
-    compile 'com.android.support:recyclerview-v7:26.+'
-    compile 'com.android.support:cardview-v7:26.+'
-    compile 'com.android.support:support-v4:26.+'
-    compile 'com.github.hotchemi:permissionsdispatcher:2.3.1'
-    compile 'org.bouncycastle:bcprov-jdk15on:1.57'
-    compile 'com.android.support:support-vector-drawable:26.+'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.alibaba:fastjson:1.2.34'
-    testCompile 'junit:junit:4.12'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':chart')
+    implementation project(':listview')
+    //noinspection GradleCompatible
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.github.hotchemi:permissionsdispatcher:2.3.1'
+    implementation 'org.bouncycastle:bcprov-jdk15on:1.57'
+    //noinspection GradleCompatible
+    implementation 'androidx.vectordrawable:vectordrawable:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.alibaba:fastjson:1.2.34'
+    testImplementation 'junit:junit:4.12'
     annotationProcessor 'com.github.hotchemi:permissionsdispatcher-processor:2.3.1'
-    compile 'com.jzxiang.pickerview:TimePickerDialog:1.0.1'
-    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
+    implementation 'com.jzxiang.pickerview:TimePickerDialog:1.0.1'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 }

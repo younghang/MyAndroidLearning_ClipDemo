@@ -4,14 +4,15 @@
     package="com.example.yanghang.clipboard">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
-        android:name=".Log.MyAppcation"
+        android:name=".Log.MyApplication"
         android:allowBackup="true"
+        android:requestLegacyExternalStorage="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -45,6 +46,7 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainFormActivity"
+            android:exported="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -63,13 +65,15 @@
         <service
             android:name=".Notification.ServiceNotification"
             android:enabled="true"
-            android:exported="true">
+            android:exported="false"
+            android:permission="TODO">
             <intent-filter>
                 <action android:name="TodoNotification.ScreenLock.Service" />
             </intent-filter>
         </service>
 
-        <receiver android:name=".Notification.BootBroadcastReceiver">
+        <receiver android:name=".Notification.BootBroadcastReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <!-- <action android:name="android.intent.action.USER_PRESENT" /> -->
@@ -94,7 +98,17 @@
         <activity
             android:name=".ActivitySpecialDays"
             android:theme="@style/AppTheme.NoActionBarTransparentNavigation" />
-
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.yourapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true"
+            android:readPermission="android.permission.READ_EXTERNAL_STORAGE"
+            android:writePermission="android.permission.WRITE_EXTERNAL_STORAGE">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

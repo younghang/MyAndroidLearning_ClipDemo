@@ -4,35 +4,29 @@ package com.example.yanghang.clipboard.Fragment;
  * Created by young on 2018/2/21.
  */
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.alibaba.fastjson.JSONArray;
-import com.example.yanghang.clipboard.ActivityAccountBook;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountDataAdapter;
+import com.example.yanghang.clipboard.Log.MyApplication;
 import com.example.yanghang.clipboard.R;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -49,7 +43,6 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
@@ -68,8 +61,9 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
 
     public void show(FragmentManager fragmentManager,ArrayList<PieEntry> entries,AccountDataAdapter adapter ) {
         mEntries=entries;
-        accountAdapter=adapter;
-        lists=accountAdapter.getData();
+
+        lists=adapter.getData();
+        accountAdapter=new AccountDataAdapter(lists, MyApplication.getInstance());
         accountAdapter.setData(new ArrayList<AccountData>());
         show(fragmentManager, "AccountCatalogueDialogSelectCategoriesFragment");
     }
@@ -98,6 +92,8 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
         return mView;
 
     }
+
+
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -176,7 +172,7 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
         //设置数据
         setData(mEntries);
 
-        mPieChart.animateY(800, Easing.EasingOption.EaseInOutQuad);
+        mPieChart.animateY(800, Easing.EaseInOutQuad);
 
         Legend l = mPieChart.getLegend();//设置比例图
         l.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
@@ -301,4 +297,6 @@ public class AccountCatalogueDialogPieChartFragment extends DialogFragment imple
         super.onDestroy();
         accountAdapter.setData(lists);
     }
+
+
 }

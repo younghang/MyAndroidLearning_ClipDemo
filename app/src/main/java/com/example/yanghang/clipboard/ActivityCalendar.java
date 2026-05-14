@@ -1,39 +1,31 @@
 package com.example.yanghang.clipboard;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.text.format.DateFormat;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
-import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendarItem;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendarTimeline;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 
-import java.io.File;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.example.yanghang.clipboard.Fragment.FragmentCalendar.DAY_FORMAT;
-import static com.example.yanghang.clipboard.Fragment.FragmentCalendar.YEAR_MONTH_FORMAT;
 
 public class ActivityCalendar extends AppCompatActivity implements ViewPager.OnPageChangeListener {
 

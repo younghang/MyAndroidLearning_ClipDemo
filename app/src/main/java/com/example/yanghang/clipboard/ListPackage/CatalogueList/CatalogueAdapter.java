@@ -1,10 +1,10 @@
 package com.example.yanghang.clipboard.ListPackage.CatalogueList;
 
 import android.content.Context;
-import android.support.v4.view.MotionEventCompat;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
+import androidx.core.view.MotionEventCompat;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.example.yanghang.clipboard.R;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,11 +32,13 @@ public class CatalogueAdapter extends RecyclerView.Adapter<CatalogueAdapter.Cata
 
     public CatalogueAdapter(List<CatalogueInfos> mDatas, Context context) {
         this.mDatas = mDatas;
+        if (this.mDatas==null)this.mDatas=new ArrayList<CatalogueInfos>();
         this.context = context;
         this.inflater = LayoutInflater.from(context);
     }
 
     public boolean contains(String catalogueName) {
+        if(mDatas==null)return false;
         for (int i = 0; i < mDatas.size(); i++) {
             if (mDatas.get(i).getCatalogue().equals(catalogueName))
                 return true;

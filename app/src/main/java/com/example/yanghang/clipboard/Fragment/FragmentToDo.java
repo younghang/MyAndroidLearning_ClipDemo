@@ -1,9 +1,8 @@
 package com.example.yanghang.clipboard.Fragment;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
+import androidx.fragment.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,13 +11,11 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
-import com.chiemy.cardview.MainActivity;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.MainFormActivity;
 import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.R;
 
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 
 

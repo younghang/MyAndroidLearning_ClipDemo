@@ -7,9 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Build;
-import android.os.PowerManager;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,8 +23,6 @@ import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBa
 import com.example.yanghang.clipboard.R;
 
 import java.text.SimpleDateFormat;
-
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 
 public class ActivityNotification extends SwipeBackActivity {
 
