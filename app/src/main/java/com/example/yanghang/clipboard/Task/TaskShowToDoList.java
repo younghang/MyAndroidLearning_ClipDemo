@@ -70,48 +70,59 @@ public class TaskShowToDoList {
                     {
                         e.printStackTrace();
                     }
-                    if (toDoData==null||toDoData.isFinished())
+                    if (toDoData==null)
                     {
+                        continue;
+                    }
+                    ToDoData boardData = ToDoData.normalizeBoard(toDoData);
+                    if (boardData.isDeleted()) {
                         continue;
                     }
 
-                    Date endDate=null;
-                    try {
-                        endDate = sDateFormat.parse(toDoData.getEndTime());
-                    }catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
-                    if (endDate == null) {
-                        continue;
-                    }
-                    if (!endDate.before(currentDate))
-                    {
-                        if (toDoData.isDailyTask())
-                        {
-                            addDailyTaskNames(dailyTaskNames, toDoData.getContent());
+                    List<ToDoData> tasks = boardData.getTasks();
+                    for (int taskIndex = 0; taskIndex < tasks.size(); taskIndex++) {
+                        ToDoData taskData = tasks.get(taskIndex);
+                        if (taskData == null || taskData.isFinished() || taskData.isDeleted()) {
                             continue;
                         }
-//                        Log.d(TAG, "run: endDate"+endDate.toString()+"   current:"+currentDate.toString());
-                        if (endDate.toString().equals(currentDate.toString())) {
-
-                            if (toDoData.isCurrentDay()) {
-                                todayMissionStr+=toDoData.getContent();
-                                stringBuilder.append("[今日提醒]:" + toDoData.getContent() + "\n");
-                            }
-                            else
-                            {
-                                todayMissionStr+=toDoData.getContent();
-                                stringBuilder.append("[今日任务]:" + toDoData.getContent() + "\n");
-                            }
+                        Date endDate=null;
+                        try {
+                            endDate = sDateFormat.parse(taskData.getEndTime());
+                        }catch (Exception e)
+                        {
+                            e.printStackTrace();
                         }
-                        else {
-                            if (toDoData.isCurrentDay())
+                        if (endDate == null) {
+                            continue;
+                        }
+                        if (!endDate.before(currentDate))
+                        {
+                            if (boardData.isDailyTask() || taskData.isDailyTask())
                             {
+                                addDailyTaskName(dailyTaskNames, taskData.getDisplayTitle());
                                 continue;
                             }
-                            else
-                                stringBuilder.append("["+toDoData.getEndTime()+"]:"+toDoData.getContent()+"\n");
+//                        Log.d(TAG, "run: endDate"+endDate.toString()+"   current:"+currentDate.toString());
+                            if (endDate.toString().equals(currentDate.toString())) {
+
+                                if (taskData.isCurrentDay()) {
+                                    todayMissionStr+=taskData.getDisplayTitle();
+                                    stringBuilder.append("[今日提醒]:" + taskData.getDisplayTitle() + "\n");
+                                }
+                                else
+                                {
+                                    todayMissionStr+=taskData.getDisplayTitle();
+                                    stringBuilder.append("[今日任务]:" + taskData.getDisplayTitle() + "\n");
+                                }
+                            }
+                            else {
+                                if (taskData.isCurrentDay())
+                                {
+                                    continue;
+                                }
+                                else
+                                    stringBuilder.append("["+taskData.getEndTime()+"]:"+taskData.getDisplayTitle()+"\n");
+                            }
                         }
                     }
                 }
@@ -152,19 +163,16 @@ public class TaskShowToDoList {
         }
     }
 
-    private static void addDailyTaskNames(List<String> taskNames, String content) {
-        if (content == null) {
+    private static void addDailyTaskName(List<String> taskNames, String taskName) {
+        if (taskName == null) {
             return;
         }
-        String[] dailyListString = content.split("\n");
-        for (int i = 0; i < dailyListString.length; i++) {
-            String currentTask = dailyListString[i].trim();
-            if (currentTask.equals("") || currentTask.startsWith("#") || taskNames.contains(currentTask)) {
-                continue;
-            }
-            Log.d(TAG, "run: currentStr=" + currentTask);
-            taskNames.add(currentTask);
+        String currentTask = taskName.trim();
+        if (currentTask.equals("") || currentTask.startsWith("#") || taskNames.contains(currentTask)) {
+            return;
         }
+        Log.d(TAG, "run: currentStr=" + currentTask);
+        taskNames.add(currentTask);
     }
 
     private List<DailyTaskData> getOrCreateDailyMissionRecords(DBListInfoManager dbListInfoManager, String todayString, List<String> dailyTaskNames) {

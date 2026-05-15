@@ -47,8 +47,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.SimpleItemTouchHelperCallback;
@@ -931,6 +933,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         final int pos = position;
         ListData listDatatemp = listClipInfoAdapter.getItemData(pos);
         final ListData listData = new ListData(listDatatemp.getRemarks(), listDatatemp.getContent(), listDatatemp.getCreateDate(), listDatatemp.getOrderID(), listDatatemp.getCatalogue());
+        if (softDeleteTodoIfNeeded(pos, listData)) {
+            return;
+        }
 
         listClipInfoAdapter.deleteItem(pos);
         dbListInfoManager.deleteDataByOrderID(listData.getOrderID());
@@ -943,6 +948,38 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
             }
         }).setDuration(BaseTransientBottomBar.LENGTH_LONG).show();
+    }
+
+    private boolean softDeleteTodoIfNeeded(final int pos, final ListData oldData) {
+        if (!oldData.getCatalogue().equals("待办事项")) {
+            return false;
+        }
+        ToDoData toDoData = null;
+        try {
+            toDoData = JSON.parseObject(oldData.getContent(), ToDoData.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (toDoData == null) {
+            return false;
+        }
+        ToDoData boardData = ToDoData.normalizeBoard(toDoData);
+        if (boardData.isDeleted()) {
+            return false;
+        }
+        boardData.setStatus(ToDoData.STATUS_TRASH);
+        boardData.setDeletedAt(ListData.GetDate());
+        final ListData trashData = new ListData(oldData.getRemarks(), JSON.toJSONString(boardData), oldData.getCreateDate(), oldData.getOrderID(), oldData.getCatalogue());
+        listClipInfoAdapter.editItem(pos, trashData);
+        dbListInfoManager.updateDataByOrderId(trashData.getOrderID(), trashData.getCatalogue(), trashData.getRemarks(), trashData.getContent(), trashData.getCreateDate());
+        Snackbar.make(recyclerView, "已移入回收站", Snackbar.LENGTH_LONG).setAction("撤销", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                listClipInfoAdapter.editItem(pos, oldData);
+                dbListInfoManager.updateDataByOrderId(oldData.getOrderID(), oldData.getCatalogue(), oldData.getRemarks(), oldData.getContent(), oldData.getCreateDate());
+            }
+        }).setDuration(BaseTransientBottomBar.LENGTH_LONG).show();
+        return true;
     }
 /*<========================================================================================>*/
 //        new Thread(new Runnable() {

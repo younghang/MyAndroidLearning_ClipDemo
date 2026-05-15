@@ -1,8 +1,5 @@
 package com.example.yanghang.clipboard.ListPackage.ClipInfosList;
 
-import android.text.format.DateFormat;
-import android.util.Log;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
@@ -16,14 +13,9 @@ import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
-
-import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
 /**
  * Created by yanghang on 2016/11/22.
@@ -99,16 +91,6 @@ public class ListData implements Serializable {
         switch (Catalogue)
         {
             case "待办事项":
-                String endDate="";
-                SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                String todayDate = sDateFormat.format(new java.util.Date());
-                Date endDateObject=null;
-                Date todayDateObject=null;
-                try {
-                    todayDateObject= sDateFormat.parse(DateFormat.format("yyyy-MM-dd", Calendar.getInstance().getTime()).toString());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
                 ToDoData toDoData =null;
                 try {
                     toDoData= JSON.parseObject(strMessage, ToDoData.class);
@@ -120,25 +102,63 @@ public class ListData implements Serializable {
                 String extraMessage="";
                 if (toDoData!=null)
                 {
-                    strMessage=toDoData.getContent();
-                    strMessage=strMessage.replace('\n',' ');
-                    endDate=toDoData.getEndTime();
-                    try {
-                        endDateObject=sDateFormat.parse(endDate);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+                    ToDoData boardData = ToDoData.normalizeBoard(toDoData);
+                    List<ToDoData> tasks = boardData.getTasks();
+                    int total = 0;
+                    int done = 0;
+                    int doing = 0;
+                    int high = 0;
+                    int urgent = 0;
+                    int trash = 0;
+                    int progressTotal = 0;
+                    String nearestDate = "";
+                    for (int i = 0; i < tasks.size(); i++) {
+                        ToDoData task = tasks.get(i);
+                        if (task == null) {
+                            continue;
+                        }
+                        if (task.isDeleted()) {
+                            trash++;
+                            continue;
+                        }
+                        total++;
+                        progressTotal += task.getProgress();
+                        if (task.isFinished()) {
+                            done++;
+                        }
+                        if (ToDoData.STATUS_DOING.equals(task.getStatus())) {
+                            doing++;
+                        }
+                        if (ToDoData.PRIORITY_HIGH.equals(task.getPriority())) {
+                            high++;
+                        }
+                        if (ToDoData.LEVEL_HIGH.equals(task.getUrgency())) {
+                            urgent++;
+                        }
+                        if (!task.getEndTime().trim().equals("") && (nearestDate.equals("") || task.getEndTime().compareTo(nearestDate) < 0)) {
+                            nearestDate = task.getEndTime();
+                        }
                     }
-                    extraMessage=(toDoData.isDailyTask()?"\n<日常任务>":"")+(toDoData.isDailyTask()?(endDateObject.before(todayDateObject)?"\nMission Out of Date":(toDoData.isFinished()?"\n****Finished****":"\n****Running****")):"")+(toDoData.isDailyTask()||toDoData.isFinished()?"":"\n***** Not  Finished *****");
+                    int progress = total == 0 ? 0 : progressTotal / total;
+                    strMessage = total == 0 ? "暂无任务" : "阶段任务 " + total + " 项";
+                    extraMessage = "\n完成 " + done + "  进行中 " + doing + "  进度 " + progress + "%";
+                    extraMessage += "\n高优先级 " + high + "  紧急 " + urgent + "  回收站 " + trash;
+                    if (!nearestDate.equals("")) {
+                        extraMessage += "\n最近截止 " + nearestDate;
+                    }
+                    if (boardData.isDailyTask()) {
+                        extraMessage += "\n<日常阶段>";
+                    }
+                    if (boardData.isDeleted()) {
+                        extraMessage += "\n<回收站>";
+                    }
                 }
                 else
                 {
-
-                    endDate=todayDate;
                     extraMessage="\n[数据格式化出错,非待办事项数据,请删除！]";
                 }
 
-
-                strMessage=strMessage+"\n截止日期["+endDate+"]"+extraMessage;
+                strMessage=strMessage+extraMessage;
                 break;
             case "番剧":
                 try {
