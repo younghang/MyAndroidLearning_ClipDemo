@@ -20,6 +20,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
 import com.example.yanghang.clipboard.Fragment.JsonData.AssetData;
+import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.OthersView.SlidingButtonView;
 import com.example.yanghang.clipboard.R;
 
@@ -71,6 +72,10 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
         } else if (catalogueName.equals(AssetData.CATALOGUE_NAME)) {
             holder.tvMessage.setText(strMessage);
             holder.tvMessage.setTextSize(16);
+            holder.tvMessage.setMaxLines(14);
+        } else if (catalogueName.equals(ResearchTopicData.CATALOGUE_NAME)) {
+            holder.tvMessage.setText(strMessage);
+            holder.tvMessage.setTextSize(15);
             holder.tvMessage.setMaxLines(14);
         } else {
             holder.tvMessage.setText(strMessage);

@@ -50,6 +50,7 @@ import android.widget.Toast;
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
@@ -528,6 +529,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         }
         if (!containsCatalogue(catalogueList, "default")) {
             catalogueList.add(0, new CatalogueInfos("default", ""));
+        }
+        if (!containsCatalogue(catalogueList, ResearchTopicData.CATALOGUE_NAME)) {
+            catalogueList.add(new CatalogueInfos(ResearchTopicData.CATALOGUE_NAME, "课题路线图、研究资料、问题和任务的结构化整理"));
         }
         return catalogueList;
     }

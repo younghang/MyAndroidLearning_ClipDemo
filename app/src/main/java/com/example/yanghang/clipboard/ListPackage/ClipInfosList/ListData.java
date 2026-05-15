@@ -7,6 +7,7 @@ import com.example.yanghang.clipboard.ActivityAccountBook;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.JsonData.AssetData;
 import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
+import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.BangumiList.BangumiData;
@@ -151,6 +152,9 @@ public class ListData implements Serializable {
                 break;
             case AssetData.CATALOGUE_NAME:
                 strMessage = AssetData.parse(Content).buildSimpleContent();
+                break;
+            case ResearchTopicData.CATALOGUE_NAME:
+                strMessage = ResearchTopicData.parse(Content).buildSimpleContent();
                 break;
             case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
                 switch (Remarks){

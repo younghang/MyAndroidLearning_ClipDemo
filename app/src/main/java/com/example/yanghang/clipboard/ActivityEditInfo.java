@@ -17,12 +17,15 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.FragmentDiary;
 import com.example.yanghang.clipboard.Fragment.FragmentEditAbstract;
 import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
+import com.example.yanghang.clipboard.Fragment.FragmentResearchTopic;
 import com.example.yanghang.clipboard.Fragment.FragmentToDo;
+import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLayout;
@@ -110,6 +113,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         specialCatalogueNames.add("待办事项");
         specialCatalogueNames.add("番剧");
         specialCatalogueNames.add("记账");
+        specialCatalogueNames.add(ResearchTopicData.CATALOGUE_NAME);
         specialCatalogueNames.add("dailyMission");
         specialCatalogueNames.add("日子");
 
@@ -152,6 +156,9 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
             case "待办事项":
                 fragment = FragmentToDo.newInstance(listData.getContent(), isEdit);
                 break;
+            case ResearchTopicData.CATALOGUE_NAME:
+                fragment = FragmentResearchTopic.newInstance(listData.getContent(), isEdit);
+                break;
             case "番剧":
             case "日子":
             case "记账":
@@ -179,31 +186,34 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == FragmentToDo.MENU_TODO_VIEW_MODE && fragment instanceof FragmentToDo) {
+            ((FragmentToDo) fragment).toggleViewModeFromToolbar();
+            return true;
+        }
+        if (item.getItemId() == FragmentResearchTopic.MENU_RESEARCH_VIEW_MODE && fragment instanceof FragmentResearchTopic) {
+            ((FragmentResearchTopic) fragment).toggleViewModeFromToolbar();
+            return true;
+        }
+        if (item.getItemId() == FragmentResearchTopic.MENU_RESEARCH_ADD_NODE && fragment instanceof FragmentResearchTopic) {
+            ((FragmentResearchTopic) fragment).addNodeFromToolbar();
+            return true;
+        }
+        if (item.getItemId() == FragmentResearchTopic.MENU_RESEARCH_FULLSCREEN && fragment instanceof FragmentResearchTopic) {
+            ((FragmentResearchTopic) fragment).openFullscreenMindMap();
+            return true;
+        }
+        if (item.getItemId() == FragmentResearchTopic.MENU_RESEARCH_RESET_LAYOUT && fragment instanceof FragmentResearchTopic) {
+            ((FragmentResearchTopic) fragment).resetMindMapLayout();
+            return true;
+        }
         switch (item.getItemId()) {
             case R.id.menu_checked:
-                if (listData.getCatalogue().equals("番剧")||listData.getCatalogue().equals("记账"))
-                {
-                    //对于新番，新建的时候只能设置Remake 不能通过ActivityEditInfo来设置content ，有单独的Activity来设置
-                    listData.setContent("");
+                if (fragment instanceof FragmentToDo || fragment instanceof FragmentResearchTopic) {
+                    saveAndPreviewInPlace();
+                } else {
+                    saveCurrentContentToResult();
+                    finish();
                 }
-                else{
-                    listData.setContent(fragment.getString());
-                }
-                listData.setRemarks(editRemark.getText().toString());
-                //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission，为了能够更换目录
-                if (!specialCatalogueNames.contains(listData.getCatalogue()))
-                listData.setCatalogue(spinner.getSelectedItem().toString());
-                Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
-                intent.putExtra(MainFormActivity.LIST_DATA, listData);
-                intent.putExtra(MainFormActivity.LIST_DATA_POS, pos);
-                if (pos == -1) {
-                    if (listData.getContent().equals("")&&listData.getRemarks().equals("")) {
-                        setResult(RESULT_NOTHING_NEW, intent);
-                    } else
-                        setResult(RESULT_ADD_NEW, intent);
-                } else
-                    setResult(RESULT_OK, intent);
-                finish();
                 break;
             case R.id.menu_redo:
                 fragment.redo();
@@ -232,6 +242,52 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         return true;
     }
 
+    private void saveAndPreviewInPlace() {
+        saveCurrentContentToResult();
+        isEdit = false;
+        editRemark.setFocusable(false);
+        editRemark.setFocusableInTouchMode(false);
+        editRemark.clearFocus();
+        if (fragment instanceof FragmentToDo) {
+            ((FragmentToDo) fragment).disableEdit();
+        } else if (fragment instanceof FragmentResearchTopic) {
+            ((FragmentResearchTopic) fragment).disableEdit();
+        }
+        spinner.setVisibility(View.GONE);
+        invalidateOptionsMenu();
+    }
+
+    public void autoSaveCurrentContent() {
+        saveCurrentContentToResult();
+    }
+
+    private void saveCurrentContentToResult() {
+        if (listData.getCatalogue().equals("番剧") || listData.getCatalogue().equals("记账")) {
+            //对于新番，新建的时候只能设置Remake 不能通过ActivityEditInfo来设置content ，有单独的Activity来设置
+            listData.setContent("");
+        } else {
+            listData.setContent(fragment.getString());
+        }
+        listData.setRemarks(editRemark.getText().toString());
+        //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission，为了能够更换目录
+        if (!specialCatalogueNames.contains(listData.getCatalogue())) {
+            listData.setCatalogue(spinner.getSelectedItem().toString());
+        }
+        Intent intent = new Intent(ActivityEditInfo.this, MainFormActivity.class);
+        intent.putExtra(MainFormActivity.LIST_DATA, listData);
+        intent.putExtra(MainFormActivity.LIST_DATA_POS, pos);
+        if (pos == -1) {
+            if (listData.getContent().equals("") && listData.getRemarks().equals("")) {
+                setResult(RESULT_NOTHING_NEW, intent);
+            } else {
+                setResult(RESULT_ADD_NEW, intent);
+            }
+        } else {
+            setResult(RESULT_OK, intent);
+            new DBListInfoManager(this).updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
+        }
+    }
+
     public List<CatalogueInfos> getCatalogue() {
         return FileUtils.loadCatalogue(getFilesDir().getAbsolutePath());
     }
@@ -239,15 +295,54 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.edit_menu, menu);
+        MenuItem researchViewItem = menu.add(Menu.NONE, FragmentResearchTopic.MENU_RESEARCH_VIEW_MODE, Menu.NONE, "");
+        researchViewItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        MenuItem researchAddItem = menu.add(Menu.NONE, FragmentResearchTopic.MENU_RESEARCH_ADD_NODE, Menu.NONE, "+节点");
+        researchAddItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        MenuItem researchFullscreenItem = menu.add(Menu.NONE, FragmentResearchTopic.MENU_RESEARCH_FULLSCREEN, Menu.NONE, "全屏");
+        researchFullscreenItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        MenuItem researchResetItem = menu.add(Menu.NONE, FragmentResearchTopic.MENU_RESEARCH_RESET_LAYOUT, Menu.NONE, "重排");
+        researchResetItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.findItem(R.id.menu_redo).setVisible(isEdit);
-        menu.findItem(R.id.menu_undo).setVisible(isEdit);
+        boolean isToDoFragment = fragment instanceof FragmentToDo;
+        boolean isResearchTopicFragment = fragment instanceof FragmentResearchTopic;
+        boolean showEditHistoryControls = isEdit && !isToDoFragment && !isResearchTopicFragment;
+        menu.findItem(R.id.menu_redo).setVisible(showEditHistoryControls);
+        menu.findItem(R.id.menu_undo).setVisible(showEditHistoryControls);
         menu.findItem(R.id.menu_checked).setVisible(isEdit);
         menu.findItem(R.id.menu_editable).setVisible(!isEdit);
+
+        MenuItem todoViewItem = menu.findItem(FragmentToDo.MENU_TODO_VIEW_MODE);
+        if (todoViewItem != null) {
+            todoViewItem.setVisible(isToDoFragment);
+            if (isToDoFragment) {
+                todoViewItem.setTitle(((FragmentToDo) fragment).getViewModeMenuTitle());
+            }
+        }
+
+        MenuItem researchViewItem = menu.findItem(FragmentResearchTopic.MENU_RESEARCH_VIEW_MODE);
+        if (researchViewItem != null) {
+            researchViewItem.setVisible(isResearchTopicFragment);
+            if (isResearchTopicFragment) {
+                researchViewItem.setTitle(((FragmentResearchTopic) fragment).getViewModeMenuTitle());
+            }
+        }
+        MenuItem researchAddItem = menu.findItem(FragmentResearchTopic.MENU_RESEARCH_ADD_NODE);
+        if (researchAddItem != null) {
+            researchAddItem.setVisible(isResearchTopicFragment && isEdit);
+        }
+        MenuItem researchFullscreenItem = menu.findItem(FragmentResearchTopic.MENU_RESEARCH_FULLSCREEN);
+        if (researchFullscreenItem != null) {
+            researchFullscreenItem.setVisible(isResearchTopicFragment);
+        }
+        MenuItem researchResetItem = menu.findItem(FragmentResearchTopic.MENU_RESEARCH_RESET_LAYOUT);
+        if (researchResetItem != null) {
+            researchResetItem.setVisible(isResearchTopicFragment);
+        }
         return super.onPrepareOptionsMenu(menu);
     }
 
