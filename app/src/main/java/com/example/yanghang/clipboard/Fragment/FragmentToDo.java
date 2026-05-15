@@ -6,10 +6,14 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -24,6 +28,7 @@ import android.widget.TextView;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
+import com.example.yanghang.clipboard.ActivityEditInfo;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.MainFormActivity;
@@ -40,6 +45,13 @@ public class FragmentToDo extends FragmentEditAbstract {
     private static final int TASK_FILTER_ACTIVE = 0;
     private static final int TASK_FILTER_DONE = 1;
     private static final int TASK_FILTER_TRASH = 2;
+    private static final int VIEW_MODE_LIST = 0;
+    private static final int VIEW_MODE_MATRIX = 1;
+    private static final int DISPLAY_FILTER_ALL = 0;
+    private static final int DISPLAY_FILTER_OVERDUE = 1;
+    private static final int DISPLAY_FILTER_DONE = 2;
+    private static final int DISPLAY_FILTER_TRASH = 3;
+    public static final int MENU_TODO_VIEW_MODE = 0x7001;
 
     private static final String[] STATUS_LABELS = {"待办", "进行中", "完成", "回收站"};
     private static final String[] STATUS_VALUES = {ToDoData.STATUS_TODO, ToDoData.STATUS_DOING, ToDoData.STATUS_DONE, ToDoData.STATUS_TRASH};
@@ -51,10 +63,13 @@ public class FragmentToDo extends FragmentEditAbstract {
 
     private View mView;
     private ToDoData boardData;
-    private TextView summaryTextView;
+    private LinearLayout summaryPanel;
     private Button addTaskButton;
     private EditText boardNoteEdit;
+    private LinearLayout filterBar;
     private LinearLayout taskContainer;
+    private int currentViewMode = VIEW_MODE_LIST;
+    private int currentDisplayFilter = DISPLAY_FILTER_ALL;
 
     public FragmentToDo() {
         // Required empty public constructor
@@ -69,6 +84,7 @@ public class FragmentToDo extends FragmentEditAbstract {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         onICreate();
     }
 
@@ -87,12 +103,19 @@ public class FragmentToDo extends FragmentEditAbstract {
             MainFormActivity.isDailyTask = false;
         }
 
-        summaryTextView = (TextView) mView.findViewById(R.id.fragment_todo_summary_tv);
+        summaryPanel = (LinearLayout) mView.findViewById(R.id.fragment_todo_summary_panel);
         addTaskButton = (Button) mView.findViewById(R.id.fragment_todo_add_task_btn);
-        boardNoteEdit = (EditText) mView.findViewById(R.id.fragment_todo_board_note_edit);
+        boardNoteEdit = makeEditText("阶段备注", true);
+        filterBar = (LinearLayout) mView.findViewById(R.id.fragment_todo_filter_bar);
         taskContainer = (LinearLayout) mView.findViewById(R.id.fragment_todo_task_container);
 
         boardNoteEdit.setText(boardData.getContent());
+        boardNoteEdit.setPadding(dp(10), dp(8), dp(10), dp(8));
+        boardNoteEdit.setBackground(makeRoundBackground(Color.WHITE, Color.rgb(232, 232, 232), 8));
+        addTaskButton.setAllCaps(false);
+        addTaskButton.setMinHeight(0);
+        addTaskButton.setMinimumHeight(0);
+        addTaskButton.setBackground(makeRoundBackground(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorPrimary), 8));
         addTaskButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -100,6 +123,7 @@ public class FragmentToDo extends FragmentEditAbstract {
             }
         });
         setControlsEnabled(isEdit);
+        renderControls();
         renderTasks();
     }
 
@@ -130,6 +154,90 @@ public class FragmentToDo extends FragmentEditAbstract {
         return DateFormat.format("yyyy-MM-dd", Calendar.getInstance().getTime()).toString();
     }
 
+    private void renderControls() {
+        filterBar.removeAllViews();
+        addFilterButton("全部", DISPLAY_FILTER_ALL);
+        addFilterButton("逾期", DISPLAY_FILTER_OVERDUE);
+        addFilterButton("已完成", DISPLAY_FILTER_DONE);
+        addFilterButton("回收站", DISPLAY_FILTER_TRASH);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        MenuItem item = menu.findItem(MENU_TODO_VIEW_MODE);
+        if (item == null) {
+            item = menu.add(Menu.NONE, MENU_TODO_VIEW_MODE, Menu.NONE, getViewModeMenuTitle());
+            item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        }
+        item.setTitle(getViewModeMenuTitle());
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem item = menu.findItem(MENU_TODO_VIEW_MODE);
+        if (item != null) {
+            item.setTitle(getViewModeMenuTitle());
+            item.setVisible(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == MENU_TODO_VIEW_MODE) {
+            toggleViewModeFromToolbar();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void toggleViewModeFromToolbar() {
+        currentViewMode = currentViewMode == VIEW_MODE_LIST ? VIEW_MODE_MATRIX : VIEW_MODE_LIST;
+        if (getActivity() != null) {
+            getActivity().invalidateOptionsMenu();
+        }
+        renderTasks();
+    }
+
+    public String getViewModeMenuTitle() {
+        return currentViewMode == VIEW_MODE_LIST ? "矩阵" : "列表";
+    }
+
+    private void addFilterButton(String text, final int filter) {
+        Button button = makeToolbarButton(text, currentDisplayFilter == filter);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                currentDisplayFilter = filter;
+                renderControls();
+                renderTasks();
+            }
+        });
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(76), dp(32));
+        params.setMargins(dp(4), 0, dp(4), 0);
+        filterBar.addView(button, params);
+    }
+
+    private Button makeToolbarButton(String text, boolean selected) {
+        Button button = new Button(getActivity());
+        button.setText(text);
+        button.setTextSize(13);
+        button.setAllCaps(false);
+        button.setTextColor(selected ? Color.WHITE : getResources().getColor(R.color.message_text));
+        button.setPadding(dp(6), 0, dp(6), 0);
+        button.setMinHeight(0);
+        button.setMinWidth(0);
+        button.setMinimumHeight(0);
+        button.setMinimumWidth(0);
+        button.setBackground(makeRoundBackground(
+                selected ? getResources().getColor(R.color.colorPrimary) : Color.WHITE,
+                selected ? getResources().getColor(R.color.colorPrimary) : Color.rgb(224, 224, 224),
+                7));
+        button.setGravity(Gravity.CENTER);
+        return button;
+    }
+
     private void renderTasks() {
         taskContainer.removeAllViews();
         updateSummary();
@@ -139,25 +247,123 @@ public class FragmentToDo extends FragmentEditAbstract {
             TextView emptyView = makeText("这个阶段还没有任务。点右上角“+ 任务”开始添加。", 15, R.color.text_11);
             emptyView.setGravity(Gravity.CENTER);
             taskContainer.addView(emptyView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(120)));
+            addBoardNoteAtBottom();
             return;
         }
 
-        addSection("未完成");
+        if (currentViewMode == VIEW_MODE_MATRIX) {
+            renderMatrixView(tasks);
+            if (taskContainer.getChildCount() == 0) {
+                addHint("当前筛选下没有任务");
+            }
+            addBoardNoteAtBottom();
+            return;
+        }
+
+        renderListView(tasks);
+        if (taskContainer.getChildCount() == 0) {
+            addHint("当前筛选下没有任务");
+        }
+        addBoardNoteAtBottom();
+    }
+
+    private void addBoardNoteAtBottom() {
+        TextView label = makeText("阶段备注", 13, R.color.text_11);
+        label.setPadding(dp(8), dp(16), dp(8), dp(4));
+        taskContainer.addView(label, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        if (boardNoteEdit.getParent() instanceof ViewGroup) {
+            ((ViewGroup) boardNoteEdit.getParent()).removeView(boardNoteEdit);
+        }
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(76));
+        params.setMargins(dp(4), 0, dp(4), dp(8));
+        taskContainer.addView(boardNoteEdit, params);
+    }
+
+    private void renderListView(List<ToDoData> tasks) {
+        if (currentDisplayFilter == DISPLAY_FILTER_DONE) {
+            addSection("已完成");
+            if (!addTaskGroup(tasks, TASK_FILTER_DONE)) {
+                addHint("没有已完成任务");
+            }
+            return;
+        }
+        if (currentDisplayFilter == DISPLAY_FILTER_TRASH) {
+            addSection("回收站");
+            if (!addTaskGroup(tasks, TASK_FILTER_TRASH)) {
+                addHint("回收站为空");
+            }
+            return;
+        }
+
+        addSection(currentDisplayFilter == DISPLAY_FILTER_OVERDUE ? "逾期" : "未完成");
         boolean hasActive = addTaskGroup(tasks, TASK_FILTER_ACTIVE);
         if (!hasActive) {
-            addHint("没有未完成任务");
+            addHint(currentDisplayFilter == DISPLAY_FILTER_OVERDUE ? "没有逾期任务" : "没有未完成任务");
         }
 
-        addSection("已完成");
-        boolean hasDone = addTaskGroup(tasks, TASK_FILTER_DONE);
-        if (!hasDone) {
-            addHint("没有已完成任务");
+        if (currentDisplayFilter == DISPLAY_FILTER_ALL) {
+            addSection("已完成");
+            boolean hasDone = addTaskGroup(tasks, TASK_FILTER_DONE);
+            if (!hasDone) {
+                addHint("没有已完成任务");
+            }
+
+            addSection("回收站");
+            boolean hasTrash = addTaskGroup(tasks, TASK_FILTER_TRASH);
+            if (!hasTrash) {
+                addHint("回收站为空");
+            }
+        }
+    }
+
+    private void renderMatrixView(List<ToDoData> tasks) {
+        if (currentDisplayFilter == DISPLAY_FILTER_TRASH) {
+            addSection("回收站");
+            if (!addTaskGroup(tasks, TASK_FILTER_TRASH)) {
+                addHint("回收站为空");
+            }
+            return;
+        }
+        if (currentDisplayFilter == DISPLAY_FILTER_DONE) {
+            addSection("已完成");
+            if (!addTaskGroup(tasks, TASK_FILTER_DONE)) {
+                addHint("没有已完成任务");
+            }
+            return;
         }
 
-        addSection("回收站");
-        boolean hasTrash = addTaskGroup(tasks, TASK_FILTER_TRASH);
-        if (!hasTrash) {
-            addHint("回收站为空");
+        addMatrixSection(tasks, "重要且紧急", ToDoData.LEVEL_HIGH, ToDoData.LEVEL_HIGH, Color.rgb(213, 64, 60));
+        addMatrixSection(tasks, "重要不紧急", ToDoData.LEVEL_HIGH, ToDoData.LEVEL_NORMAL, Color.rgb(217, 150, 16));
+        addMatrixSection(tasks, "不重要但紧急", ToDoData.LEVEL_NORMAL, ToDoData.LEVEL_HIGH, Color.rgb(63, 81, 181));
+        addMatrixSection(tasks, "不重要不紧急", ToDoData.LEVEL_NORMAL, ToDoData.LEVEL_NORMAL, Color.rgb(153, 153, 153));
+    }
+
+    private void addMatrixSection(List<ToDoData> tasks, String title, String importance, String urgency, int color) {
+        List<Integer> indexes = new ArrayList<Integer>();
+        for (int i = 0; i < tasks.size(); i++) {
+            ToDoData task = tasks.get(i);
+            if (!matchesFilter(task, TASK_FILTER_ACTIVE) || !matchesDisplayFilter(task)) {
+                continue;
+            }
+            if (importance.equals(task.getImportance()) && urgency.equals(task.getUrgency())) {
+                indexes.add(i);
+            }
+        }
+        if (indexes.size() == 0) {
+            return;
+        }
+        sortTaskIndexes(tasks, indexes);
+        TextView sectionView = makeText(title + "  " + indexes.size(), 15, R.color.message_text);
+        sectionView.setTypeface(null, Typeface.BOLD);
+        sectionView.setTextColor(color);
+        sectionView.setPadding(dp(12), dp(8), dp(12), dp(8));
+        sectionView.setBackground(makeRoundBackground(Color.WHITE, color, 8));
+        LinearLayout.LayoutParams sectionParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        sectionParams.setMargins(dp(4), dp(12), dp(4), dp(4));
+        taskContainer.addView(sectionView, sectionParams);
+        for (int i = 0; i < indexes.size(); i++) {
+            addTaskRow(tasks.get(indexes.get(i)), indexes.get(i), 0);
         }
     }
 
@@ -169,7 +375,6 @@ public class FragmentToDo extends FragmentEditAbstract {
         int high = 0;
         int urgent = 0;
         int trash = 0;
-        int progressTotal = 0;
         for (int i = 0; i < tasks.size(); i++) {
             ToDoData task = tasks.get(i);
             if (task == null) {
@@ -180,7 +385,6 @@ public class FragmentToDo extends FragmentEditAbstract {
                 continue;
             }
             total++;
-            progressTotal += task.getProgress();
             if (task.isFinished()) {
                 done++;
             }
@@ -194,10 +398,53 @@ public class FragmentToDo extends FragmentEditAbstract {
                 urgent++;
             }
         }
-        int progress = total == 0 ? 0 : progressTotal / total;
-        String dailyText = boardData.isDailyTask() ? "  日常阶段" : "";
-        summaryTextView.setText("任务 " + total + "  完成 " + done + "  进行中 " + doing
-                + "  进度 " + progress + "%" + dailyText + "\n高优先级 " + high + "  紧急 " + urgent + "  回收站 " + trash);
+        renderSummaryPanel(total, done, doing, high, urgent, trash);
+    }
+
+    private void renderSummaryPanel(int total, int done, int doing, int high, int urgent, int trash) {
+        summaryPanel.removeAllViews();
+
+        LinearLayout statsRow = new LinearLayout(getActivity());
+        statsRow.setOrientation(LinearLayout.HORIZONTAL);
+        statsRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        summaryPanel.addView(statsRow, statsParams);
+        addSummaryStat(statsRow, "任务", total, Color.rgb(63, 81, 181));
+        addSummaryStat(statsRow, "完成", done, Color.rgb(9, 183, 99));
+        addSummaryStat(statsRow, "进行", doing, Color.rgb(217, 150, 16));
+        addSummaryStat(statsRow, "高优", high, Color.rgb(147, 91, 188));
+        addSummaryStat(statsRow, "紧急", urgent, Color.rgb(213, 64, 60));
+        addSummaryStat(statsRow, "回收", trash, Color.rgb(153, 153, 153));
+        if (boardData.isDailyTask()) {
+            TextView dailyView = makeText("日常", 11, R.color.colorPrimary);
+            dailyView.setGravity(Gravity.CENTER);
+            dailyView.setPadding(dp(6), dp(3), dp(6), dp(3));
+            dailyView.setBackground(makeRoundBackground(Color.WHITE, getResources().getColor(R.color.colorPrimary), 7));
+            LinearLayout.LayoutParams dailyParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dailyParams.setMargins(dp(4), 0, 0, 0);
+            statsRow.addView(dailyView, dailyParams);
+        }
+    }
+
+    private void addSummaryStat(LinearLayout statsRow, String label, int value, int color) {
+        LinearLayout statLayout = new LinearLayout(getActivity());
+        statLayout.setOrientation(LinearLayout.VERTICAL);
+        statLayout.setGravity(Gravity.CENTER);
+        statLayout.setPadding(dp(2), dp(3), dp(2), dp(3));
+
+        TextView valueView = makeText(String.valueOf(value), 15, R.color.message_text);
+        valueView.setTypeface(null, Typeface.BOLD);
+        valueView.setTextColor(color);
+        valueView.setGravity(Gravity.CENTER);
+        statLayout.addView(valueView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView labelView = makeText(label, 10, R.color.text_11);
+        labelView.setGravity(Gravity.CENTER);
+        statLayout.addView(labelView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        params.setMargins(dp(2), 0, dp(2), 0);
+        statsRow.addView(statLayout, params);
     }
 
     private boolean addTaskGroup(List<ToDoData> tasks, int filter) {
@@ -238,17 +485,21 @@ public class FragmentToDo extends FragmentEditAbstract {
     private List<Integer> getSortedTaskIndexes(final List<ToDoData> tasks, int filter) {
         List<Integer> indexes = new ArrayList<Integer>();
         for (int i = 0; i < tasks.size(); i++) {
-            if (matchesFilter(tasks.get(i), filter)) {
+            if (matchesFilter(tasks.get(i), filter) && matchesDisplayFilter(tasks.get(i))) {
                 indexes.add(i);
             }
         }
+        sortTaskIndexes(tasks, indexes);
+        return indexes;
+    }
+
+    private void sortTaskIndexes(final List<ToDoData> tasks, List<Integer> indexes) {
         Collections.sort(indexes, new Comparator<Integer>() {
             @Override
             public int compare(Integer leftIndex, Integer rightIndex) {
                 return compareTask(tasks.get(leftIndex), tasks.get(rightIndex));
             }
         });
-        return indexes;
     }
 
     private int compareTask(ToDoData left, ToDoData right) {
@@ -292,6 +543,30 @@ public class FragmentToDo extends FragmentEditAbstract {
             return -1;
         }
         return left.compareTo(right);
+    }
+
+    private boolean matchesDisplayFilter(ToDoData task) {
+        if (task == null) {
+            return false;
+        }
+        if (currentDisplayFilter == DISPLAY_FILTER_ALL) {
+            return true;
+        }
+        if (currentDisplayFilter == DISPLAY_FILTER_DONE) {
+            return !task.isDeleted() && task.isFinished();
+        }
+        if (currentDisplayFilter == DISPLAY_FILTER_TRASH) {
+            return task.isDeleted();
+        }
+        if (task.isDeleted() || task.isFinished()) {
+            return false;
+        }
+        String today = todayString();
+        String endDate = task.getEndTime().trim();
+        if (currentDisplayFilter == DISPLAY_FILTER_OVERDUE) {
+            return !task.isCurrentDay() && !today.equals(endDate) && !endDate.equals("") && endDate.compareTo(today) < 0;
+        }
+        return true;
     }
 
     private int urgencyRank(ToDoData task) {
@@ -360,10 +635,10 @@ public class FragmentToDo extends FragmentEditAbstract {
     private void addTaskRow(final ToDoData task, final int index, int depth) {
         LinearLayout row = new LinearLayout(getActivity());
         row.setOrientation(LinearLayout.VERTICAL);
-        row.setPadding(dp(12), dp(8), dp(12), dp(8));
-        row.setBackgroundResource(R.drawable.corner_background);
+        row.setPadding(dp(12), dp(9), dp(12), dp(9));
+        row.setBackground(makeRoundBackground(Color.WHITE, Color.rgb(232, 232, 232), 8));
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        rowParams.setMargins(dp(4 + depth * 18), dp(4), dp(4), dp(4));
+        rowParams.setMargins(dp(4 + depth * 18), dp(5), dp(4), dp(5));
         taskContainer.addView(row, rowParams);
 
         LinearLayout titleRow = new LinearLayout(getActivity());
@@ -371,6 +646,7 @@ public class FragmentToDo extends FragmentEditAbstract {
         titleRow.setGravity(Gravity.CENTER_VERTICAL);
         row.addView(titleRow, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        int contentIndent = 50;
         TextView statusView = makeText(statusMark(task), 18, task.isDeleted() ? R.color.text_11 : R.color.colorPrimary);
         titleRow.addView(statusView, new LinearLayout.LayoutParams(dp(28), ViewGroup.LayoutParams.WRAP_CONTENT));
 
@@ -391,15 +667,17 @@ public class FragmentToDo extends FragmentEditAbstract {
 
         TextView tagView = makeText(buildTaskTags(task), 13, R.color.text_11);
         LinearLayout.LayoutParams tagParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        tagParams.setMargins(dp(50), dp(3), 0, 0);
+        tagParams.setMargins(dp(contentIndent), dp(3), 0, 0);
         row.addView(tagView, tagParams);
 
         if (!task.getContent().trim().equals("")) {
             TextView noteView = makeText(firstLine(task.getContent()), 14, R.color.message_text);
             LinearLayout.LayoutParams noteParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            noteParams.setMargins(dp(50), dp(4), 0, 0);
+            noteParams.setMargins(dp(contentIndent), dp(4), 0, 0);
             row.addView(noteView, noteParams);
         }
+
+        addProgressLine(row, task, contentIndent);
 
         row.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -425,6 +703,7 @@ public class FragmentToDo extends FragmentEditAbstract {
                     task.setDeletedAt(ListData.GetDate());
                 }
                 renderTasks();
+                autoSaveParent();
                 return true;
             }
         });
@@ -441,6 +720,24 @@ public class FragmentToDo extends FragmentEditAbstract {
             return "…";
         }
         return "○";
+    }
+
+    private void addProgressLine(LinearLayout row, ToDoData task, int contentIndent) {
+        LinearLayout progressTrack = new LinearLayout(getActivity());
+        progressTrack.setOrientation(LinearLayout.HORIZONTAL);
+        progressTrack.setBackground(makeRoundBackground(Color.rgb(239, 239, 239), Color.rgb(239, 239, 239), 3));
+        LinearLayout.LayoutParams trackParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(5));
+        trackParams.setMargins(dp(contentIndent), dp(8), 0, 0);
+        row.addView(progressTrack, trackParams);
+
+        View progressView = new View(getActivity());
+        progressView.setBackground(makeRoundBackground(markerColor(task), markerColor(task), 3));
+        int progressWidth = Math.max(1, task.getProgress());
+        progressTrack.addView(progressView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, progressWidth));
+        if (progressWidth < 100) {
+            View spacer = new View(getActivity());
+            progressTrack.addView(spacer, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 100 - progressWidth));
+        }
     }
 
     private int markerColor(ToDoData task) {
@@ -611,6 +908,7 @@ public class FragmentToDo extends FragmentEditAbstract {
                         saveTaskFromDialog(task, editingIndex, titleEdit, statusSpinner, prioritySpinner,
                                 importanceSpinner, urgencySpinner, parentValues, parentSpinner, endDateTextView,
                                 currentDaySwitch, dailyTaskSwitch, progressSeekBar, noteEdit);
+                        autoSaveParent();
                         dialog.dismiss();
                     }
                 });
@@ -626,6 +924,7 @@ public class FragmentToDo extends FragmentEditAbstract {
                                 task.setDeletedAt(ListData.GetDate());
                             }
                             renderTasks();
+                            autoSaveParent();
                             dialog.dismiss();
                         }
                     });
@@ -667,6 +966,12 @@ public class FragmentToDo extends FragmentEditAbstract {
             boardData.getTasks().set(editingIndex, task);
         }
         renderTasks();
+    }
+
+    private void autoSaveParent() {
+        if (getActivity() instanceof ActivityEditInfo) {
+            ((ActivityEditInfo) getActivity()).autoSaveCurrentContent();
+        }
     }
 
     private void showTaskDetailDialog(ToDoData task) {
@@ -838,6 +1143,14 @@ public class FragmentToDo extends FragmentEditAbstract {
         return (int) (value * density + 0.5f);
     }
 
+    private GradientDrawable makeRoundBackground(int fillColor, int strokeColor, int radiusDp) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(fillColor);
+        drawable.setCornerRadius(dp(radiusDp));
+        drawable.setStroke(dp(1), strokeColor);
+        return drawable;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -869,6 +1182,17 @@ public class FragmentToDo extends FragmentEditAbstract {
     public void enableEdit() {
         isEdit = true;
         setControlsEnabled(true);
+        renderControls();
         renderTasks();
+    }
+
+    public void disableEdit() {
+        isEdit = false;
+        setControlsEnabled(false);
+        renderControls();
+        renderTasks();
+        if (getActivity() != null) {
+            getActivity().invalidateOptionsMenu();
+        }
     }
 }

@@ -2,50 +2,54 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/gray_bg"
     android:orientation="vertical"
     tools:context="com.example.yanghang.clipboard.Fragment.FragmentToDo">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="62dp"
+        android:background="@color/white"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingLeft="14dp"
         android:paddingRight="12dp">
 
-        <TextView
-            android:id="@+id/fragment_todo_summary_tv"
+        <LinearLayout
+            android:id="@+id/fragment_todo_summary_panel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical"
-            android:text="暂无任务"
-            android:textColor="@color/message_text"
-            android:textSize="15sp" />
+            android:orientation="vertical"
+            android:paddingRight="10dp" />
 
         <Button
             android:id="@+id/fragment_todo_add_task_btn"
-            android:layout_width="96dp"
-            android:layout_height="38dp"
+            android:layout_width="82dp"
+            android:layout_height="36dp"
             android:background="@color/colorPrimary"
             android:text="+ 任务"
             android:textColor="@color/white"
             android:textSize="14sp" />
     </LinearLayout>
 
-    <EditText
-        android:id="@+id/fragment_todo_board_note_edit"
+    <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="76dp"
-        android:layout_marginLeft="14dp"
-        android:layout_marginRight="14dp"
-        android:background="@android:color/transparent"
-        android:gravity="top"
-        android:hint="阶段备注"
-        android:minLines="2"
-        android:textColor="@color/message_text"
-        android:textSize="15sp" />
+        android:layout_height="40dp"
+        android:background="@color/white"
+        android:fillViewport="false"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/fragment_todo_filter_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp" />
+    </HorizontalScrollView>
 
     <View
         android:layout_width="match_parent"
