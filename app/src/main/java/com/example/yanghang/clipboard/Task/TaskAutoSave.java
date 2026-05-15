@@ -48,8 +48,13 @@ public class TaskAutoSave {
         List<ListData> listDatas=new DBListInfoManager(context).getDatas("");
         if (listDatas.size()==0)
             return;
-        FileUtils.SEED=PreferenceManager.getDefaultSharedPreferences(context).getString("autoSaveKey","");
-        FileUtils.saveListData(listDatas,PreferenceManager.getDefaultSharedPreferences(context).getString("dataFilePathPreference",context.getFilesDir().getAbsolutePath()),"autoSave",true);
+        String autoSaveKey = PreferenceManager.getDefaultSharedPreferences(context).getString("autoSaveKey","");
+        if (autoSaveKey == null || autoSaveKey.equals(""))
+            return;
+        FileUtils.SEED=autoSaveKey;
+        boolean saved = FileUtils.saveListData(listDatas,PreferenceManager.getDefaultSharedPreferences(context).getString("dataFilePathPreference",context.getFilesDir().getAbsolutePath()),"autoSave",true);
+        if (!saved)
+            return;
         Date nowDate= Calendar.getInstance().getTime();
         String todayString = DateFormat.format("yyyy-MM-dd", nowDate).toString();
         PreferenceManager.getDefaultSharedPreferences(context).edit().putString("autoSaveDate", todayString).apply();

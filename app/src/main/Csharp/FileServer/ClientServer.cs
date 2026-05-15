@@ -56,6 +56,16 @@ namespace FileServer
         {
             byte[] a = new byte[1];
             int c = myClientSocket.Receive(a);
+            if (c <= 0)
+            {
+                UpdateMessage("客户端连接已经关闭");
+                myClientSocket.Close();
+                if (OnDisconnect != null)
+                {
+                    OnDisconnect();
+                }
+                return;
+            }
             if (a[0] == 0x66)
             {
                 myClientSocket.Send(sendBytes);
@@ -66,7 +76,10 @@ namespace FileServer
             {
                 UpdateMessage("客户端关闭连接");
                 myClientSocket.Close();
-                OnDisconnect();
+                if (OnDisconnect != null)
+                {
+                    OnDisconnect();
+                }
                 
             }
 
@@ -80,36 +93,135 @@ namespace FileServer
 
         private void ReceiveFile(Socket clientSocket)
         {
-            byte[] buffer = new byte[1024 * 4];
-            int count = clientSocket.Receive(buffer);
-            string fileInfo = Encoding.UTF8.GetString(buffer, 0, count);
-            FileInfo fileJson = JsonConvert.DeserializeObject<FileInfo>(fileInfo);
-            
-            string filePath = "./" + fileJson.fileName ;
-            if (File.Exists(filePath))
-            {               
-                UpdateMessage("文件 “" + fileJson.fileName +"” 已经存在");
-                sendBytes= Encoding.UTF8.GetBytes("error");
-                clientSocket.Send(sendBytes);
-            }
-            else {
-                sendBytes = Encoding.UTF8.GetBytes("hello");
-                clientSocket.Send(sendBytes);
-                FileStream fs = new FileStream(filePath, FileMode.Create);
-            byte[] data = new byte[8 * 1024];
-            int c;
-            int size = 0;
-            while (size < fileJson.fileSize  && (c = clientSocket.Receive(data)) != 0)
+            string fileName = "";
+            try
             {
-                fs.Write(data, 0, c);
-                fs.Flush();
-                size += c;
-            }
-            fs.Close();
-            clientSocket.Send(sendBytes);
+                clientSocket.ReceiveTimeout = 30000;
+                FileInfo fileJson = ReceiveFileInfo(clientSocket);
+                fileName = SanitizeFileName(fileJson.fileName);
+                string saveFolder = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                if (string.IsNullOrEmpty(saveFolder))
+                {
+                    saveFolder = AppDomain.CurrentDomain.BaseDirectory;
+                }
+                Directory.CreateDirectory(saveFolder);
+                string filePath = GetAvailableFilePath(saveFolder, fileName);
 
-            UpdateMessage("收到客户端发送的文件" + fileJson.fileName);}
-            ReceieveData();
+                using (FileStream fs = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    clientSocket.Send(Encoding.UTF8.GetBytes("hello"));
+                    byte[] data = new byte[8 * 1024];
+                    long size = 0;
+                    while (size < fileJson.fileSize)
+                    {
+                        int readSize = (int)Math.Min(data.Length, fileJson.fileSize - size);
+                        int c = clientSocket.Receive(data, 0, readSize, SocketFlags.None);
+                        if (c <= 0)
+                        {
+                            throw new IOException("socket closed before file finished");
+                        }
+                        fs.Write(data, 0, c);
+                        size += c;
+                    }
+                }
+
+                clientSocket.Send(Encoding.UTF8.GetBytes("hello"));
+                UpdateMessage("收到客户端发送的文件 " + filePath);
+                ReceieveData();
+            }
+            catch (Exception ex)
+            {
+                UpdateMessage("接收文件失败 " + fileName + " " + ex.Message);
+                TrySendError(clientSocket);
+                try
+                {
+                    clientSocket.Close();
+                }
+                catch
+                {
+                }
+                if (OnDisconnect != null)
+                {
+                    OnDisconnect();
+                }
+            }
+        }
+
+        private FileInfo ReceiveFileInfo(Socket clientSocket)
+        {
+            byte[] buffer = new byte[1024];
+            StringBuilder builder = new StringBuilder();
+            while (builder.Length < 8192)
+            {
+                int count = clientSocket.Receive(buffer);
+                if (count <= 0)
+                {
+                    throw new IOException("socket closed before file info");
+                }
+                builder.Append(Encoding.UTF8.GetString(buffer, 0, count));
+                string fileInfo = builder.ToString().Trim();
+                if (!fileInfo.EndsWith("}"))
+                {
+                    continue;
+                }
+                FileInfo fileJson;
+                try
+                {
+                    fileJson = JsonConvert.DeserializeObject<FileInfo>(fileInfo);
+                }
+                catch
+                {
+                    continue;
+                }
+                if (fileJson == null || string.IsNullOrEmpty(fileJson.fileName) || fileJson.fileSize < 0)
+                {
+                    throw new IOException("invalid file info");
+                }
+                return fileJson;
+            }
+            throw new IOException("file info is too large");
+        }
+
+        private string SanitizeFileName(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return "file";
+            }
+            foreach (char invalidChar in Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(invalidChar, '_');
+            }
+            return fileName;
+        }
+
+        private string GetAvailableFilePath(string folder, string fileName)
+        {
+            string filePath = Path.Combine(folder, fileName);
+            if (!File.Exists(filePath))
+            {
+                return filePath;
+            }
+            string name = Path.GetFileNameWithoutExtension(fileName);
+            string extension = Path.GetExtension(fileName);
+            int index = 1;
+            do
+            {
+                filePath = Path.Combine(folder, name + "(" + index + ")" + extension);
+                index++;
+            } while (File.Exists(filePath));
+            return filePath;
+        }
+
+        private void TrySendError(Socket clientSocket)
+        {
+            try
+            {
+                clientSocket.Send(Encoding.UTF8.GetBytes("error"));
+            }
+            catch
+            {
+            }
         }
 
 

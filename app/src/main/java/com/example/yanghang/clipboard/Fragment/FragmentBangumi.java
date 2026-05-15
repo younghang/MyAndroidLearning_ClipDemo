@@ -15,6 +15,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
+import android.view.ViewParent;
 
 
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -177,39 +179,50 @@ public class FragmentBangumi extends Fragment {
         setImageColor(btnAddEpisode, R.drawable.ic_add_circle_outline_white_24dp);
         classificationsLinearLayout = root.findViewById(R.id.bangumi_classifications_linearLayout);
         episodesLinearLayout = root.findViewById(R.id.bangumi_episodes_linearLayout);
+        bindInnerScrollableView((HorizontalScrollView) root.findViewById(R.id.bangumi_classifications_scroll));
+        bindInnerScrollableView((HorizontalScrollView) root.findViewById(R.id.bangumi_episodes_scroll));
 
         editEpisodeComment = root.findViewById(R.id.bangumi_episode_comment);
-        editEpisodeComment.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (view.getId() == R.id.bangumi_episode_comment) {
-                    view.getParent().requestDisallowInterceptTouchEvent(true);
-                    switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
-                        case MotionEvent.ACTION_UP:
-                            view.getParent().requestDisallowInterceptTouchEvent(false);
-                            break;
-                    }
-                }
-                return false;
-            }
-        });
+        bindInnerScrollableEditText(editEpisodeComment);
 
         editRemark = root.findViewById(R.id.bangumi_remarks);
-        editRemark.setOnTouchListener(new View.OnTouchListener() {
+        bindInnerScrollableEditText(editRemark);
+
+    }
+
+    private void bindInnerScrollableEditText(final EditText editText) {
+        editText.setVerticalScrollBarEnabled(true);
+        bindInnerScrollableView(editText);
+    }
+
+    private void bindInnerScrollableView(final View scrollableView) {
+        if (scrollableView == null) {
+            return;
+        }
+        scrollableView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (view.getId() == R.id.bangumi_remarks) {
-                    view.getParent().requestDisallowInterceptTouchEvent(true);
-                    switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
-                        case MotionEvent.ACTION_UP:
-                            view.getParent().requestDisallowInterceptTouchEvent(false);
-                            break;
-                    }
+                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                    case MotionEvent.ACTION_MOVE:
+                        requestDisallowInterceptTouchEventForAllParents(view, true);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        requestDisallowInterceptTouchEventForAllParents(view, false);
+                        break;
                 }
                 return false;
             }
         });
+    }
 
+    private void requestDisallowInterceptTouchEventForAllParents(View view, boolean disallow) {
+        ViewParent parent = view.getParent();
+        while (parent != null) {
+            parent.requestDisallowInterceptTouchEvent(disallow);
+            parent = parent.getParent();
+        }
     }
 
     private void setImageColor(ImageButton imageButton, int id) {

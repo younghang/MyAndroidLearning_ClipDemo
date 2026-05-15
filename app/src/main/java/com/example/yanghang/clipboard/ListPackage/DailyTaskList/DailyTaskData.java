@@ -5,6 +5,8 @@ package com.example.yanghang.clipboard.ListPackage.DailyTaskList;
  */
 
 public class DailyTaskData {
+    //taskId for short
+    String tI;
     //taskName for short
     String tN;
     //tP for short
@@ -16,6 +18,20 @@ public class DailyTaskData {
     public DailyTaskData(String tN, int tP) {
         this.tN = tN;
         this.tP = tP;
+    }
+
+    public DailyTaskData(String tI, String tN, int tP) {
+        this.tI = tI;
+        this.tN = tN;
+        this.tP = tP;
+    }
+
+    public String gettI() {
+        return tI;
+    }
+
+    public void settI(String tI) {
+        this.tI = tI;
     }
 
     public String gettN() {

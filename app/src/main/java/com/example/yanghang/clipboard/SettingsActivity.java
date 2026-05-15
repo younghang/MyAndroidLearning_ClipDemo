@@ -715,7 +715,21 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit().putString("autoSaveKey",editText.getText().toString()).apply();
+                            String autoSaveKey = editText.getText().toString();
+                            if (autoSaveKey.equals("")) {
+                                autoSavePreference.setChecked(false);
+                                PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit()
+                                        .putBoolean("autoSavePreference", false)
+                                        .putString("autoSaveKey", "")
+                                        .putString("autoSaveDate", "")
+                                        .apply();
+                                Toast.makeText(getActivity(), "自动保存密码不能为空", Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext()).edit()
+                                    .putString("autoSaveKey",autoSaveKey)
+                                    .putString("autoSaveDate", "")
+                                    .apply();
                         }
                     }).show();
         }

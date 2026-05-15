@@ -88,22 +88,21 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
         List<ListData> listDatas = new ArrayList<>();
 
 
-        JSONObject json;
-//        if (file.exists()) {
-            if (true) {
-                json= loadJsonFromDisk(context,uri,encoded);
-            try {
-                JSONArray array = json.getJSONArray(LISTDATA_CLIPS_NAME);
-                for (int i = array.length()-1; i >-1; i--) {
-                    JSONObject jsonObject = array.getJSONObject(i);
-                    ListData listData = new ListData(jsonObject.getString(DBListInfoManager.KEY_REMARK), jsonObject.getString(DBListInfoManager.KEY_CONTENT), jsonObject.getString(DBListInfoManager.KEY_DATETIME), jsonObject.getInt(DBListInfoManager.KEY_ORDERID), jsonObject.getString(DBListInfoManager.KEY_CATALOGUE));
-                    listDatas.add(listData);
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-                throw new Exception("文本类型或密码不正确");
+        JSONObject json= loadJsonFromDisk(context,uri,encoded);
+        if (json == null) {
+            throw new Exception("文件为空、密码不正确或读取失败");
+        }
+        try {
+            JSONArray array = json.getJSONArray(LISTDATA_CLIPS_NAME);
+            for (int i = array.length()-1; i >-1; i--) {
+                JSONObject jsonObject = array.getJSONObject(i);
+                ListData listData = new ListData(jsonObject.getString(DBListInfoManager.KEY_REMARK), jsonObject.getString(DBListInfoManager.KEY_CONTENT), jsonObject.getString(DBListInfoManager.KEY_DATETIME), jsonObject.getInt(DBListInfoManager.KEY_ORDERID), jsonObject.getString(DBListInfoManager.KEY_CATALOGUE));
+                listDatas.add(listData);
             }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            throw new Exception("文本类型或密码不正确");
         }
 
         return listDatas;
@@ -113,16 +112,20 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
     public static boolean saveJsonObjectToDisk(File file, JSONObject jsonObject,boolean encoded) {
         FileOutputStream fileOutputStream;
         try {
-
-            fileOutputStream = new FileOutputStream(file, false);
-            ByteArrayInputStream bis;
+            byte[] outputBytes;
             if (encoded) {
 //                bis= new ByteArrayInputStream(AESUtils.encrypt(SEED,jsonObject.toString()).getBytes("utf-8"));
-                bis= new ByteArrayInputStream(AESUtils.des(jsonObject.toString(),SEED, Cipher.ENCRYPT_MODE).getBytes("utf-8"));
+                String encryptedText = AESUtils.des(jsonObject.toString(),SEED, Cipher.ENCRYPT_MODE);
+                if (TextUtils.isEmpty(encryptedText)) {
+                    return false;
+                }
+                outputBytes = encryptedText.getBytes("utf-8");
             }else
             {
-                bis= new ByteArrayInputStream(jsonObject.toString().getBytes("utf-8"));
+                outputBytes = jsonObject.toString().getBytes("utf-8");
             }
+            fileOutputStream = new FileOutputStream(file, false);
+            ByteArrayInputStream bis= new ByteArrayInputStream(outputBytes);
             byte[] buffer = new byte[1024];
             int c = 0;
             while ((c = bis.read(buffer, 0, buffer.length)) != -1) {
@@ -141,22 +144,28 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
         if (uri == null)
             return null;
 
-        InputStream fileInputStream;
+        InputStream fileInputStream = null;
+        ByteArrayOutputStream bos = null;
         try {
             fileInputStream = context.getContentResolver().openInputStream(uri);
+            if (fileInputStream == null) {
+                return null;
+            }
             byte[] buffer = new byte[1024];
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            bos = new ByteArrayOutputStream();
             int c = 0;
             while ((c = fileInputStream.read(buffer, 0, buffer.length)) != -1) {
                 bos.write(buffer, 0, c);
             }
-            bos.close();
-            fileInputStream.close();
             JSONObject json;
             if (encoded)
             {
 //                json = new JSONObject(AESUtils.decrypt(FileUtils.SEED,bos.toString("utf-8")));
-                json = new JSONObject(AESUtils.des(bos.toString("utf-8"),FileUtils.SEED,Cipher.DECRYPT_MODE));
+                String decryptedText = AESUtils.des(bos.toString("utf-8"),FileUtils.SEED,Cipher.DECRYPT_MODE);
+                if (TextUtils.isEmpty(decryptedText)) {
+                    throw new BadPaddingException("decrypt failed");
+                }
+                json = new JSONObject(decryptedText);
             }else
             {
                 String str=bos.toString("utf-8");
@@ -169,10 +178,28 @@ public class FileUtils {   //        getApplicationContext().getFilesDir().getAb
 
             return json;
         }
+        catch (BadPaddingException e)
+        {
+            Log.v(MainFormActivity.TAG, e.toString());
+            e.printStackTrace();
+            throw e;
+        }
         catch (Exception e)
         {
             Log.v(MainFormActivity.TAG, e.toString());
             e.printStackTrace();
+        }
+        finally {
+            try {
+                if (bos != null) {
+                    bos.close();
+                }
+                if (fileInputStream != null) {
+                    fileInputStream.close();
+                }
+            } catch (Exception e) {
+                Log.v(MainFormActivity.TAG, e.toString());
+            }
         }
         return null;
     }

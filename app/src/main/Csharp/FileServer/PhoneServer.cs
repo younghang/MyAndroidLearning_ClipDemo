@@ -43,7 +43,7 @@ namespace FileServer
             fileLength = fs.Length;
             string[] fps = filePath.Split('\\');
             string fileName = fps[fps.Length-1];
-            FileInfo fileInfo = new FileInfo(fileName, (int)fileLength);
+            FileInfo fileInfo = new FileInfo(fileName, fileLength);
             string fileInfoString = JsonConvert.SerializeObject(fileInfo);
 
             byte[] dataBytes = Encoding.UTF8.GetBytes(fileInfoString);

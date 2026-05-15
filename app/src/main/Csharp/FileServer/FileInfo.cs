@@ -9,8 +9,8 @@ namespace FileServer
     public class FileInfo
     {
         public string fileName { get; set; }
-        public int fileSize { get; set; }
-        public FileInfo(string name,int size)
+        public long fileSize { get; set; }
+        public FileInfo(string name,long size)
         {
             fileName = name;
             fileSize = size;

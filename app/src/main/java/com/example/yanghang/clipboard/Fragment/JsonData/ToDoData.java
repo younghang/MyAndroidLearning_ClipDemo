@@ -133,7 +133,11 @@ public class ToDoData {
         if (oldData == null) {
             return task;
         }
-        task.setTaskId(oldData.getTaskId());
+        if (oldData.taskId == null || oldData.taskId.trim().equals("")) {
+            task.setTaskId(stableLegacyTaskId(oldData.getTitle() + "|" + oldData.getContent() + "|" + oldData.getEndTime()));
+        } else {
+            task.setTaskId(oldData.taskId);
+        }
         task.setTitle(oldData.getTitle());
         task.setContent(oldData.getContent());
         task.setEndTime(oldData.getEndTime());
@@ -170,6 +174,7 @@ public class ToDoData {
                 continue;
             }
             ToDoData task = createTask();
+            task.setTaskId(stableLegacyTaskId(title + "|" + endTime + "|" + i));
             task.setTitle(title);
             task.setEndTime(endTime);
             task.setStatus(status);
@@ -181,6 +186,13 @@ public class ToDoData {
             task.setDailyTask(isDailyTask);
             board.getTasks().add(task);
         }
+    }
+
+    private static String stableLegacyTaskId(String value) {
+        if (value == null) {
+            value = "";
+        }
+        return "legacy-" + Integer.toHexString(value.hashCode());
     }
 
     public String getDataType() {

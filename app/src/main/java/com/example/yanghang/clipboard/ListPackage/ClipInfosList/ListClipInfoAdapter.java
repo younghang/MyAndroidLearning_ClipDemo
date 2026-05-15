@@ -3,9 +3,13 @@ package com.example.yanghang.clipboard.ListPackage.ClipInfosList;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
+import android.graphics.Color;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +19,7 @@ import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.TextView;
 
+import com.example.yanghang.clipboard.Fragment.JsonData.AssetData;
 import com.example.yanghang.clipboard.OthersView.SlidingButtonView;
 import com.example.yanghang.clipboard.R;
 
@@ -59,7 +64,19 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
         strMessage=mDatas.get(position).getSimpleContent();
 
         holder.layoutContent.getLayoutParams().width = Utils.getScreenWidth(mContext);
-        holder.tvMessage.setText(strMessage);
+        if (catalogueName.equals("待办事项")) {
+            holder.tvMessage.setText(applyTodoMarkerSpans(strMessage));
+            holder.tvMessage.setTextSize(15);
+            holder.tvMessage.setMaxLines(14);
+        } else if (catalogueName.equals(AssetData.CATALOGUE_NAME)) {
+            holder.tvMessage.setText(strMessage);
+            holder.tvMessage.setTextSize(16);
+            holder.tvMessage.setMaxLines(14);
+        } else {
+            holder.tvMessage.setText(strMessage);
+            holder.tvMessage.setTextSize(18);
+            holder.tvMessage.setMaxLines(8);
+        }
         holder.tvRemarks.setText(mDatas.get(position).getRemarks());
         holder.tvRemarks.init((WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE));
 
@@ -213,6 +230,23 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 
 
         void onDeleteBtnCilck(View view, int position);
+    }
+
+    private SpannableString applyTodoMarkerSpans(String text) {
+        SpannableString spannableString = new SpannableString(text);
+        applyTodoMarkerSpan(spannableString, text, "●红", Color.rgb(213, 64, 60));
+        applyTodoMarkerSpan(spannableString, text, "●橙", Color.rgb(217, 150, 16));
+        applyTodoMarkerSpan(spannableString, text, "●蓝", Color.rgb(63, 81, 181));
+        applyTodoMarkerSpan(spannableString, text, "●灰", Color.rgb(153, 153, 153));
+        return spannableString;
+    }
+
+    private void applyTodoMarkerSpan(SpannableString spannableString, String text, String marker, int color) {
+        int start = text.indexOf(marker);
+        while (start >= 0) {
+            spannableString.setSpan(new ForegroundColorSpan(color), start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            start = text.indexOf(marker, start + marker.length());
+        }
     }
 
     //添加载入动画,从别的地方抄来的，稍加修改，此app大部分代码都是这样的

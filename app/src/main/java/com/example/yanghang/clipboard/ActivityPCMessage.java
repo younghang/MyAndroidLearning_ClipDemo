@@ -334,20 +334,24 @@ public class ActivityPCMessage extends SwipeBackActivity {
             if (fileUri == null) {
                 throw new IOException("file uri is null");
             }
+            prepareFileForSending();
             fileInputStream = getContentResolver().openInputStream(fileUri);
             if (fileInputStream == null) {
                 throw new IOException("can not open selected file");
             }
             bo.write(0x66);
             bo.flush();
-            bi.read(hello);
+            readFully(hello);
+            if (!isHello(hello)) {
+                throw new IOException("pc refused file type: " + new String(hello, "utf-8"));
+            }
             FileInfo fileInfo = new FileInfo(fileName, this.fileSize);
             String sendInfo = JSON.toJSONString(fileInfo);
 
             byte[] infoJson = sendInfo.getBytes("utf-8");
             bo.write(infoJson);
             bo.flush();
-            bi.read(hello);
+            readFully(hello);
             if (!isHello(hello)) {
                 throw new IOException("pc refused file: " + new String(hello, "utf-8"));
             }
@@ -357,6 +361,7 @@ public class ActivityPCMessage extends SwipeBackActivity {
             long sendLength=0;
             int percent=0;
             while ((c = fileInputStream.read(buffer, 0, buffer.length)) != -1) {
+                bo.write(buffer, 0, c);
                 sendLength+=c;
                 percent= fileSize <= 0 ? 100 : (int) (100*1.0f*sendLength/fileSize);
                 if (currentProgress<percent) {
@@ -368,12 +373,14 @@ public class ActivityPCMessage extends SwipeBackActivity {
                     handler.sendMessage(msg);
                     currentProgress=percent;
                 }
-                bo.write(buffer, 0, c);
 
             }
             bo.flush();
 
-            bi.read(hello);
+            readFully(hello);
+            if (!isHello(hello)) {
+                throw new IOException("pc did not finish receiving file: " + new String(hello, "utf-8"));
+            }
             Message msg = new Message();
             Bundle data = new Bundle();
             data.putInt(SEND_MESSAGE, SEND_MESSAGE_FINISH);
@@ -390,6 +397,28 @@ public class ActivityPCMessage extends SwipeBackActivity {
             closeQuietly(fileInputStream);
         }
 
+    }
+
+    private void prepareFileForSending() throws IOException {
+        if (fileUri == null) {
+            throw new IOException("file uri is null");
+        }
+        if (!ContentResolver.SCHEME_FILE.equals(fileUri.getScheme())) {
+            cacheSelectedFile(fileUri);
+        } else if (fileUri.getPath() != null) {
+            File selectedFile = new File(fileUri.getPath());
+            if (!selectedFile.exists()) {
+                throw new IOException("selected file does not exist");
+            }
+            file = selectedFile.getAbsolutePath();
+            fileSize = selectedFile.length();
+        }
+        if (fileSize < 0) {
+            throw new IOException("can not get selected file size");
+        }
+        if (fileSize > Integer.MAX_VALUE) {
+            throw new IOException("file is larger than 2GB");
+        }
     }
 
     private String getFileName(Uri uri) {
@@ -509,6 +538,17 @@ public class ActivityPCMessage extends SwipeBackActivity {
         return "hello".equals(new String(bytes, "utf-8"));
     }
 
+    private void readFully(byte[] buffer) throws IOException {
+        int offset = 0;
+        while (offset < buffer.length) {
+            int count = bi.read(buffer, offset, buffer.length - offset);
+            if (count == -1) {
+                throw new IOException("socket closed while reading response");
+            }
+            offset += count;
+        }
+    }
+
     private void closeQuietly(Closeable closeable) {
         if (closeable == null) {
             return;
@@ -562,9 +602,6 @@ public class ActivityPCMessage extends SwipeBackActivity {
                 fileName = getFileName(uri);
                 fileSize = getFileSize(uri);
                 fileUri = uri;
-                if (fileSize < 0) {
-                    cacheSelectedFile(uri);
-                }
                 if (fileSize > Integer.MAX_VALUE) {
                     clearSelectedFile();
                     Toast.makeText(ActivityPCMessage.this, "文件超过2GB，暂时不能发送", Toast.LENGTH_SHORT).show();
@@ -572,7 +609,7 @@ public class ActivityPCMessage extends SwipeBackActivity {
                 }
                 file = fileUri.toString();
                 Toast.makeText(ActivityPCMessage.this, "已选择：" + fileName, Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 clearSelectedFile();
                 Toast.makeText(ActivityPCMessage.this, "文件读取失败，请重新选择", Toast.LENGTH_SHORT).show();

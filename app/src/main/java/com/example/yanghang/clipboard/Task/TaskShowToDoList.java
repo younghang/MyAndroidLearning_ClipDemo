@@ -16,7 +16,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.yanghang.clipboard.MainFormActivity.TAG;
 
@@ -60,7 +62,7 @@ public class TaskShowToDoList {
                 } catch (ParseException e) {
                     e.printStackTrace();
                 }
-                List<String> dailyTaskNames = new ArrayList<String>();
+                List<DailyTaskRef> dailyTasks = new ArrayList<DailyTaskRef>();
                 for (int i=0;i<listDatas.size();i++)
                 {
                     ToDoData toDoData=null;
@@ -99,7 +101,7 @@ public class TaskShowToDoList {
                         {
                             if (boardData.isDailyTask() || taskData.isDailyTask())
                             {
-                                addDailyTaskName(dailyTaskNames, taskData.getDisplayTitle());
+                                addDailyTask(dailyTasks, taskData.getTaskId(), taskData.getDisplayTitle());
                                 continue;
                             }
 //                        Log.d(TAG, "run: endDate"+endDate.toString()+"   current:"+currentDate.toString());
@@ -126,8 +128,8 @@ public class TaskShowToDoList {
                         }
                     }
                 }
-                if (!dailyTaskNames.isEmpty()) {
-                    List<DailyTaskData> dailyList = getOrCreateDailyMissionRecords(dbListInfoManager, todayString, dailyTaskNames);
+                if (!dailyTasks.isEmpty()) {
+                    List<DailyTaskData> dailyList = getOrCreateDailyMissionRecords(dbListInfoManager, todayString, dailyTasks);
                     showToDoList.showDailyList(dailyList, null);
                 }
                 showToDoList.showToDoList(stringBuilder.toString());
@@ -145,77 +147,109 @@ public class TaskShowToDoList {
             return;
         }
         List<ListData> dailyMissionRecords = dbListInfoManager.getDatas(DAILY_MISSION_CATALOGUE);
+        Map<String, ListData> dailyMissionRecordMap = buildDailyMissionRecordMap(dailyMissionRecords);
         for (int i = 0; i < dailyList.size(); i++) {
             DailyTaskData dailyTaskData = dailyList.get(i);
             if (dailyTaskData == null || dailyTaskData.gettN() == null || dailyTaskData.gettN().trim().equals("")) {
                 continue;
             }
             String taskName = dailyTaskData.gettN().trim();
-            ListData dailyMissionRecord = findDailyMissionRecord(dailyMissionRecords, taskName);
+            String taskKey = getDailyTaskKey(dailyTaskData.gettI(), taskName);
+            ListData dailyMissionRecord = findDailyMissionRecord(dailyMissionRecordMap, taskKey, taskName);
             if (dailyMissionRecord == null) {
-                dailyMissionRecord = createDailyMissionRecord(dbListInfoManager, taskName);
+                dailyMissionRecord = createDailyMissionRecord(dbListInfoManager, taskKey);
                 dailyMissionRecords.add(dailyMissionRecord);
             }
+            migrateDailyMissionRecordKeyIfNeeded(dbListInfoManager, dailyMissionRecord, taskKey);
+            dailyMissionRecordMap.put(taskKey, dailyMissionRecord);
             JSONObject dailyMissionContent = parseDailyMissionContent(dailyMissionRecord.getContent());
-            dailyMissionContent.put(date, new DailyTaskData(taskName, dailyTaskData.gettP()));
+            dailyMissionContent.put(date, new DailyTaskData(taskKey, taskName, dailyTaskData.gettP()));
             dailyMissionRecord.setContent(JSON.toJSONString(dailyMissionContent));
-            dbListInfoManager.updateDataByOrderId(dailyMissionRecord.getOrderID(), dailyMissionRecord.getCatalogue(), taskName, dailyMissionRecord.getContent(), dailyMissionRecord.getCreateDate());
+            dbListInfoManager.updateDataByOrderId(dailyMissionRecord.getOrderID(), dailyMissionRecord.getCatalogue(), taskKey, dailyMissionRecord.getContent(), dailyMissionRecord.getCreateDate());
         }
     }
 
-    private static void addDailyTaskName(List<String> taskNames, String taskName) {
+    private static void addDailyTask(List<DailyTaskRef> dailyTasks, String taskId, String taskName) {
         if (taskName == null) {
             return;
         }
         String currentTask = taskName.trim();
-        if (currentTask.equals("") || currentTask.startsWith("#") || taskNames.contains(currentTask)) {
+        String taskKey = getDailyTaskKey(taskId, currentTask);
+        if (currentTask.equals("") || currentTask.startsWith("#") || containsDailyTask(dailyTasks, taskKey)) {
             return;
         }
         Log.d(TAG, "run: currentStr=" + currentTask);
-        taskNames.add(currentTask);
+        dailyTasks.add(new DailyTaskRef(taskKey, currentTask));
     }
 
-    private List<DailyTaskData> getOrCreateDailyMissionRecords(DBListInfoManager dbListInfoManager, String todayString, List<String> dailyTaskNames) {
+    private List<DailyTaskData> getOrCreateDailyMissionRecords(DBListInfoManager dbListInfoManager, String todayString, List<DailyTaskRef> dailyTasks) {
         List<ListData> dailyMissionRecords = dbListInfoManager.getDatas(DAILY_MISSION_CATALOGUE);
+        Map<String, ListData> dailyMissionRecordMap = buildDailyMissionRecordMap(dailyMissionRecords);
         List<DailyTaskData> dailyList = new ArrayList<DailyTaskData>();
-        for (int i = 0; i < dailyTaskNames.size(); i++) {
-            String taskName = dailyTaskNames.get(i);
-            ListData dailyMissionRecord = findDailyMissionRecord(dailyMissionRecords, taskName);
+        for (int i = 0; i < dailyTasks.size(); i++) {
+            DailyTaskRef dailyTask = dailyTasks.get(i);
+            ListData dailyMissionRecord = findDailyMissionRecord(dailyMissionRecordMap, dailyTask.taskKey, dailyTask.taskName);
             if (dailyMissionRecord == null) {
-                dailyMissionRecord = createDailyMissionRecord(dbListInfoManager, taskName);
+                dailyMissionRecord = createDailyMissionRecord(dbListInfoManager, dailyTask.taskKey);
                 dailyMissionRecords.add(dailyMissionRecord);
             }
+            migrateDailyMissionRecordKeyIfNeeded(dbListInfoManager, dailyMissionRecord, dailyTask.taskKey);
+            dailyMissionRecordMap.put(dailyTask.taskKey, dailyMissionRecord);
 
             JSONObject dailyMissionContent = parseDailyMissionContent(dailyMissionRecord.getContent());
-            DailyTaskData dailyTaskData = parseDailyTaskData(dailyMissionContent.get(todayString), taskName);
+            DailyTaskData dailyTaskData = parseDailyTaskData(dailyMissionContent.get(todayString), dailyTask.taskKey, dailyTask.taskName);
             if (dailyTaskData == null) {
-                dailyTaskData = new DailyTaskData(taskName, 0);
+                dailyTaskData = new DailyTaskData(dailyTask.taskKey, dailyTask.taskName, 0);
                 dailyMissionContent.put(todayString, dailyTaskData);
                 dailyMissionRecord.setContent(JSON.toJSONString(dailyMissionContent));
-                dbListInfoManager.updateDataByOrderId(dailyMissionRecord.getOrderID(), dailyMissionRecord.getCatalogue(), taskName, dailyMissionRecord.getContent(), dailyMissionRecord.getCreateDate());
+                dbListInfoManager.updateDataByOrderId(dailyMissionRecord.getOrderID(), dailyMissionRecord.getCatalogue(), dailyTask.taskKey, dailyMissionRecord.getContent(), dailyMissionRecord.getCreateDate());
+            } else {
+                dailyTaskData.settI(dailyTask.taskKey);
+                dailyTaskData.settN(dailyTask.taskName);
             }
             dailyList.add(dailyTaskData);
         }
         return dailyList;
     }
 
-    private static ListData createDailyMissionRecord(DBListInfoManager dbListInfoManager, String taskName) {
-        ListData dailyMissionRecord = new ListData(taskName, JSON.toJSONString(new JSONObject()), dbListInfoManager.getDataCount(), DAILY_MISSION_CATALOGUE);
+    private static ListData createDailyMissionRecord(DBListInfoManager dbListInfoManager, String taskKey) {
+        ListData dailyMissionRecord = new ListData(taskKey, JSON.toJSONString(new JSONObject()), dbListInfoManager.getDataCount(), DAILY_MISSION_CATALOGUE);
         dbListInfoManager.insertData(dailyMissionRecord);
         return dailyMissionRecord;
     }
 
-    private static ListData findDailyMissionRecord(List<ListData> dailyMissionRecords, String taskName) {
+    private static Map<String, ListData> buildDailyMissionRecordMap(List<ListData> dailyMissionRecords) {
+        Map<String, ListData> dailyMissionRecordMap = new HashMap<String, ListData>();
         if (dailyMissionRecords == null) {
-            return null;
+            return dailyMissionRecordMap;
         }
         for (int i = 0; i < dailyMissionRecords.size(); i++) {
             ListData listData = dailyMissionRecords.get(i);
-            if (listData != null && taskName.equals(listData.getRemarks())) {
-                return listData;
+            if (listData != null && listData.getRemarks() != null) {
+                dailyMissionRecordMap.put(listData.getRemarks(), listData);
             }
         }
+        return dailyMissionRecordMap;
+    }
+
+    private static ListData findDailyMissionRecord(Map<String, ListData> dailyMissionRecordMap, String taskKey, String taskName) {
+        ListData listData = dailyMissionRecordMap.get(taskKey);
+        if (listData != null) {
+            return listData;
+        }
+        listData = dailyMissionRecordMap.remove(taskName);
+        if (listData != null) {
+            return listData;
+        }
         return null;
+    }
+
+    private static void migrateDailyMissionRecordKeyIfNeeded(DBListInfoManager dbListInfoManager, ListData dailyMissionRecord, String taskKey) {
+        if (dailyMissionRecord == null || taskKey == null || taskKey.trim().equals("") || taskKey.equals(dailyMissionRecord.getRemarks())) {
+            return;
+        }
+        dailyMissionRecord.setRemarks(taskKey);
+        dbListInfoManager.updateDataByOrderId(dailyMissionRecord.getOrderID(), dailyMissionRecord.getCatalogue(), taskKey, dailyMissionRecord.getContent(), dailyMissionRecord.getCreateDate());
     }
 
     private static JSONObject parseDailyMissionContent(String content) {
@@ -234,12 +268,15 @@ public class TaskShowToDoList {
         return dailyMissionContent;
     }
 
-    private static DailyTaskData parseDailyTaskData(Object object, String taskName) {
+    private static DailyTaskData parseDailyTaskData(Object object, String taskKey, String taskName) {
         if (object == null) {
             return null;
         }
         try {
             DailyTaskData dailyTaskData = JSON.parseObject(JSON.toJSONString(object), DailyTaskData.class);
+            if (dailyTaskData != null && (dailyTaskData.gettI() == null || dailyTaskData.gettI().trim().equals(""))) {
+                dailyTaskData.settI(taskKey);
+            }
             if (dailyTaskData != null && (dailyTaskData.gettN() == null || dailyTaskData.gettN().trim().equals(""))) {
                 dailyTaskData.settN(taskName);
             }
@@ -247,6 +284,35 @@ public class TaskShowToDoList {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    private static boolean containsDailyTask(List<DailyTaskRef> dailyTasks, String taskKey) {
+        for (int i = 0; i < dailyTasks.size(); i++) {
+            if (taskKey.equals(dailyTasks.get(i).taskKey)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String getDailyTaskKey(String taskId, String taskName) {
+        if (taskId != null && !taskId.trim().equals("")) {
+            return taskId.trim();
+        }
+        if (taskName == null) {
+            return "";
+        }
+        return taskName.trim();
+    }
+
+    private static class DailyTaskRef {
+        String taskKey;
+        String taskName;
+
+        DailyTaskRef(String taskKey, String taskName) {
+            this.taskKey = taskKey;
+            this.taskName = taskName;
         }
     }
 
