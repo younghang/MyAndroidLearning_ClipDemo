@@ -419,6 +419,8 @@ public class ResearchMindMapView extends View {
         mapHeight = Math.max(dp(220), maxRows * nodeHeight + Math.max(0, maxRows - 1) * rowGap + dp(48));
         rootBox.rect.offsetTo(dp(24), (mapHeight - rootBox.rect.height()) / 2);
 
+        List<NodeBox> placedBoxes = new ArrayList<NodeBox>();
+        placedBoxes.add(rootBox);
         for (int level = 1; level < columns.size(); level++) {
             List<NodeBox> column = columns.get(level);
             float columnHeight = column.size() * nodeHeight + Math.max(0, column.size() - 1) * rowGap;
@@ -429,13 +431,40 @@ public class ResearchMindMapView extends View {
                 box.rect.set(x, y, x + nodeWidth, y + nodeHeight);
                 if (box.node.isMapPositioned()) {
                     box.rect.offsetTo(box.node.getMapX(), box.node.getMapY());
+                } else {
+                    moveBoxToOpenSlot(box, placedBoxes, rowGap);
                 }
+                placedBoxes.add(box);
                 y += nodeHeight + rowGap;
             }
         }
         mapWidth = rootRight + columnGap + maxLevel * nodeWidth + Math.max(0, maxLevel - 1) * columnGap + dp(40);
         updateMapBounds();
         layoutDirty = false;
+    }
+
+    private void moveBoxToOpenSlot(NodeBox box, List<NodeBox> placedBoxes, float rowGap) {
+        if (box == null || placedBoxes == null) {
+            return;
+        }
+        int guard = 0;
+        while (hasBoxOverlap(box, placedBoxes) && guard < 80) {
+            box.rect.offset(0, box.rect.height() + rowGap);
+            guard++;
+        }
+    }
+
+    private boolean hasBoxOverlap(NodeBox box, List<NodeBox> placedBoxes) {
+        RectF expanded = new RectF(box.rect);
+        float margin = dp(12);
+        expanded.inset(-margin, -margin);
+        for (int i = 0; i < placedBoxes.size(); i++) {
+            NodeBox placed = placedBoxes.get(i);
+            if (placed != null && RectF.intersects(expanded, placed.rect)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void updateMapBounds() {
@@ -507,7 +536,7 @@ public class ResearchMindMapView extends View {
                     continue;
                 }
                 hasVisibleRelated = true;
-                drawCurve(canvas, from.rect.right, from.rect.centerY(), to.rect.left, to.rect.centerY(), to.color);
+                drawCurve(canvas, from.rect.right, from.rect.centerY(), to.rect.left, to.rect.centerY(), from.color);
             }
             if (!hasVisibleRelated) {
                 drawCurve(canvas, rootBox.rect.right, rootBox.rect.centerY(), to.rect.left, to.rect.centerY(), to.color);

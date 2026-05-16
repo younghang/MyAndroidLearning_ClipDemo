@@ -145,13 +145,19 @@ public class FragmentToDo extends FragmentEditAbstract {
 
     private ToDoData createNewTask() {
         ToDoData task = ToDoData.createTask();
-        task.setEndTime(todayString());
+        task.setEndTime(oneMonthLaterString());
         task.setDailyTask(boardData.isDailyTask());
         return task;
     }
 
     private String todayString() {
         return DateFormat.format("yyyy-MM-dd", Calendar.getInstance().getTime()).toString();
+    }
+
+    private String oneMonthLaterString() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.MONTH, 1);
+        return DateFormat.format("yyyy-MM-dd", calendar.getTime()).toString();
     }
 
     private void renderControls() {

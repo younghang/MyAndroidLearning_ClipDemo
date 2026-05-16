@@ -17,7 +17,7 @@ public class AssetData {
     private static final String RECEIVABLE_GROUP = "应收/借出";
     private static final String NOTE_GROUP = "备注/不计入资产";
     private static final BigDecimal WAN = new BigDecimal("10000");
-    private static final Pattern TOTAL_PATTERN = Pattern.compile("^合计\\s*[:：]?\\s*([+-]?[0-9,]+(?:\\.[0-9]+)?\\s*(?:w|W|万)?)\\s*$");
+    private static final Pattern TOTAL_PATTERN = Pattern.compile("^(?:合计|总计|总资产|资产总计)\\s*[:：]?\\s*([+-]?[0-9,]+(?:\\.[0-9]+)?\\s*(?:w|W|万)?)\\s*$");
     private static final Pattern ITEM_PATTERN = Pattern.compile("^(.*?)[\\s:：]*([+-]?[0-9,]+(?:\\.[0-9]+)?\\s*(?:w|W|万)?)\\s*$");
 
     private int version = 1;
@@ -50,26 +50,16 @@ public class AssetData {
         normalize();
         StringBuilder builder = new StringBuilder();
         BigDecimal includedTotal = BigDecimal.ZERO;
-        BigDecimal excludedTotal = BigDecimal.ZERO;
 
         for (int i = 0; i < groups.size(); i++) {
             AssetGroup group = groups.get(i);
             includedTotal = includedTotal.add(group.getIncludedSubtotal());
-            excludedTotal = excludedTotal.add(group.getExcludedSubtotal());
         }
 
         builder.append("资产总计 ").append(formatMoney(includedTotal));
-        if (excludedTotal.compareTo(BigDecimal.ZERO) != 0) {
-            builder.append("  不计入 ").append(formatMoney(excludedTotal));
-        }
 
         appendGroupSummaries(builder, true);
         appendGroupSummaries(builder, false);
-
-        List<String> totalWarnings = buildDeclaredTotalWarnings();
-        for (int i = 0; i < totalWarnings.size(); i++) {
-            builder.append("\n! ").append(totalWarnings.get(i));
-        }
 
         appendGroupDetails(builder, true);
         appendGroupDetails(builder, false);
@@ -99,7 +89,7 @@ public class AssetData {
             for (int j = 0; j < group.getItems().size(); j++) {
                 AssetItem item = group.getItems().get(j);
                 builder.append("\n").append(item.getName()).append("  ").append(formatMoney(item.getAmountValue()));
-                if (!item.isIncludeInTotal()) {
+                if (group.isIncludeInTotal() && !item.isIncludeInTotal()) {
                     builder.append("  不计入");
                 }
             }
@@ -110,6 +100,7 @@ public class AssetData {
         AssetData data = new AssetData();
         data.normalize();
         String currentGroupName = DEFAULT_GROUP;
+        int unnamedDomesticIndex = 1;
         String[] lines = content.split("\\r?\\n");
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i] == null ? "" : lines[i].trim();
@@ -131,8 +122,15 @@ public class AssetData {
             if (itemMatcher.matches()) {
                 String name = trimName(itemMatcher.group(1));
                 BigDecimal amount = parseMoney(itemMatcher.group(2));
-                if (!name.equals("") && amount != null) {
-                    String groupName = getGroupNameForItem(currentGroupName, name);
+                if (amount != null) {
+                    String groupName;
+                    if (name.equals("")) {
+                        name = "国内" + unnamedDomesticIndex;
+                        unnamedDomesticIndex++;
+                        groupName = DEFAULT_GROUP;
+                    } else {
+                        groupName = getGroupNameForItem(currentGroupName, name);
+                    }
                     AssetGroup group = data.getOrCreateGroup(groupName, isIncludedGroup(groupName));
                     group.getItems().add(new AssetItem(name, formatMoney(amount), group.isIncludeInTotal()));
                     continue;
@@ -144,24 +142,6 @@ public class AssetData {
         }
         data.removeEmptyGroups();
         return data;
-    }
-
-    private List<String> buildDeclaredTotalWarnings() {
-        List<String> result = new ArrayList<String>();
-        for (int i = 0; i < groups.size(); i++) {
-            AssetGroup group = groups.get(i);
-            BigDecimal declaredTotal = parseMoney(group.getDeclaredTotal());
-            if (declaredTotal == null) {
-                continue;
-            }
-            BigDecimal subtotal = group.getSubtotal();
-            if (subtotal.compareTo(declaredTotal) != 0) {
-                result.add(group.getName() + "合计不一致 手写" + formatMoney(declaredTotal)
-                        + " 实算" + formatMoney(subtotal)
-                        + " 差额" + formatMoney(subtotal.subtract(declaredTotal)));
-            }
-        }
-        return result;
     }
 
     private static String getGroupNameForItem(String currentGroupName, String itemName) {
@@ -266,7 +246,7 @@ public class AssetData {
 
     private void removeEmptyGroups() {
         for (int i = groups.size() - 1; i >= 0; i--) {
-            if (groups.get(i).getItems().size() == 0 && groups.get(i).getDeclaredTotal().equals("")) {
+            if (groups.get(i).getItems().size() == 0) {
                 groups.remove(i);
             }
         }
