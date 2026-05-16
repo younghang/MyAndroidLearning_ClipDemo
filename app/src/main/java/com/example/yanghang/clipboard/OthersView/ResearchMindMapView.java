@@ -1,5 +1,6 @@
 package com.example.yanghang.clipboard.OthersView;
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 
@@ -67,6 +69,7 @@ public class ResearchMindMapView extends View {
     private float pendingViewportOffsetY;
     private float mapWidth = 0;
     private float mapHeight = 0;
+    private ValueAnimator zoomAnimator;
 
     public ResearchMindMapView(Context context) {
         super(context);
@@ -95,6 +98,7 @@ public class ResearchMindMapView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {
+                cancelZoomAnimation();
                 longPressHandled = false;
                 return true;
             }
@@ -150,6 +154,7 @@ public class ResearchMindMapView extends View {
         scaleGestureDetector = new ScaleGestureDetector(getContext(), new ScaleGestureDetector.SimpleOnScaleGestureListener() {
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
+                cancelZoomAnimation();
                 float oldScale = scale;
                 float newScale = scale * detector.getScaleFactor();
                 setScaleAroundPoint(newScale, detector.getFocusX(), detector.getFocusY(), oldScale);
@@ -334,22 +339,25 @@ public class ResearchMindMapView extends View {
     }
 
     private void zoomBlankAreaAt(float focusX, float focusY) {
+        float startScale = scale;
+        float startOffsetX = offsetX;
+        float startOffsetY = offsetY;
         float targetScale;
         if (scale >= MAX_SCALE * 0.96f) {
             targetScale = fitScale;
         } else {
             targetScale = Math.min(MAX_SCALE, scale * DOUBLE_TAP_ZOOM_FACTOR);
         }
-        setScaleAroundPoint(targetScale, focusX, focusY, scale);
-        invalidate();
+        targetScale = clampScale(targetScale);
+        float worldX = (focusX - startOffsetX) / startScale;
+        float worldY = (focusY - startOffsetY) / startScale;
+        float targetOffsetX = focusX - worldX * targetScale;
+        float targetOffsetY = focusY - worldY * targetScale;
+        animateViewport(startScale, startOffsetX, startOffsetY, targetScale, targetOffsetX, targetOffsetY);
     }
 
     private void setScaleAroundPoint(float targetScale, float focusX, float focusY, float oldScale) {
-        if (targetScale < MIN_SCALE) {
-            targetScale = MIN_SCALE;
-        } else if (targetScale > MAX_SCALE) {
-            targetScale = MAX_SCALE;
-        }
+        targetScale = clampScale(targetScale);
         if (oldScale <= 0) {
             oldScale = scale;
         }
@@ -358,6 +366,42 @@ public class ResearchMindMapView extends View {
         scale = targetScale;
         offsetX = focusX - worldX * scale;
         offsetY = focusY - worldY * scale;
+    }
+
+    private float clampScale(float targetScale) {
+        if (targetScale < MIN_SCALE) {
+            return MIN_SCALE;
+        }
+        if (targetScale > MAX_SCALE) {
+            return MAX_SCALE;
+        }
+        return targetScale;
+    }
+
+    private void animateViewport(final float startScale, final float startOffsetX, final float startOffsetY,
+                                 final float targetScale, final float targetOffsetX, final float targetOffsetY) {
+        cancelZoomAnimation();
+        zoomAnimator = ValueAnimator.ofFloat(0f, 1f);
+        zoomAnimator.setDuration(220);
+        zoomAnimator.setInterpolator(new DecelerateInterpolator());
+        zoomAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float progress = (Float) animation.getAnimatedValue();
+                scale = startScale + (targetScale - startScale) * progress;
+                offsetX = startOffsetX + (targetOffsetX - startOffsetX) * progress;
+                offsetY = startOffsetY + (targetOffsetY - startOffsetY) * progress;
+                invalidate();
+            }
+        });
+        zoomAnimator.start();
+    }
+
+    private void cancelZoomAnimation() {
+        if (zoomAnimator != null) {
+            zoomAnimator.cancel();
+            zoomAnimator = null;
+        }
     }
 
     private void buildLayout() {
@@ -603,7 +647,7 @@ public class ResearchMindMapView extends View {
     private void drawHint(Canvas canvas) {
         smallTextPaint.setColor(Color.rgb(140, 140, 140));
         smallTextPaint.setFakeBoldText(false);
-        canvas.drawText("拖动查看 · 双指缩放 · 点节点编辑", dp(12), getHeight() - dp(12), smallTextPaint);
+        canvas.drawText("\u70b9\u8282\u70b9\u4fee\u6539 \u00b7 \u957f\u6309\u65b0\u589e\u5b50\u8282\u70b9 \u00b7 \u53cc\u51fb\u7f29\u653e", dp(12), getHeight() - dp(12), smallTextPaint);
     }
 
     private void drawTextLines(Canvas canvas, String text, float x, float baselineY, float width, Paint paint, int maxLines) {

@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.ActivityEditInfo;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
+import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.ResearchMindMapView;
 import com.example.yanghang.clipboard.R;
 
@@ -972,6 +973,7 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
     public String getString() {
         collectFromViews();
         topicData.setViewMode(currentViewMode == VIEW_MODE_CARD ? ResearchTopicData.VIEW_MODE_CARD : ResearchTopicData.VIEW_MODE_MAP);
+        topicData.setUpdatedAt(ListData.GetDate().replace("\n", " "));
         topicData = ResearchTopicData.normalize(topicData);
         return JSON.toJSONString(topicData);
     }

@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
@@ -26,13 +27,17 @@ import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
 import com.example.yanghang.clipboard.Fragment.FragmentResearchTopic;
 import com.example.yanghang.clipboard.Fragment.FragmentToDo;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
+import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLayout;
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
 
 public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary.OnFragmentInteractionListener{
     public static int RESULT_ADD_NEW = 345;
@@ -41,6 +46,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
 
     EditText editRemark;
     TextView createTimeView;
+    TextView updateTimeView;
     Spinner spinner;
     List<CatalogueInfos> mCatalogue;
     List<String> specialCatalogueNames = new ArrayList<>();
@@ -100,6 +106,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
 
         editRemark = (EditText) findViewById(R.id.edit_remark);
         createTimeView = (TextView) findViewById(R.id.item_info_create_time);
+        updateTimeView = (TextView) findViewById(R.id.item_info_update_time);
 
         editRemark.setText(listData.getRemarks());
 
@@ -181,6 +188,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         }
         spinner.setVisibility(notShowSpinner||!isEdit ? View.GONE : View.VISIBLE);
         setFragment(fragment);
+        updateModifiedTimeView();
 
     }
 
@@ -286,6 +294,110 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
             setResult(RESULT_OK, intent);
             new DBListInfoManager(this).updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
         }
+        updateModifiedTimeView();
+    }
+
+    private void updateModifiedTimeView() {
+        if (updateTimeView == null) {
+            return;
+        }
+        String updatedAt = getCurrentUpdatedAt();
+        if (updatedAt.trim().equals("")) {
+            updateTimeView.setText("");
+            updateTimeView.setVisibility(View.GONE);
+        } else {
+            updateTimeView.setText(formatUpdatedTimeForToolbar(updatedAt));
+            updateTimeView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private String getCurrentUpdatedAt() {
+        String content = listData.getContent();
+        if (content == null || !content.trim().startsWith("{")) {
+            return "";
+        }
+        try {
+            if (fragment instanceof FragmentToDo) {
+                ToDoData data = JSON.parseObject(content, ToDoData.class);
+                return ToDoData.normalizeBoard(data).getUpdatedAt();
+            }
+            if (fragment instanceof FragmentResearchTopic) {
+                return ResearchTopicData.parse(content).getUpdatedAt();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private String formatUpdatedTimeForToolbar(String value) {
+        Date date = parseUpdatedDate(value);
+        if (date != null) {
+            long diff = System.currentTimeMillis() - date.getTime();
+            if (diff < 0) {
+                diff = 0;
+            }
+            long minute = 60 * 1000;
+            long hour = 60 * minute;
+            long day = 24 * hour;
+            if (diff < minute) {
+                return "\u521a\u521a";
+            }
+            if (diff < hour) {
+                return diff / minute + "\u5206\u949f\u524d";
+            }
+            if (diff < day) {
+                return diff / hour + "\u5c0f\u65f6\u524d";
+            }
+            if (diff < 2 * day) {
+                return "\u6628\u5929";
+            }
+            if (diff < 30 * day) {
+                return diff / day + "\u5929\u524d";
+            }
+            if (diff < 365 * day) {
+                return diff / (30 * day) + "\u4e2a\u6708\u524d";
+            }
+            return diff / (365 * day) + "\u5e74\u524d";
+        }
+        return compactToolbarTime(value);
+    }
+
+    private Date parseUpdatedDate(String value) {
+        String text = compactFullTime(value);
+        if (text.equals("")) {
+            return null;
+        }
+        String[] patterns = {"yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm"};
+        for (int i = 0; i < patterns.length; i++) {
+            try {
+                return new SimpleDateFormat(patterns[i]).parse(text);
+            } catch (ParseException e) {
+                // Try next format.
+            }
+        }
+        return null;
+    }
+
+    private String compactToolbarTime(String value) {
+        String text = compactFullTime(value);
+        if (text.length() >= 16 && text.charAt(4) == '-') {
+            return text.substring(5, 16);
+        }
+        return text;
+    }
+
+    private String compactFullTime(String value) {
+        String text = value == null ? "" : value.trim();
+        text = text.replace("T", " ").replace("\n", " ");
+        if (text.endsWith("Z")) {
+            text = text.substring(0, text.length() - 1);
+        }
+        int dotIndex = text.indexOf('.');
+        if (dotIndex > 0) {
+            text = text.substring(0, dotIndex);
+        }
+        return text;
     }
 
     public List<CatalogueInfos> getCatalogue() {

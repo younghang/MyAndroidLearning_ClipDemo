@@ -38,6 +38,7 @@ public class ToDoData {
     private String urgency;
     private int progress;
     private String deletedAt;
+    private String updatedAt;
     private List<ToDoData> tasks;
 
     public ToDoData() {
@@ -99,6 +100,7 @@ public class ToDoData {
             board.setStatus(data.getStatus());
             board.setDeletedAt(data.getDeletedAt());
             board.setDailyTask(data.isDailyTask());
+            board.setUpdatedAt(data.getUpdatedAt());
             board.getTasks().add(data);
             return board;
         }
@@ -112,6 +114,7 @@ public class ToDoData {
         board.setStatus(data.getStatus());
         board.setDeletedAt(data.getDeletedAt());
         board.setDailyTask(data.isDailyTask());
+        board.setUpdatedAt(data.getUpdatedAt());
         addLegacyLineTasks(board, data);
         if (board.getTasks().size() == 0 && !data.getTitle().trim().equals("")) {
             ToDoData task = createTaskFromLegacy(data);
@@ -151,6 +154,7 @@ public class ToDoData {
         task.setUrgency(oldData.getUrgency());
         task.setProgress(oldData.getProgress());
         task.setDeletedAt(oldData.getDeletedAt());
+        task.setUpdatedAt(oldData.getUpdatedAt());
         return task;
     }
 
@@ -361,6 +365,17 @@ public class ToDoData {
 
     public void setDeletedAt(String deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public String getUpdatedAt() {
+        if (updatedAt == null) {
+            return "";
+        }
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt == null ? "" : updatedAt;
     }
 
     public List<ToDoData> getTasks() {

@@ -27,6 +27,7 @@ public class ResearchTopicData {
     private String goal;
     private String conclusion;
     private String viewMode;
+    private String updatedAt;
     private List<ResearchNode> nodes;
 
     public ResearchTopicData() {
@@ -154,6 +155,7 @@ public class ResearchTopicData {
         data.setGoal(data.getGoal());
         data.setConclusion(data.getConclusion());
         data.setViewMode(data.getViewMode());
+        data.setUpdatedAt(data.getUpdatedAt());
         List<ResearchNode> normalizedNodes = data.getNodes();
         for (int i = normalizedNodes.size() - 1; i >= 0; i--) {
             ResearchNode node = normalizedNodes.get(i);
@@ -349,6 +351,17 @@ public class ResearchTopicData {
 
     public void setViewMode(String viewMode) {
         this.viewMode = VIEW_MODE_CARD.equals(viewMode) ? VIEW_MODE_CARD : VIEW_MODE_MAP;
+    }
+
+    public String getUpdatedAt() {
+        if (updatedAt == null) {
+            return "";
+        }
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt == null ? "" : updatedAt;
     }
 
     public List<ResearchNode> getNodes() {

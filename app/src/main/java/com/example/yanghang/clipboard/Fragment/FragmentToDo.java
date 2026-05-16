@@ -1179,6 +1179,7 @@ public class FragmentToDo extends FragmentEditAbstract {
     public String getString() {
         boardData.setDataType(ToDoData.TYPE_BOARD);
         boardData.setContent(boardNoteEdit.getText().toString());
+        boardData.setUpdatedAt(ListData.GetDate().replace("\n", " "));
         boardData.getTaskId();
         boardData.getTasks();
         return JSON.toJSONString(boardData);
