@@ -50,5 +50,6 @@ Thumbs.db
 
 # Desktop phone-link runtime data
 desktop/received/
+desktop/data/
 desktop/node_modules/
 desktop/dist/

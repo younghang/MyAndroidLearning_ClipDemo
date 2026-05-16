@@ -9,32 +9,40 @@ const { encryptAndroidText, decryptAndroidText } = require("./androidCrypto");
 
 const HTTP_PORT = 20312;
 const TCP_PORT = 20310;
+const DESKTOP_TCP_PORT = 20313;
 const UDP_PORT = 20311;
 const DISCOVERY_REQUEST = "CLIPBOARD_LINK_DISCOVER_V1";
 const DISCOVERY_RESPONSE_PREFIX = "CLIPBOARD_LINK_PC|";
+const DESKTOP_DISCOVERY_REQUEST = "CLIPBOARD_DESKTOP_DISCOVER_V1";
+const DESKTOP_DISCOVERY_RESPONSE_PREFIX = "CLIPBOARD_DESKTOP|";
 
 const rootDir = process.env.CLIPBOARD_DESKTOP_ROOT || path.resolve(__dirname, "..");
 const prototypeDir = process.env.CLIPBOARD_DESKTOP_PROTOTYPE_DIR || path.join(rootDir, "prototype");
 const receivedDir = process.env.CLIPBOARD_DESKTOP_RECEIVED_DIR || path.join(rootDir, "received");
 const dataDir = process.env.CLIPBOARD_DESKTOP_DATA_DIR || path.join(rootDir, "data");
 const dataFilePath = path.join(dataDir, "clipboard-data.json");
+const desktopDeviceId = getDesktopDeviceId();
 
 let linkedSocket = null;
 let linkedDevice = null;
+let desktopPeerSocket = null;
+let desktopPeerDevice = null;
 let eventSeq = 0;
 const events = [];
 let clipboardWriteChain = Promise.resolve();
 const incomingFileTransfers = new Map();
+const discoveredDesktopPeers = new Map();
 const serverStatus = {
   udp: { ok: false, message: "" },
   tcp: { ok: false, message: "" },
+  desktopTcp: { ok: false, message: "" },
   http: { ok: false, message: "" },
 };
 
 function markServerPort(name, ok, message) {
   serverStatus[name] = { ok, message: message || "" };
   if (!ok) {
-    const port = name === "udp" ? UDP_PORT : name === "tcp" ? TCP_PORT : HTTP_PORT;
+    const port = name === "udp" ? UDP_PORT : name === "tcp" ? TCP_PORT : name === "desktopTcp" ? DESKTOP_TCP_PORT : HTTP_PORT;
     pushEvent("port_error", { name, port, message: message || "port unavailable" });
   }
 }
@@ -62,10 +70,24 @@ function startDiscoveryServer() {
     udp.close();
   });
   udp.on("message", (message, remote) => {
-    if (message.toString("utf8") !== DISCOVERY_REQUEST) return;
-    const response = `${DISCOVERY_RESPONSE_PREFIX}1|Clipboard Desktop|${TCP_PORT}`;
-    udp.send(Buffer.from(response, "utf8"), remote.port, remote.address);
-    pushEvent("discovery_request", { address: remote.address });
+    const text = message.toString("utf8");
+    if (text === DISCOVERY_REQUEST) {
+      const response = `${DISCOVERY_RESPONSE_PREFIX}1|Clipboard Desktop|${TCP_PORT}`;
+      udp.send(Buffer.from(response, "utf8"), remote.port, remote.address);
+      pushEvent("discovery_request", { address: remote.address });
+      return;
+    }
+    if (text === DESKTOP_DISCOVERY_REQUEST) {
+      const response = `${DESKTOP_DISCOVERY_RESPONSE_PREFIX}${JSON.stringify({
+        protocol: 1,
+        deviceId: desktopDeviceId,
+        name: os.hostname(),
+        platform: process.platform,
+        port: DESKTOP_TCP_PORT,
+      })}`;
+      udp.send(Buffer.from(response, "utf8"), remote.port, remote.address);
+      pushEvent("desktop_discovery_request", { address: remote.address });
+    }
   });
   udp.bind(UDP_PORT, () => {
     udp.setBroadcast(true);
@@ -120,6 +142,246 @@ function startPhoneTcpServer() {
   server.listen(TCP_PORT, "0.0.0.0", () => {
     markServerPort("tcp", true, "");
     console.log(`Phone link TCP listening on ${TCP_PORT}`);
+  });
+}
+
+function startDesktopPeerServer() {
+  const server = net.createServer((socket) => {
+    setupDesktopPeerSocket(socket, {
+      address: socket.remoteAddress,
+      port: socket.remotePort,
+      name: "",
+      deviceId: "",
+      platform: "",
+      incoming: true,
+    });
+  });
+  server.on("error", (error) => {
+    markServerPort("desktopTcp", false, error.code === "EADDRINUSE"
+      ? `TCP ${DESKTOP_TCP_PORT} is already in use, desktop-to-desktop link is unavailable`
+      : error.message);
+    console.error("Desktop link TCP error:", error.message);
+  });
+  server.listen(DESKTOP_TCP_PORT, "0.0.0.0", () => {
+    markServerPort("desktopTcp", true, "");
+    console.log(`Desktop peer TCP listening on ${DESKTOP_TCP_PORT}`);
+  });
+}
+
+function setupDesktopPeerSocket(socket, device) {
+  if (desktopPeerSocket && desktopPeerSocket !== socket) {
+    desktopPeerSocket.destroy();
+  }
+  desktopPeerSocket = socket;
+  desktopPeerDevice = {
+    address: device.address || socket.remoteAddress || "",
+    port: device.port || socket.remotePort || DESKTOP_TCP_PORT,
+    name: device.name || "",
+    deviceId: device.deviceId || "",
+    platform: device.platform || "",
+  };
+  pushEvent("desktop_connected", desktopPeerDevice);
+
+  let buffer = "";
+  socket.setEncoding("utf8");
+  socket.on("data", (chunk) => {
+    buffer += chunk;
+    let newlineIndex = buffer.indexOf("\n");
+    while (newlineIndex >= 0) {
+      const line = buffer.slice(0, newlineIndex).trim();
+      buffer = buffer.slice(newlineIndex + 1);
+      if (line) handleDesktopPeerMessage(socket, line);
+      newlineIndex = buffer.indexOf("\n");
+    }
+  });
+  socket.on("close", () => {
+    if (desktopPeerSocket === socket) {
+      pushEvent("desktop_disconnected", desktopPeerDevice || {});
+      desktopPeerSocket = null;
+      desktopPeerDevice = null;
+    }
+  });
+  socket.on("error", (error) => {
+    pushEvent("desktop_error", { message: error.message });
+  });
+}
+
+function handleDesktopPeerMessage(socket, line) {
+  let message;
+  try {
+    message = JSON.parse(line);
+  } catch (error) {
+    writeLine(socket, { type: "error", message: "invalid json" });
+    return;
+  }
+
+  if (message.type === "desktop_hello") {
+    if (desktopPeerDevice) {
+      desktopPeerDevice.name = message.deviceName || desktopPeerDevice.name;
+      desktopPeerDevice.deviceId = message.deviceId || desktopPeerDevice.deviceId;
+      desktopPeerDevice.platform = message.platform || desktopPeerDevice.platform;
+    }
+    writeLine(socket, {
+      protocol: 1,
+      type: "desktop_hello_ack",
+      deviceId: desktopDeviceId,
+      deviceName: os.hostname(),
+      platform: process.platform,
+      message: "ok",
+    });
+    pushEvent("desktop_hello", { device: desktopPeerDevice });
+    return;
+  }
+
+  if (message.type === "desktop_hello_ack") {
+    if (desktopPeerDevice) {
+      desktopPeerDevice.name = message.deviceName || desktopPeerDevice.name;
+      desktopPeerDevice.deviceId = message.deviceId || desktopPeerDevice.deviceId;
+      desktopPeerDevice.platform = message.platform || desktopPeerDevice.platform;
+    }
+    pushEvent("desktop_hello", { device: desktopPeerDevice });
+    return;
+  }
+
+  if (message.type === "disconnect") {
+    writeLine(socket, { type: "disconnect_ack", message: "ok" });
+    socket.end();
+    return;
+  }
+
+  if (message.type === "clipboard_ack" || message.type === "message_ack" || message.type === "file_start_ack" || message.type === "file_ack" || message.type === "disconnect_ack") {
+    pushEvent("desktop_ack", {
+      ackType: message.type,
+      message: message.message || "",
+      transferId: message.transferId || "",
+    });
+    return;
+  }
+
+  if (message.type === "clipboard_push") {
+    setSystemClipboard(message.text || "");
+    writeLine(socket, { type: "clipboard_ack", message: "ok" });
+    pushEvent("desktop_clipboard_push", {
+      text: message.text || "",
+      device: desktopPeerDevice,
+      messageId: message.messageId || "",
+    });
+    return;
+  }
+
+  if (message.type === "message_push") {
+    writeLine(socket, { type: "message_ack", message: "ok" });
+    pushEvent("desktop_message_push", {
+      text: message.text || "",
+      device: desktopPeerDevice,
+      messageId: message.messageId || "",
+    });
+    return;
+  }
+
+  if (message.type === "file_start") {
+    startIncomingFileTransfer(message);
+    writeLine(socket, { type: "file_start_ack", transferId: message.transferId || "", message: "ok" });
+    return;
+  }
+
+  if (message.type === "file_chunk") {
+    appendIncomingFileChunk(message);
+    return;
+  }
+
+  if (message.type === "file_end") {
+    const filePath = finishIncomingFileTransfer(message);
+    writeLine(socket, { type: "file_ack", transferId: message.transferId || "", message: filePath || "" });
+    if (filePath) {
+      pushEvent("desktop_file_push", {
+        filePath,
+        fileName: message.fileName || path.basename(filePath),
+        size: Number(message.size) || 0,
+        device: desktopPeerDevice,
+        messageId: message.messageId || "",
+      });
+    }
+    return;
+  }
+
+  writeLine(socket, { type: "error", message: `unknown desktop type: ${message.type}` });
+}
+
+function connectDesktopPeer(peer, callback) {
+  let done = false;
+  const finish = (error, device) => {
+    if (done) return;
+    done = true;
+    callback(error, device);
+  };
+  const socket = net.connect(Number(peer.port) || DESKTOP_TCP_PORT, peer.address, () => {
+    socket.setTimeout(0);
+    setupDesktopPeerSocket(socket, peer);
+    writeDesktopHello(socket);
+    finish(null, desktopPeerDevice);
+  });
+  socket.setTimeout(5000);
+  socket.on("timeout", () => {
+    socket.destroy(new Error("connect timeout"));
+  });
+  socket.once("error", (error) => {
+    finish(error);
+  });
+}
+
+function writeDesktopHello(socket) {
+  writeLine(socket, {
+    protocol: 1,
+    type: "desktop_hello",
+    peerType: "desktop",
+    deviceId: desktopDeviceId,
+    deviceName: os.hostname(),
+    platform: process.platform,
+    messageId: createId(),
+    time: Date.now(),
+  });
+}
+
+function discoverDesktopPeers(timeoutMs) {
+  return new Promise((resolve) => {
+    const peers = new Map();
+    const udp = dgram.createSocket("udp4");
+    const finish = () => {
+      try {
+        udp.close();
+      } catch (error) {
+        // Ignore a socket that already closed after an error.
+      }
+      const list = Array.from(peers.values());
+      list.forEach((peer) => discoveredDesktopPeers.set(peer.deviceId || `${peer.address}:${peer.port}`, peer));
+      resolve(list);
+    };
+    udp.on("error", (error) => {
+      pushEvent("desktop_discovery_error", { message: error.message });
+      finish();
+    });
+    udp.on("message", (message, remote) => {
+      const text = message.toString("utf8");
+      if (!text.startsWith(DESKTOP_DISCOVERY_RESPONSE_PREFIX)) return;
+      try {
+        const peer = JSON.parse(text.slice(DESKTOP_DISCOVERY_RESPONSE_PREFIX.length));
+        if (!peer || peer.deviceId === desktopDeviceId) return;
+        peer.address = remote.address;
+        peer.port = Number(peer.port) || DESKTOP_TCP_PORT;
+        peer.name = peer.name || remote.address;
+        peer.platform = peer.platform || "";
+        peers.set(peer.deviceId || `${peer.address}:${peer.port}`, peer);
+      } catch (error) {
+        pushEvent("desktop_discovery_error", { message: error.message });
+      }
+    });
+    udp.bind(0, () => {
+      udp.setBroadcast(true);
+      const data = Buffer.from(DESKTOP_DISCOVERY_REQUEST, "utf8");
+      udp.send(data, 0, data.length, UDP_PORT, "255.255.255.255");
+      setTimeout(finish, timeoutMs || 1200);
+    });
   });
 }
 
@@ -300,6 +562,22 @@ function saveReceivedFile(message) {
   return filePath;
 }
 
+function getDesktopDeviceId() {
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+    const filePath = path.join(dataDir, "desktop-device-id.txt");
+    if (fs.existsSync(filePath)) {
+      const id = fs.readFileSync(filePath, "utf8").trim();
+      if (id) return id;
+    }
+    const id = `desktop-${createId()}`;
+    fs.writeFileSync(filePath, id, "utf8");
+    return id;
+  } catch (error) {
+    return `desktop-${os.hostname()}-${process.platform}`;
+  }
+}
+
 function loadDesktopData() {
   if (!fs.existsSync(dataFilePath)) {
     return { exists: false, path: dataFilePath, state: null };
@@ -435,6 +713,130 @@ function startHttpServer() {
         ok: true,
         events: events.filter((event) => event.seq > since),
         nextSeq: eventSeq,
+      });
+      return;
+    }
+    if (url.pathname === "/api/desktop/status") {
+      sendJson(response, {
+        ok: true,
+        bridge: true,
+        deviceId: desktopDeviceId,
+        connected: Boolean(desktopPeerSocket && !desktopPeerSocket.destroyed),
+        device: desktopPeerDevice,
+        peers: Array.from(discoveredDesktopPeers.values()),
+        ports: { http: HTTP_PORT, tcp: TCP_PORT, udp: UDP_PORT, desktopTcp: DESKTOP_TCP_PORT },
+        serverStatus,
+        nextSeq: eventSeq,
+      });
+      return;
+    }
+    if (url.pathname === "/api/desktop/discover" && request.method === "POST") {
+      discoverDesktopPeers(1300).then((peers) => {
+        sendJson(response, { ok: true, peers });
+      }).catch((error) => {
+        sendJson(response, { ok: false, message: error.message }, 500);
+      });
+      return;
+    }
+    if (url.pathname === "/api/desktop/connect" && request.method === "POST") {
+      readJson(request, (body) => {
+        const peer = {
+          address: body.address || "",
+          port: Number(body.port) || DESKTOP_TCP_PORT,
+          deviceId: body.deviceId || "",
+          name: body.name || body.address || "",
+          platform: body.platform || "",
+        };
+        if (!peer.address) {
+          sendJson(response, { ok: false, message: "missing address" }, 400);
+          return;
+        }
+        connectDesktopPeer(peer, (error, device) => {
+          if (error) {
+            sendJson(response, { ok: false, message: error.message }, 500);
+            return;
+          }
+          sendJson(response, { ok: true, device });
+        });
+      });
+      return;
+    }
+    if (url.pathname === "/api/desktop/disconnect" && request.method === "POST") {
+      if (desktopPeerSocket && !desktopPeerSocket.destroyed) {
+        writeLine(desktopPeerSocket, { type: "disconnect", message: "bye" });
+        desktopPeerSocket.end();
+      }
+      sendJson(response, { ok: true });
+      return;
+    }
+    if (url.pathname === "/api/desktop/send-clipboard" && request.method === "POST") {
+      readJson(request, (body) => {
+        if (!desktopPeerSocket || desktopPeerSocket.destroyed) {
+          sendJson(response, { ok: false, message: "desktop peer is not connected" }, 409);
+          return;
+        }
+        writeLine(desktopPeerSocket, {
+          protocol: 1,
+          type: "clipboard_push",
+          peerType: "desktop",
+          text: body.text || "",
+          deviceId: desktopDeviceId,
+          deviceName: os.hostname(),
+          platform: process.platform,
+          messageId: createId(),
+          time: Date.now(),
+        });
+        sendJson(response, { ok: true });
+      });
+      return;
+    }
+    if (url.pathname === "/api/desktop/send-message" && request.method === "POST") {
+      readJson(request, (body) => {
+        if (!desktopPeerSocket || desktopPeerSocket.destroyed) {
+          sendJson(response, { ok: false, message: "desktop peer is not connected" }, 409);
+          return;
+        }
+        writeLine(desktopPeerSocket, {
+          protocol: 1,
+          type: "message_push",
+          peerType: "desktop",
+          text: body.text || "",
+          deviceId: desktopDeviceId,
+          deviceName: os.hostname(),
+          platform: process.platform,
+          messageId: createId(),
+          time: Date.now(),
+        });
+        sendJson(response, { ok: true });
+      });
+      return;
+    }
+    if (url.pathname === "/api/desktop/send-file-chunk" && request.method === "POST") {
+      readJson(request, (body) => {
+        if (!desktopPeerSocket || desktopPeerSocket.destroyed) {
+          sendJson(response, { ok: false, message: "desktop peer is not connected" }, 409);
+          return;
+        }
+        const phase = body.phase || "chunk";
+        const type = phase === "start" ? "file_start" : phase === "end" ? "file_end" : "file_chunk";
+        writeLine(desktopPeerSocket, {
+          protocol: 1,
+          type,
+          peerType: "desktop",
+          deviceId: desktopDeviceId,
+          deviceName: os.hostname(),
+          platform: process.platform,
+          messageId: createId(),
+          time: Date.now(),
+          transferId: body.transferId || "",
+          fileName: body.fileName || "file",
+          mimeType: body.mimeType || "application/octet-stream",
+          size: Number(body.size) || 0,
+          index: Number(body.index) || 0,
+          offset: Number(body.offset) || 0,
+          base64: body.base64 || "",
+        });
+        sendJson(response, { ok: true });
       });
       return;
     }
@@ -691,6 +1093,7 @@ function createId() {
 function startAll() {
   startDiscoveryServer();
   startPhoneTcpServer();
+  startDesktopPeerServer();
   startHttpServer();
 }
 
@@ -702,6 +1105,7 @@ if (require.main === module) {
     ports: {
       http: HTTP_PORT,
       tcp: TCP_PORT,
+      desktopTcp: DESKTOP_TCP_PORT,
       udp: UDP_PORT,
     },
   };

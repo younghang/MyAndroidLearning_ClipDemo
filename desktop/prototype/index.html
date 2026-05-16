@@ -543,6 +543,43 @@
       gap: 10px;
     }
 
+    .link-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f6f7fa;
+    }
+
+    .link-tab {
+      border: 0;
+      background: transparent;
+      border-radius: 7px;
+      padding: 8px 10px;
+      color: var(--muted);
+    }
+
+    .link-tab.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+    }
+
+    .link-page {
+      display: none;
+      gap: 10px;
+    }
+
+    .link-page.active {
+      display: grid;
+    }
+
+    #desktopLinkPage > .list-meta:last-child {
+      display: none;
+    }
+
     .link-status-card {
       border: 1px solid #e3e7f0;
       border-radius: 8px;
@@ -566,6 +603,64 @@
 
     .phone-panel textarea {
       min-height: 78px;
+    }
+
+    .link-section-title {
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .panel-button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .panel-button-row button {
+      flex: 1 1 120px;
+    }
+
+    .peer-list,
+    .message-log {
+      display: grid;
+      gap: 6px;
+      max-height: 150px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px;
+      background: #fff;
+    }
+
+    .peer-item,
+    .message-item {
+      border: 1px solid #eef1f7;
+      border-radius: 7px;
+      padding: 8px;
+      background: #fbfcff;
+      display: grid;
+      gap: 4px;
+    }
+
+    .peer-item-title,
+    .message-item-title {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .peer-item-meta,
+    .message-item-meta {
+      color: var(--muted);
+      font-size: 12px;
+      word-break: break-all;
+    }
+
+    .peer-item button {
+      justify-self: start;
+      padding: 5px 9px;
     }
 
     .toast {
@@ -1248,8 +1343,34 @@
       inset: 0;
       width: 1600px;
       height: 900px;
-      pointer-events: none;
+      pointer-events: auto;
       overflow: visible;
+    }
+
+    .edge-hit {
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+
+    .edge-hit:hover + .edge-visible,
+    .edge-visible.edge-hover {
+      stroke-opacity: 0.95;
+      stroke-width: 3;
+    }
+
+    .edge-visible.selected {
+      stroke-opacity: 1;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 4px rgba(47, 128, 237, 0.28));
+    }
+
+    .edge-preview {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2;
+      stroke-dasharray: 6 5;
+      stroke-opacity: 0.75;
+      pointer-events: none;
     }
 
     .node {
@@ -1263,6 +1384,43 @@
       padding: 10px;
       box-shadow: 0 10px 28px rgba(36, 40, 50, 0.1);
       cursor: pointer;
+    }
+
+    .node.connect-target {
+      box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.2), 0 14px 36px rgba(36, 40, 50, 0.16);
+    }
+
+    .node-connector {
+      position: absolute;
+      top: 50%;
+      width: 13px;
+      height: 13px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 2px 8px rgba(36, 40, 50, 0.22);
+      opacity: 0;
+      transform: translateY(-50%);
+      transition: opacity 0.12s ease, transform 0.12s ease;
+      cursor: crosshair;
+    }
+
+    .node:hover .node-connector,
+    .node.active .node-connector,
+    .node.connect-target .node-connector {
+      opacity: 1;
+    }
+
+    .node-connector.left {
+      left: -8px;
+    }
+
+    .node-connector.right {
+      right: -8px;
+    }
+
+    .node-connector:hover {
+      transform: translateY(-50%) scale(1.2);
     }
 
     .node.active {
@@ -1427,7 +1585,7 @@
           <div id="topbarTitle" class="topbar-title">笔记</div>
           <div class="topbar-actions">
           <button id="saveButton" class="primary" title="保存">💾</button>
-          <button id="phoneLinkButton" class="link-button offline" title="手机连接">📱 手机</button>
+          <button id="phoneLinkButton" class="link-button offline" title="设备互传">🔗 互传</button>
           <div id="dataMenuWrap" class="menu-wrap">
             <button id="dataMenuButton" title="数据导入导出">☷ 数据 ▾</button>
             <div class="data-menu">
@@ -1465,6 +1623,11 @@
       <button id="closePhonePanelButton" class="ghost">×</button>
     </div>
     <div class="phone-panel-body">
+      <div class="link-tabs">
+        <button id="phoneLinkTab" class="link-tab active" data-link-tab="phone">手机</button>
+        <button id="desktopLinkTab" class="link-tab" data-link-tab="desktop">电脑</button>
+      </div>
+      <div id="phoneLinkPage" class="link-page active">
       <div class="link-status-card">
         <div class="link-status-row"><strong>桥接服务</strong><span id="bridgeStatusText">未检测</span></div>
         <div class="link-status-row"><strong>手机连接</strong><span id="phoneStatusText">未连接</span></div>
@@ -1477,6 +1640,37 @@
       <input id="phoneFileInput" type="file" />
       <button id="sendFileButton">发送文件</button>
       <div id="sendFileProgress" class="list-meta"></div>
+      <div class="list-meta">
+        手机端长按右下角连接按钮后，会自动发现这个桌面应用。收到的记录会导入到左侧列表，并保留 Android orderId。
+      </div>
+      </div>
+      <div id="desktopLinkPage" class="link-page">
+      <div class="link-section-title">电脑</div>
+      <div class="link-status-card">
+        <div class="link-status-row"><strong>电脑连接</strong><span id="desktopStatusText">未连接</span></div>
+        <div class="link-status-row"><strong>已发现</strong><span id="desktopPeerCountText">0 台</span></div>
+      </div>
+      <div class="panel-button-row">
+        <button id="discoverDesktopButton">发现电脑</button>
+        <button id="disconnectDesktopButton">断开电脑</button>
+      </div>
+      <div id="desktopPeerList" class="peer-list">
+        <div class="peer-item-meta">点击“发现电脑”后，同一局域网内运行此桌面端的电脑会显示在这里。</div>
+      </div>
+      <label>发送到电脑</label>
+      <textarea id="sendDesktopText" placeholder="输入要发送到另一台电脑的文字"></textarea>
+      <div class="panel-button-row">
+        <button id="sendDesktopClipboardButton" class="primary">复制到对方剪贴板</button>
+        <button id="sendDesktopMessageButton">发送消息</button>
+      </div>
+      <label>发送文件到电脑</label>
+      <input id="desktopFileInput" type="file" />
+      <button id="sendDesktopFileButton">发送文件到电脑</button>
+      <div id="desktopSendFileProgress" class="list-meta"></div>
+      <label>电脑消息</label>
+      <div id="desktopMessageLog" class="message-log">
+        <div class="message-item-meta">另一台电脑发来的消息会显示在这里。</div>
+      </div>
       <div class="list-meta">
         手机端长按右下角连接按钮后，会自动发现这个桌面应用。收到的记录会按类型导入到左侧列表，并保留安卓 orderId；连接后可以在左侧记录上右键发送回手机。
       </div>
@@ -1520,6 +1714,9 @@
     let importMode = "prototype";
     let phoneLinkSeq = Number(localStorage.getItem(PHONE_LINK_SEQ_KEY) || 0);
     let phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
+    let desktopLinkStatus = { bridge: false, connected: false, device: null, peers: [], ports: null };
+    let desktopPeerList = [];
+    const desktopMessages = [];
     let desktopDatabaseReady = false;
     let desktopDatabaseSaveTimer = null;
     let desktopDatabaseSaveFailed = false;
@@ -2560,7 +2757,8 @@
           <div class="map-shell" id="mapShell">
             <div class="map-help">
               空白拖动移动画布，滚轮缩放。<br />
-              右键打开快捷菜单。<span class="kbd">Space</span> 改标题，<span class="kbd">F</span> 适配。
+              右键打开快捷菜单，点连线可删除，拖节点圆点可连接。<br />
+              <span class="kbd">Space</span> 改标题，<span class="kbd">F</span> 适配。
             </div>
             <div class="map-controls">
               <button id="zoomOutButton" title="缩小">-</button>
@@ -2752,15 +2950,19 @@
         const active = node.id === selectedNodeId;
         const div = document.createElement("div");
         div.className = "node" + (active ? " active expanded" : "");
+        div.dataset.nodeId = node.id;
         div.style.left = `${node.mapX}px`;
         div.style.top = `${node.mapY}px`;
         div.style.borderColor = typeColor(node.type);
         div.innerHTML = `
+          <span class="node-connector left" title="拖到另一个节点：让当前节点依赖目标节点"></span>
+          <span class="node-connector right" title="拖到另一个节点：让目标节点依赖当前节点"></span>
           <div class="node-type" style="color:${typeColor(node.type)}">${nodeTypeLabels[node.type] || node.type}</div>
           <div class="node-title">${escapeHtml(node.title || "未命名")}</div>
           ${active ? nodeDetailHtml(node) : ""}
         `;
         wireNodeExternalLinks(div);
+        wireNodeConnectors(div, topic, node);
         div.onclick = () => {
           selectedNodeId = node.id;
           render();
@@ -2822,7 +3024,7 @@
           const from = topic.nodes.find((node) => node.id === id);
           if (!from) return;
           hasVisibleRelated = true;
-          svg.appendChild(edgePath(from, to));
+          svg.appendChild(edgePath(topic, from, to));
         });
         if (index === 0 || !hasVisibleRelated) {
           svg.appendChild(rootEdgePath(rootBox, to));
@@ -2855,19 +3057,42 @@
       svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     }
 
-    function edgePath(from, to) {
+    function edgePath(topic, from, to) {
+      const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      const hitPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       const sx = from.mapX + 210;
       const sy = from.mapY + 39;
       const ex = to.mapX;
       const ey = to.mapY + 39;
       const mx = (sx + ex) / 2;
-      path.setAttribute("d", `M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ey}, ${ex} ${ey}`);
+      const d = `M ${sx} ${sy} C ${mx} ${sy}, ${mx} ${ey}, ${ex} ${ey}`;
+      hitPath.setAttribute("d", d);
+      hitPath.setAttribute("fill", "none");
+      hitPath.setAttribute("stroke", "transparent");
+      hitPath.setAttribute("stroke-width", "14");
+      hitPath.setAttribute("class", "edge-hit");
+      hitPath.onclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        document.querySelectorAll(".edge-visible.selected").forEach((edge) => edge.classList.remove("selected"));
+        path.classList.add("selected");
+      };
+      hitPath.oncontextmenu = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        path.classList.add("selected");
+        showEdgeContextMenu(event, topic, from, to, path);
+      };
+      path.setAttribute("d", d);
       path.setAttribute("fill", "none");
       path.setAttribute("stroke", typeColor(from.type));
       path.setAttribute("stroke-width", "2");
       path.setAttribute("stroke-opacity", "0.55");
-      return path;
+      path.setAttribute("class", "edge-visible");
+      group.appendChild(hitPath);
+      group.appendChild(path);
+      return group;
     }
 
     function rootEdgePath(rootBox, to) {
@@ -2899,6 +3124,95 @@
       return node.relatedNodeIds.some((id) => topic.nodes.some((item) => item.id === id));
     }
 
+    function removeNodeRelation(topic, sourceId, targetId, skipConfirm) {
+      const source = topic.nodes.find((node) => node.id === sourceId);
+      const target = topic.nodes.find((node) => node.id === targetId);
+      if (!source || !target) return;
+      if (!skipConfirm && !confirm(`删除「${source.title || "未命名"}」到「${target.title || "未命名"}」的连接吗？`)) return;
+      target.relatedNodeIds = target.relatedNodeIds.filter((id) => id !== sourceId);
+      selectedNodeId = targetId;
+      saveState();
+      render();
+    }
+
+    function addNodeRelation(topic, sourceId, targetId) {
+      if (!sourceId || !targetId || sourceId === targetId) return false;
+      const source = topic.nodes.find((node) => node.id === sourceId);
+      const target = topic.nodes.find((node) => node.id === targetId);
+      if (!source || !target) return false;
+      if (!Array.isArray(target.relatedNodeIds)) target.relatedNodeIds = [];
+      if (target.relatedNodeIds.includes(sourceId)) {
+        showToast("这两个节点已经连接了");
+        return false;
+      }
+      target.relatedNodeIds.push(sourceId);
+      selectedNodeId = targetId;
+      saveState();
+      render();
+      showToast(`已连接：${source.title || "未命名"} → ${target.title || "未命名"}`);
+      return true;
+    }
+
+    function wireNodeConnectors(element, topic, node) {
+      element.querySelectorAll(".node-connector").forEach((handle) => {
+        handle.onpointerdown = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          startConnectionDrag(event, topic, node, handle.classList.contains("right") ? "output" : "input");
+        };
+      });
+    }
+
+    function startConnectionDrag(event, topic, node, mode) {
+      const svg = document.getElementById("edges");
+      if (!svg) return;
+      const preview = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      preview.setAttribute("class", "edge-preview");
+      svg.appendChild(preview);
+      const start = connectionAnchor(node, mode === "output" ? "right" : "left");
+      let currentTargetElement = null;
+
+      const updateTarget = (clientX, clientY) => {
+        if (currentTargetElement) currentTargetElement.classList.remove("connect-target");
+        currentTargetElement = document.elementsFromPoint(clientX, clientY)
+          .find((item) => item.classList && item.classList.contains("node") && item.dataset.nodeId && item.dataset.nodeId !== node.id) || null;
+        if (currentTargetElement) currentTargetElement.classList.add("connect-target");
+        return currentTargetElement ? topic.nodes.find((item) => item.id === currentTargetElement.dataset.nodeId) : null;
+      };
+
+      const onMove = (moveEvent) => {
+        const point = clientToWorld(topic, moveEvent.clientX, moveEvent.clientY);
+        const mx = (start.x + point.x) / 2;
+        preview.setAttribute("d", `M ${start.x} ${start.y} C ${mx} ${start.y}, ${mx} ${point.y}, ${point.x} ${point.y}`);
+        updateTarget(moveEvent.clientX, moveEvent.clientY);
+      };
+
+      const onUp = (upEvent) => {
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup", onUp);
+        preview.remove();
+        const target = updateTarget(upEvent.clientX, upEvent.clientY);
+        if (currentTargetElement) currentTargetElement.classList.remove("connect-target");
+        if (!target) return;
+        if (mode === "output") {
+          addNodeRelation(topic, node.id, target.id);
+        } else {
+          addNodeRelation(topic, target.id, node.id);
+        }
+      };
+
+      document.addEventListener("pointermove", onMove);
+      document.addEventListener("pointerup", onUp);
+      onMove(event);
+    }
+
+    function connectionAnchor(node, side) {
+      return {
+        x: node.mapX + (side === "right" ? NODE_WIDTH : 0),
+        y: node.mapY + NODE_HEIGHT / 2,
+      };
+    }
+
     function makeDraggable(element, node, topic) {
       let dragging = false;
       let startX = 0;
@@ -2906,7 +3220,7 @@
       let originalX = 0;
       let originalY = 0;
       element.onpointerdown = (event) => {
-        if (event.target.closest("a, button, input, textarea, select")) return;
+        if (event.target.closest("a, button, input, textarea, select, .node-connector")) return;
         dragging = true;
         startX = event.clientX;
         startY = event.clientY;
@@ -3206,6 +3520,34 @@
         { label: "适配视图", run: () => fitMapToView(topic) },
         { label: "重置缩放", run: () => resetMapViewport(topic) },
       ]);
+    }
+
+    function showEdgeContextMenu(event, topic, from, to, pathElement) {
+      showContextMenu(event, [
+        {
+          label: `删除连接：${from.title || "未命名"} → ${to.title || "未命名"}`,
+          run: () => removeNodeRelation(topic, from.id, to.id, true),
+        },
+        {
+          label: `选择目标节点：${to.title || "未命名"}`,
+          run: () => {
+            selectedNodeId = to.id;
+            render();
+          },
+        },
+        {
+          label: `选择来源节点：${from.title || "未命名"}`,
+          run: () => {
+            selectedNodeId = from.id;
+            render();
+          },
+        },
+      ]);
+      const clearSelected = () => {
+        pathElement?.classList.remove("selected");
+        document.removeEventListener("click", clearSelected, true);
+      };
+      setTimeout(() => document.addEventListener("click", clearSelected, true), 0);
     }
 
     function showBlankContextMenu(event, topic, position) {
@@ -3823,16 +4165,22 @@
 
     async function refreshPhoneLinkStatus(showMessage) {
       try {
-        const result = await fetchBridge("/api/link/status");
-        phoneLinkStatus = result;
-        if (result.nextSeq < phoneLinkSeq) {
+        const phoneResult = await fetchBridge("/api/link/status");
+        const desktopResult = await fetchBridge("/api/desktop/status");
+        phoneLinkStatus = phoneResult;
+        desktopLinkStatus = desktopResult;
+        desktopPeerList = desktopResult.peers || desktopPeerList;
+        if (phoneResult.nextSeq < phoneLinkSeq) {
           phoneLinkSeq = 0;
           localStorage.setItem(PHONE_LINK_SEQ_KEY, "0");
         }
         renderPhoneLinkStatus();
+        renderDesktopLinkStatus();
       } catch (error) {
         phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
+        desktopLinkStatus = { bridge: false, connected: false, device: null, peers: [], ports: null };
         renderPhoneLinkStatus();
+        renderDesktopLinkStatus();
         if (showMessage) showToast("未检测到桥接服务，请运行 desktop/run-linked-prototype.bat");
       }
     }
@@ -3878,6 +4226,21 @@
       } else if (event.type === "phone_connected") {
         refreshPhoneLinkStatus(false);
         showToast("手机已连接");
+      } else if (event.type === "desktop_connected") {
+        refreshPhoneLinkStatus(false);
+        showToast("电脑已连接");
+      } else if (event.type === "desktop_disconnected") {
+        refreshPhoneLinkStatus(false);
+        showToast("电脑已断开");
+      } else if (event.type === "desktop_clipboard_push") {
+        showToast("另一台电脑已同步剪贴板");
+      } else if (event.type === "desktop_message_push") {
+        addDesktopMessage(event.payload?.text || "", event.payload?.device);
+      } else if (event.type === "desktop_file_push") {
+        const fileName = event.payload?.fileName || "文件";
+        showToast(`已接收电脑文件：${fileName}`);
+      } else if (event.type === "desktop_error" || event.type === "desktop_discovery_error") {
+        showToast(event.payload?.message || "电脑互传异常");
       } else if (event.type === "phone_disconnected") {
         refreshPhoneLinkStatus(false);
         showToast("手机已断开");
@@ -3901,6 +4264,44 @@
         ? `${phoneLinkStatus.device?.name || "Android"} ${phoneLinkStatus.device?.address || ""}`
         : "未连接";
       portText.textContent = portErrors.length ? portErrors.join("；") : `UDP ${ports.udp} / TCP ${ports.tcp} / HTTP ${ports.http}`;
+    }
+
+    function renderDesktopLinkStatus() {
+      const button = document.getElementById("phoneLinkButton");
+      const portText = document.getElementById("phonePortText");
+      const desktopText = document.getElementById("desktopStatusText");
+      const desktopCountText = document.getElementById("desktopPeerCountText");
+      const peerList = document.getElementById("desktopPeerList");
+      if (!desktopText || !desktopCountText || !peerList) return;
+      const anyConnected = Boolean(phoneLinkStatus.connected || desktopLinkStatus.connected);
+      if (button) {
+        button.classList.toggle("connected", anyConnected);
+        button.classList.toggle("offline", !phoneLinkStatus.bridge);
+        button.textContent = anyConnected ? "🔗 已连接" : phoneLinkStatus.bridge ? "🔗 等待" : "🔗 互传";
+      }
+      if (portText) {
+        const ports = desktopLinkStatus.ports || phoneLinkStatus.ports || { udp: 20311, tcp: 20310, http: 20312, desktopTcp: 20313 };
+        portText.textContent = `UDP ${ports.udp} / 手机 TCP ${ports.tcp} / 电脑 TCP ${ports.desktopTcp || 20313} / HTTP ${ports.http}`;
+      }
+      const device = desktopLinkStatus.device || {};
+      desktopText.textContent = desktopLinkStatus.connected
+        ? `${device.name || "Desktop"} ${device.address || ""}`
+        : "未连接";
+      desktopCountText.textContent = `${desktopPeerList.length || 0} 台`;
+      if (!desktopPeerList.length) {
+        peerList.innerHTML = '<div class="peer-item-meta">点击“发现电脑”后，同一局域网内运行此桌面端的电脑会显示在这里。</div>';
+        return;
+      }
+      peerList.innerHTML = desktopPeerList.map((peer, index) => `
+        <div class="peer-item">
+          <div class="peer-item-title">${escapeHtml(peer.name || "Desktop")}</div>
+          <div class="peer-item-meta">${escapeHtml(peer.address || "")}:${escapeHtml(String(peer.port || ""))} ${escapeHtml(peer.platform || "")}</div>
+          <button data-peer-index="${index}">连接</button>
+        </div>
+      `).join("");
+      peerList.querySelectorAll("button[data-peer-index]").forEach((button) => {
+        button.onclick = () => connectDesktopPeer(desktopPeerList[Number(button.dataset.peerIndex)]);
+      });
     }
 
     async function fetchBridge(path, options) {
@@ -4099,6 +4500,191 @@
             headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+    }
+
+    async function discoverDesktopPeers() {
+      try {
+        showToast("正在发现局域网电脑...");
+        const result = await fetchBridge("/api/desktop/discover", { method: "POST" });
+        desktopPeerList = result.peers || [];
+        renderDesktopLinkStatus();
+        showToast(desktopPeerList.length ? `发现 ${desktopPeerList.length} 台电脑` : "没有发现其他电脑");
+      } catch (error) {
+        showToast("发现失败，请确认桥接服务正在运行");
+      }
+    }
+
+    async function connectDesktopPeer(peer) {
+      if (!peer) return;
+      try {
+        const result = await fetchBridge("/api/desktop/connect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(peer),
+        });
+        desktopLinkStatus.connected = true;
+        desktopLinkStatus.device = result.device || peer;
+        renderDesktopLinkStatus();
+        showToast(`已连接电脑：${peer.name || peer.address || "Desktop"}`);
+      } catch (error) {
+        showToast("连接电脑失败，请确认对方桌面端正在运行");
+      }
+    }
+
+    async function disconnectDesktopPeer() {
+      try {
+        await fetchBridge("/api/desktop/disconnect", { method: "POST" });
+        desktopLinkStatus.connected = false;
+        desktopLinkStatus.device = null;
+        renderDesktopLinkStatus();
+        showToast("已断开电脑连接");
+      } catch (error) {
+        showToast("断开失败");
+      }
+    }
+
+    async function sendDesktopClipboard() {
+      const text = document.getElementById("sendDesktopText").value;
+      if (!text.trim()) {
+        showToast("先输入要发送到电脑剪贴板的文字");
+        return;
+      }
+      try {
+        await fetchBridge("/api/desktop/send-clipboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        showToast("已发送到对方电脑剪贴板");
+      } catch (error) {
+        showToast("发送失败，请确认电脑已连接");
+      }
+    }
+
+    async function sendDesktopMessage() {
+      const text = document.getElementById("sendDesktopText").value;
+      if (!text.trim()) {
+        showToast("先输入要发送的消息");
+        return;
+      }
+      try {
+        await fetchBridge("/api/desktop/send-message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        addDesktopMessage(text, { name: "我" }, true);
+        showToast("消息已发送到对方电脑");
+      } catch (error) {
+        showToast("发送失败，请确认电脑已连接");
+      }
+    }
+
+    async function sendFileToDesktop() {
+      const input = document.getElementById("desktopFileInput");
+      const file = input.files?.[0];
+      if (!file) {
+        showToast("先选择一个文件");
+        return;
+      }
+      await sendFileByChunks(file, "/api/desktop/send-file-chunk", "desktopSendFileProgress", "电脑");
+    }
+
+    async function sendFileByChunks(file, endpoint, progressId, targetName) {
+      const progress = document.getElementById(progressId);
+      const transferId = createId();
+      const chunkSize = 48 * 1024;
+      try {
+        progress.textContent = "正在建立文件传输...";
+        await fetchBridge(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phase: "start",
+            transferId,
+            fileName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            size: file.size,
+          }),
+        });
+        let offset = 0;
+        let index = 0;
+        while (offset < file.size) {
+          const chunk = file.slice(offset, Math.min(offset + chunkSize, file.size));
+          const base64 = arrayBufferToBase64(await chunk.arrayBuffer());
+          await fetchBridge(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phase: "chunk",
+              transferId,
+              fileName: file.name,
+              mimeType: file.type || "application/octet-stream",
+              size: file.size,
+              index,
+              offset,
+              base64,
+            }),
+          });
+          offset += chunk.size;
+          index++;
+          const percent = file.size ? Math.floor((offset / file.size) * 100) : 100;
+          progress.textContent = `正在发送 ${file.name}：${percent}%`;
+        }
+        await fetchBridge(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phase: "end",
+            transferId,
+            fileName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            size: file.size,
+            index,
+            offset,
+          }),
+        });
+        progress.textContent = "文件发送完成";
+        showToast(`文件已发送到${targetName}`);
+      } catch (error) {
+        progress.textContent = "";
+        showToast(`发送失败，请确认${targetName}已连接`);
+      }
+    }
+
+    function addDesktopMessage(text, device, outgoing) {
+      const name = outgoing ? "我" : (device?.name || "Desktop");
+      desktopMessages.unshift({
+        name,
+        text: String(text || ""),
+        time: new Date().toLocaleTimeString(),
+      });
+      while (desktopMessages.length > 20) desktopMessages.pop();
+      renderDesktopMessages();
+      if (!outgoing) showToast(`收到电脑消息：${name}`);
+    }
+
+    function renderDesktopMessages() {
+      const log = document.getElementById("desktopMessageLog");
+      if (!log) return;
+      if (!desktopMessages.length) {
+        log.innerHTML = '<div class="message-item-meta">另一台电脑发来的消息会显示在这里。</div>';
+        return;
+      }
+      log.innerHTML = desktopMessages.map((message) => `
+        <div class="message-item">
+          <div class="message-item-title">${escapeHtml(message.name)} <span class="message-item-meta">${escapeHtml(message.time)}</span></div>
+          <div class="message-item-meta">${escapeHtml(message.text).replace(/\n/g, "<br>")}</div>
+        </div>
+      `).join("");
+    }
+
+    function setDeviceLinkTab(tab) {
+      const isDesktop = tab === "desktop";
+      document.getElementById("phoneLinkTab")?.classList.toggle("active", !isDesktop);
+      document.getElementById("desktopLinkTab")?.classList.toggle("active", isDesktop);
+      document.getElementById("phoneLinkPage")?.classList.toggle("active", !isDesktop);
+      document.getElementById("desktopLinkPage")?.classList.toggle("active", isDesktop);
     }
 
     function arrayBufferToBase64(buffer) {
@@ -4413,6 +4999,9 @@
     };
 
     const phonePanel = document.getElementById("phonePanel");
+    document.querySelector(".phone-panel-title").textContent = "设备互传";
+    document.getElementById("refreshPhoneLinkButton").textContent = "刷新";
+    document.getElementById("closePhonePanelButton").textContent = "×";
     document.getElementById("phoneLinkButton").onclick = () => {
       phonePanel.classList.toggle("open");
       refreshPhoneLinkStatus(true);
@@ -4423,6 +5012,15 @@
     document.getElementById("refreshPhoneLinkButton").onclick = () => refreshPhoneLinkStatus(true);
     document.getElementById("sendClipboardButton").onclick = sendClipboardToPhone;
     document.getElementById("sendFileButton").onclick = sendFileToPhone;
+    document.getElementById("discoverDesktopButton").onclick = discoverDesktopPeers;
+    document.getElementById("disconnectDesktopButton").onclick = disconnectDesktopPeer;
+    document.getElementById("sendDesktopClipboardButton").onclick = sendDesktopClipboard;
+    document.getElementById("sendDesktopMessageButton").onclick = sendDesktopMessage;
+    document.getElementById("sendDesktopFileButton").onclick = sendFileToDesktop;
+    document.querySelectorAll(".link-tab").forEach((button) => {
+      button.onclick = () => setDeviceLinkTab(button.dataset.linkTab);
+    });
+    setDeviceLinkTab("phone");
 
     const dataMenuWrap = document.getElementById("dataMenuWrap");
     function closeDataMenu() {

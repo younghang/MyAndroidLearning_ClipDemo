@@ -130,6 +130,34 @@ When the bridge is not running, the prototype still falls back to browser
 `localStorage`. When the bridge starts for the first time and no JSON data file
 exists yet, it migrates the current `localStorage` data into `clipboard-data.json`.
 
+## Device Link
+
+The Electron/bridge app supports LAN device transfer:
+
+- Android phone discovery and connection
+- Desktop-to-desktop discovery and connection
+- Send text to the other device clipboard
+- Send plain messages between desktop apps
+- Send files with chunked transfer
+- Receive files under `Documents/ClipboardDesktop/received/files`
+
+Ports:
+
+```text
+UDP 20311       discovery
+TCP 20310       Android phone link
+TCP 20313       desktop-to-desktop link
+HTTP 20312      local UI/API bridge
+```
+
+Desktop-to-desktop usage:
+
+1. Start the desktop app on both computers.
+2. Open the device panel from the top toolbar.
+3. Click "发现电脑".
+4. Connect to a discovered computer.
+5. Send clipboard text, messages, or files.
+
 ## Planned Stack
 
 The planned desktop implementation is:
