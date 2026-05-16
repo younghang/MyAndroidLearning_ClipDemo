@@ -1648,6 +1648,7 @@
       <div class="link-section-title">电脑</div>
       <div class="link-status-card">
         <div class="link-status-row"><strong>电脑连接</strong><span id="desktopStatusText">未连接</span></div>
+        <div class="link-status-row"><strong>本机配对码</strong><span id="desktopPairCodeText">------</span></div>
         <div class="link-status-row"><strong>已发现</strong><span id="desktopPeerCountText">0 台</span></div>
       </div>
       <div class="panel-button-row">
@@ -1657,6 +1658,8 @@
       <div id="desktopPeerList" class="peer-list">
         <div class="peer-item-meta">点击“发现电脑”后，同一局域网内运行此桌面端的电脑会显示在这里。</div>
       </div>
+      <label>目标电脑</label>
+      <select id="desktopTargetSelect"></select>
       <label>发送到电脑</label>
       <textarea id="sendDesktopText" placeholder="输入要发送到另一台电脑的文字"></textarea>
       <div class="panel-button-row">
@@ -1714,7 +1717,7 @@
     let importMode = "prototype";
     let phoneLinkSeq = Number(localStorage.getItem(PHONE_LINK_SEQ_KEY) || 0);
     let phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
-    let desktopLinkStatus = { bridge: false, connected: false, device: null, peers: [], ports: null };
+    let desktopLinkStatus = { bridge: false, connected: false, device: null, devices: [], peers: [], ports: null, pairCode: "" };
     let desktopPeerList = [];
     const desktopMessages = [];
     let desktopDatabaseReady = false;
@@ -3477,6 +3480,12 @@
           run: () => sendRecordToPhone(item),
         });
       }
+      if (desktopConnectedDevices().length) {
+        actions.push({
+          label: "发送到目标电脑",
+          run: () => sendRecordToDesktop(item),
+        });
+      }
       actions.push({
         label: "删除记录",
         run: () => deleteRecordItem(item),
@@ -4154,6 +4163,45 @@
       showToast(`已接收手机记录：${item.title || "未命名"}`);
     }
 
+    function upsertDesktopRecord(record, device) {
+      const item = normalizeDesktopRecord(record);
+      if (!item) {
+        showToast("收到电脑记录，但格式不能识别");
+        return;
+      }
+      const list = state[item.type] || [];
+      const index = list.findIndex((existing) => existing.id && item.id && existing.id === item.id);
+      if (index >= 0) {
+        list[index] = { ...list[index], ...item };
+      } else {
+        list.unshift(item);
+      }
+      normalizeState(state);
+      currentType = item.type;
+      selectedId = item.id;
+      selectedNodeId = null;
+      saveState();
+      render();
+      showToast(`已接收电脑记录：${item.title || "未命名"}${device?.name ? " - " + device.name : ""}`);
+    }
+
+    function normalizeDesktopRecord(record) {
+      if (!record || typeof record !== "object" || !record.type) return null;
+      const clone = JSON.parse(JSON.stringify(record));
+      if (clone.type === "notes") {
+        const next = normalizeState({ notes: [clone], todos: [], research: [] });
+        return next.notes[0] || null;
+      }
+      if (clone.type === "todos") {
+        const next = normalizeState({ notes: [], todos: [clone], research: [] });
+        return next.todos[0] || null;
+      }
+      if (clone.type === "research") {
+        return normalizeResearchTopic(clone);
+      }
+      return null;
+    }
+
     function samePhoneRecord(left, right) {
       if (!left || !right) return false;
       if (left.androidRecordId && right.androidRecordId && left.androidRecordId === right.androidRecordId) return true;
@@ -4178,7 +4226,7 @@
         renderDesktopLinkStatus();
       } catch (error) {
         phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
-        desktopLinkStatus = { bridge: false, connected: false, device: null, peers: [], ports: null };
+        desktopLinkStatus = { bridge: false, connected: false, device: null, devices: [], peers: [], ports: null, pairCode: "" };
         renderPhoneLinkStatus();
         renderDesktopLinkStatus();
         if (showMessage) showToast("未检测到桥接服务，请运行 desktop/run-linked-prototype.bat");
@@ -4229,6 +4277,9 @@
       } else if (event.type === "desktop_connected") {
         refreshPhoneLinkStatus(false);
         showToast("电脑已连接");
+      } else if (event.type === "desktop_pair_failed") {
+        refreshPhoneLinkStatus(false);
+        showToast("电脑配对失败：请确认输入的是对方界面上的 6 位配对码");
       } else if (event.type === "desktop_disconnected") {
         refreshPhoneLinkStatus(false);
         showToast("电脑已断开");
@@ -4236,6 +4287,10 @@
         showToast("另一台电脑已同步剪贴板");
       } else if (event.type === "desktop_message_push") {
         addDesktopMessage(event.payload?.text || "", event.payload?.device);
+      } else if (event.type === "desktop_record_push") {
+        upsertDesktopRecord(event.payload?.record, event.payload?.device);
+      } else if (event.type === "desktop_file_progress") {
+        updateDesktopFileProgress(event.payload);
       } else if (event.type === "desktop_file_push") {
         const fileName = event.payload?.fileName || "文件";
         showToast(`已接收电脑文件：${fileName}`);
@@ -4270,10 +4325,13 @@
       const button = document.getElementById("phoneLinkButton");
       const portText = document.getElementById("phonePortText");
       const desktopText = document.getElementById("desktopStatusText");
+      const pairCodeText = document.getElementById("desktopPairCodeText");
       const desktopCountText = document.getElementById("desktopPeerCountText");
       const peerList = document.getElementById("desktopPeerList");
+      const targetSelect = document.getElementById("desktopTargetSelect");
       if (!desktopText || !desktopCountText || !peerList) return;
-      const anyConnected = Boolean(phoneLinkStatus.connected || desktopLinkStatus.connected);
+      const devices = desktopConnectedDevices();
+      const anyConnected = Boolean(phoneLinkStatus.connected || devices.length);
       if (button) {
         button.classList.toggle("connected", anyConnected);
         button.classList.toggle("offline", !phoneLinkStatus.bridge);
@@ -4283,11 +4341,23 @@
         const ports = desktopLinkStatus.ports || phoneLinkStatus.ports || { udp: 20311, tcp: 20310, http: 20312, desktopTcp: 20313 };
         portText.textContent = `UDP ${ports.udp} / 手机 TCP ${ports.tcp} / 电脑 TCP ${ports.desktopTcp || 20313} / HTTP ${ports.http}`;
       }
-      const device = desktopLinkStatus.device || {};
-      desktopText.textContent = desktopLinkStatus.connected
-        ? `${device.name || "Desktop"} ${device.address || ""}`
+      if (pairCodeText) pairCodeText.textContent = desktopLinkStatus.pairCode || "------";
+      desktopText.textContent = devices.length
+        ? `已连接 ${devices.length} 台`
         : "未连接";
       desktopCountText.textContent = `${desktopPeerList.length || 0} 台`;
+      if (targetSelect) {
+        const previous = targetSelect.value;
+        targetSelect.innerHTML = devices.length
+          ? devices.map((device) => {
+              const value = device.deviceId || device.connectionId || "";
+              return `<option value="${escapeAttr(value)}">${escapeHtml(device.name || "Desktop")} ${escapeHtml(device.address || "")}</option>`;
+            }).join("")
+          : '<option value="">未连接电脑</option>';
+        if ([...targetSelect.options].some((option) => option.value === previous)) {
+          targetSelect.value = previous;
+        }
+      }
       if (!desktopPeerList.length) {
         peerList.innerHTML = '<div class="peer-item-meta">点击“发现电脑”后，同一局域网内运行此桌面端的电脑会显示在这里。</div>';
         return;
@@ -4296,12 +4366,30 @@
         <div class="peer-item">
           <div class="peer-item-title">${escapeHtml(peer.name || "Desktop")}</div>
           <div class="peer-item-meta">${escapeHtml(peer.address || "")}:${escapeHtml(String(peer.port || ""))} ${escapeHtml(peer.platform || "")}</div>
-          <button data-peer-index="${index}">连接</button>
+          <button data-peer-index="${index}">${isDesktopPeerConnected(peer) ? "已连接" : "连接"}</button>
         </div>
       `).join("");
       peerList.querySelectorAll("button[data-peer-index]").forEach((button) => {
-        button.onclick = () => connectDesktopPeer(desktopPeerList[Number(button.dataset.peerIndex)]);
+        const peer = desktopPeerList[Number(button.dataset.peerIndex)];
+        button.disabled = isDesktopPeerConnected(peer);
+        button.onclick = () => connectDesktopPeer(peer);
       });
+    }
+
+    function desktopConnectedDevices() {
+      return desktopLinkStatus.devices || (desktopLinkStatus.device ? [desktopLinkStatus.device] : []);
+    }
+
+    function selectedDesktopTargetId() {
+      const select = document.getElementById("desktopTargetSelect");
+      return select ? select.value : "";
+    }
+
+    function isDesktopPeerConnected(peer) {
+      if (!peer) return false;
+      return desktopConnectedDevices().some((device) =>
+        (peer.deviceId && device.deviceId === peer.deviceId)
+        || (peer.address && device.address === peer.address));
     }
 
     async function fetchBridge(path, options) {
@@ -4438,6 +4526,26 @@
       }
     }
 
+    async function sendRecordToDesktop(item) {
+      if (!item) return;
+      collectCurrentForm();
+      const deviceId = selectedDesktopTargetId();
+      if (!deviceId) {
+        showToast("先连接并选择一台目标电脑");
+        return;
+      }
+      try {
+        await fetchBridge("/api/desktop/send-record", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId, record: JSON.parse(JSON.stringify(item)) }),
+        });
+        showToast("记录已发送到目标电脑");
+      } catch (error) {
+        showToast("发送失败，请确认目标电脑已连接");
+      }
+    }
+
     async function sendFileToPhone() {
       const input = document.getElementById("phoneFileInput");
       const file = input.files?.[0];
@@ -4516,26 +4624,30 @@
 
     async function connectDesktopPeer(peer) {
       if (!peer) return;
+      const pairCode = window.prompt(`请输入 ${peer.name || peer.address || "对方电脑"} 上显示的 6 位配对码`);
+      if (!pairCode) return;
       try {
         const result = await fetchBridge("/api/desktop/connect", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(peer),
+          body: JSON.stringify({ ...peer, pairCode: pairCode.trim() }),
         });
-        desktopLinkStatus.connected = true;
-        desktopLinkStatus.device = result.device || peer;
+        await refreshPhoneLinkStatus(false);
         renderDesktopLinkStatus();
         showToast(`已连接电脑：${peer.name || peer.address || "Desktop"}`);
       } catch (error) {
-        showToast("连接电脑失败，请确认对方桌面端正在运行");
+        showToast("连接电脑失败，请确认对方桌面端正在运行，并且配对码正确");
       }
     }
 
     async function disconnectDesktopPeer() {
       try {
-        await fetchBridge("/api/desktop/disconnect", { method: "POST" });
-        desktopLinkStatus.connected = false;
-        desktopLinkStatus.device = null;
+        await fetchBridge("/api/desktop/disconnect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ deviceId: selectedDesktopTargetId() }),
+        });
+        await refreshPhoneLinkStatus(false);
         renderDesktopLinkStatus();
         showToast("已断开电脑连接");
       } catch (error) {
@@ -4549,11 +4661,16 @@
         showToast("先输入要发送到电脑剪贴板的文字");
         return;
       }
+      const deviceId = selectedDesktopTargetId();
+      if (!deviceId) {
+        showToast("先连接并选择一台目标电脑");
+        return;
+      }
       try {
         await fetchBridge("/api/desktop/send-clipboard", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, deviceId }),
         });
         showToast("已发送到对方电脑剪贴板");
       } catch (error) {
@@ -4567,11 +4684,16 @@
         showToast("先输入要发送的消息");
         return;
       }
+      const deviceId = selectedDesktopTargetId();
+      if (!deviceId) {
+        showToast("先连接并选择一台目标电脑");
+        return;
+      }
       try {
         await fetchBridge("/api/desktop/send-message", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, deviceId }),
         });
         addDesktopMessage(text, { name: "我" }, true);
         showToast("消息已发送到对方电脑");
@@ -4587,19 +4709,26 @@
         showToast("先选择一个文件");
         return;
       }
-      await sendFileByChunks(file, "/api/desktop/send-file-chunk", "desktopSendFileProgress", "电脑");
+      const deviceId = selectedDesktopTargetId();
+      if (!deviceId) {
+        showToast("先连接并选择一台目标电脑");
+        return;
+      }
+      await sendFileByChunks(file, "/api/desktop/send-file-chunk", "desktopSendFileProgress", "电脑", { deviceId });
     }
 
-    async function sendFileByChunks(file, endpoint, progressId, targetName) {
+    async function sendFileByChunks(file, endpoint, progressId, targetName, extraBody) {
       const progress = document.getElementById(progressId);
       const transferId = createId();
       const chunkSize = 48 * 1024;
+      const extra = extraBody || {};
       try {
         progress.textContent = "正在建立文件传输...";
         await fetchBridge(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            ...extra,
             phase: "start",
             transferId,
             fileName: file.name,
@@ -4616,6 +4745,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
+              ...extra,
               phase: "chunk",
               transferId,
               fileName: file.name,
@@ -4635,6 +4765,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            ...extra,
             phase: "end",
             transferId,
             fileName: file.name,
@@ -4662,6 +4793,17 @@
       while (desktopMessages.length > 20) desktopMessages.pop();
       renderDesktopMessages();
       if (!outgoing) showToast(`收到电脑消息：${name}`);
+    }
+
+    function updateDesktopFileProgress(payload) {
+      const progress = document.getElementById("desktopSendFileProgress");
+      if (!progress || !payload) return;
+      const size = Number(payload.size) || 0;
+      const received = Number(payload.received) || 0;
+      const percent = size ? Math.min(100, Math.floor((received / size) * 100)) : 0;
+      progress.textContent = payload.done
+        ? `接收完成：${payload.fileName || "文件"}`
+        : `正在接收：${payload.fileName || "文件"} ${percent}%`;
     }
 
     function renderDesktopMessages() {

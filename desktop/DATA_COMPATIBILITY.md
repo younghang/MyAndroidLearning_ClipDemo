@@ -95,6 +95,40 @@ The browser-only prototype still uses `localStorage` as a fallback. When the bri
 the UI loads from `/api/data/load` and saves to `/api/data/save`; if the JSON file does not exist
 yet, the current fallback data is written into the file on startup.
 
+## Desktop Peer Link V2
+
+Phone link compatibility stays on the existing Android protocol. Desktop-to-desktop transfer uses
+the newer peer protocol in `desktop/bridge/server.js`.
+
+Discovery still uses UDP broadcast:
+
+```text
+CLIPBOARD_DESKTOP_DISCOVER_V1 -> UDP 20311
+CLIPBOARD_DESKTOP|{ protocol, deviceId, name, platform, port, requiresPairCode }
+```
+
+After discovery, one desktop opens a TCP connection to the other desktop on port `20313`.
+The first message is `desktop_hello`; it must include the 6 digit pair code shown on the target
+desktop. If the code is correct, the target replies with `desktop_hello_ack`.
+
+Desktop V2 supports multiple active desktop peers at the same time. HTTP bridge calls that send to
+another desktop can include `deviceId` or `connectionId` to choose the target peer. Supported
+desktop message types:
+
+```text
+clipboard_push
+message_push
+record_push
+file_start
+file_chunk
+file_end
+disconnect
+```
+
+Files are sent as small base64 chunks over the persistent TCP peer connection. This is not as
+efficient as raw binary streaming, but it avoids loading the whole file into memory and keeps the
+protocol easy to debug.
+
 ## Safer Future Format
 
 For long-term desktop-first backups, prefer a new explicit format:
