@@ -1660,6 +1660,11 @@
       </div>
       <label>目标电脑</label>
       <select id="desktopTargetSelect"></select>
+      <div class="panel-button-row">
+        <button id="syncDesktopCategoryButton">同步当前分类</button>
+        <button id="syncDesktopAllButton">同步全部记录</button>
+      </div>
+      <div id="desktopSyncProgress" class="list-meta"></div>
       <label>发送到电脑</label>
       <textarea id="sendDesktopText" placeholder="输入要发送到另一台电脑的文字"></textarea>
       <div class="panel-button-row">
@@ -1936,6 +1941,10 @@
       normalizeState(state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
       queueDesktopDatabaseSave();
+    }
+
+    function touchItem(item) {
+      if (item) item.updatedAt = new Date().toISOString();
     }
 
     async function initializeDesktopDatabase() {
@@ -3833,7 +3842,7 @@
         item.conclusion = document.getElementById("topicConclusion")?.value || "";
         normalizeResearchTopic(item);
       }
-      item.updatedAt = today();
+      touchItem(item);
       saveState();
     }
 
@@ -4172,6 +4181,10 @@
       const list = state[item.type] || [];
       const index = list.findIndex((existing) => existing.id && item.id && existing.id === item.id);
       if (index >= 0) {
+        if (!shouldAcceptIncomingRecord(list[index], item)) {
+          showToast(`收到电脑记录：${item.title || "未命名"}，本地版本更新，已保留本地`);
+          return;
+        }
         list[index] = { ...list[index], ...item };
       } else {
         list.unshift(item);
@@ -4183,6 +4196,16 @@
       saveState();
       render();
       showToast(`已接收电脑记录：${item.title || "未命名"}${device?.name ? " - " + device.name : ""}`);
+    }
+
+    function shouldAcceptIncomingRecord(existing, incoming) {
+      if (!existing) return true;
+      return recordUpdatedTime(incoming) >= recordUpdatedTime(existing);
+    }
+
+    function recordUpdatedTime(item) {
+      const time = Date.parse(item?.updatedAt || item?.androidCreateDate || "");
+      return Number.isFinite(time) ? time : 0;
     }
 
     function normalizeDesktopRecord(record) {
@@ -4528,21 +4551,57 @@
 
     async function sendRecordToDesktop(item) {
       if (!item) return;
+      await sendRecordsToDesktop([item], "记录");
+    }
+
+    async function syncCurrentCategoryToDesktop() {
       collectCurrentForm();
+      await sendRecordsToDesktop(currentList(), typeLabels[currentType] || "当前分类");
+    }
+
+    async function syncAllRecordsToDesktop() {
+      collectCurrentForm();
+      const allRecords = [
+        ...(state.notes || []),
+        ...(state.todos || []),
+        ...(state.research || []),
+      ];
+      await sendRecordsToDesktop(allRecords, "全部记录");
+    }
+
+    async function sendRecordsToDesktop(records, label) {
+      const list = (records || []).filter(Boolean);
+      if (!list.length) {
+        showToast("没有可同步的记录");
+        return;
+      }
       const deviceId = selectedDesktopTargetId();
       if (!deviceId) {
         showToast("先连接并选择一台目标电脑");
         return;
       }
+      const progress = document.getElementById("desktopSyncProgress");
+      let sent = 0;
+      let failed = 0;
       try {
-        await fetchBridge("/api/desktop/send-record", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ deviceId, record: JSON.parse(JSON.stringify(item)) }),
-        });
-        showToast("记录已发送到目标电脑");
+        for (let i = 0; i < list.length; i++) {
+          if (progress) progress.textContent = `正在同步${label}：${i + 1}/${list.length}`;
+          try {
+            await fetchBridge("/api/desktop/send-record", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ deviceId, record: JSON.parse(JSON.stringify(list[i])) }),
+            });
+            sent++;
+          } catch (error) {
+            failed++;
+          }
+        }
+        if (progress) progress.textContent = `同步完成：成功 ${sent}，失败 ${failed}`;
+        showToast(failed ? `${label}同步完成，${failed} 条失败` : `${label}已同步到目标电脑`);
       } catch (error) {
-        showToast("发送失败，请确认目标电脑已连接");
+        if (progress) progress.textContent = "";
+        showToast("同步失败，请确认目标电脑已连接");
       }
     }
 
@@ -5159,6 +5218,8 @@
     document.getElementById("sendDesktopClipboardButton").onclick = sendDesktopClipboard;
     document.getElementById("sendDesktopMessageButton").onclick = sendDesktopMessage;
     document.getElementById("sendDesktopFileButton").onclick = sendFileToDesktop;
+    document.getElementById("syncDesktopCategoryButton").onclick = syncCurrentCategoryToDesktop;
+    document.getElementById("syncDesktopAllButton").onclick = syncAllRecordsToDesktop;
     document.querySelectorAll(".link-tab").forEach((button) => {
       button.onclick = () => setDeviceLinkTab(button.dataset.linkTab);
     });

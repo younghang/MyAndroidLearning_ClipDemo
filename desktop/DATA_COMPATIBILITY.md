@@ -129,6 +129,11 @@ Files are sent as small base64 chunks over the persistent TCP peer connection. T
 efficient as raw binary streaming, but it avoids loading the whole file into memory and keeps the
 protocol easy to debug.
 
+The first desktop sync rule is intentionally simple: records keep their desktop `id`, and the
+receiver merges by that `id`. If the record already exists, the receiver compares `updatedAt`; the
+newer record wins and an older incoming record is ignored. This keeps one-click category/all-record
+sync predictable without introducing a conflict UI yet.
+
 ## Safer Future Format
 
 For long-term desktop-first backups, prefer a new explicit format:

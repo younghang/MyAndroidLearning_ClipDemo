@@ -342,7 +342,7 @@ function handleDesktopPeerMessage(connection, line) {
     return;
   }
 
-  if (message.type === "clipboard_ack" || message.type === "message_ack" || message.type === "file_start_ack" || message.type === "file_ack" || message.type === "disconnect_ack") {
+  if (message.type === "clipboard_ack" || message.type === "message_ack" || message.type === "record_ack" || message.type === "file_start_ack" || message.type === "file_ack" || message.type === "disconnect_ack") {
     pushEvent("desktop_ack", {
       ackType: message.type,
       message: message.message || "",
