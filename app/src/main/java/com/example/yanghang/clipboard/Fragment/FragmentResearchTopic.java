@@ -98,8 +98,12 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
         rootLayout.removeAllViews();
         currentMindMapView = null;
         if (currentViewMode == VIEW_MODE_MAP) {
+            scrollView.setBackgroundColor(Color.WHITE);
+            rootLayout.setPadding(0, 0, 0, 0);
             renderMindMap();
         } else {
+            scrollView.setBackgroundColor(getResources().getColor(R.color.gray_bg));
+            rootLayout.setPadding(dp(10), dp(10), dp(10), dp(18));
             renderHeader();
             renderRelationMap();
             renderNodes();
@@ -224,18 +228,14 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
     }
 
     private void renderMindMap() {
-        LinearLayout card = makeCard();
-        TextView title = makeText(topicData.getTitle(), 18, R.color.message_text);
-        title.setTypeface(null, Typeface.BOLD);
-        card.addView(title);
-
-        TextView hint = makeText("拖动查看关系，双指缩放，点节点查看或编辑。", 12, R.color.text_11);
-        hint.setPadding(0, dp(4), 0, dp(8));
-        card.addView(hint);
-
         ResearchMindMapView mindMapView = createMindMapView(true);
-        card.addView(mindMapView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(560)));
-        rootLayout.addView(card, cardParams());
+        mindMapView.setBackgroundColor(Color.WHITE);
+        rootLayout.addView(mindMapView, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getInlineMindMapHeight()));
+    }
+
+    private int getInlineMindMapHeight() {
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        return Math.max(dp(560), screenHeight - dp(92));
     }
 
     private ResearchMindMapView createMindMapView(boolean trackViewport) {

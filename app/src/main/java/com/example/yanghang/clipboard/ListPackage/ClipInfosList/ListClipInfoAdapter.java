@@ -6,7 +6,7 @@ import android.content.Context;
 import android.graphics.Color;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
-import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
@@ -66,7 +66,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 
         holder.layoutContent.getLayoutParams().width = Utils.getScreenWidth(mContext);
         if (catalogueName.equals("待办事项")) {
-            holder.tvMessage.setText(applyTodoMarkerSpans(strMessage));
+            holder.tvMessage.setText(formatTodoMarkerText(strMessage));
             holder.tvMessage.setTextSize(15);
             holder.tvMessage.setMaxLines(14);
         } else if (catalogueName.equals(AssetData.CATALOGUE_NAME)) {
@@ -249,21 +249,58 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
         void onSendPcBtnClick(View view, int position);
     }
 
-    private SpannableString applyTodoMarkerSpans(String text) {
-        SpannableString spannableString = new SpannableString(text);
-        applyTodoMarkerSpan(spannableString, text, "●红", Color.rgb(213, 64, 60));
-        applyTodoMarkerSpan(spannableString, text, "●橙", Color.rgb(217, 150, 16));
-        applyTodoMarkerSpan(spannableString, text, "●蓝", Color.rgb(63, 81, 181));
-        applyTodoMarkerSpan(spannableString, text, "●灰", Color.rgb(153, 153, 153));
-        return spannableString;
+    private CharSequence formatTodoMarkerText(String text) {
+        if (text == null || text.length() == 0) {
+            return "";
+        }
+        SpannableStringBuilder builder = new SpannableStringBuilder();
+        int index = 0;
+        while (index < text.length()) {
+            String marker = getTodoMarkerAt(text, index);
+            if (marker != null) {
+                int start = builder.length();
+                builder.append("\u25cf");
+                builder.setSpan(new ForegroundColorSpan(getTodoMarkerColor(marker)), start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                index += marker.length();
+            } else {
+                builder.append(text.charAt(index));
+                index++;
+            }
+        }
+        return builder;
     }
 
-    private void applyTodoMarkerSpan(SpannableString spannableString, String text, String marker, int color) {
-        int start = text.indexOf(marker);
-        while (start >= 0) {
-            spannableString.setSpan(new ForegroundColorSpan(color), start, start + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            start = text.indexOf(marker, start + marker.length());
+    private String getTodoMarkerAt(String text, int index) {
+        String red = "\u25cf\u7ea2";
+        String orange = "\u25cf\u6a59";
+        String blue = "\u25cf\u84dd";
+        String gray = "\u25cf\u7070";
+        if (text.startsWith(red, index)) {
+            return red;
         }
+        if (text.startsWith(orange, index)) {
+            return orange;
+        }
+        if (text.startsWith(blue, index)) {
+            return blue;
+        }
+        if (text.startsWith(gray, index)) {
+            return gray;
+        }
+        return null;
+    }
+
+    private int getTodoMarkerColor(String marker) {
+        if ("\u25cf\u7ea2".equals(marker)) {
+            return Color.rgb(213, 64, 60);
+        }
+        if ("\u25cf\u6a59".equals(marker)) {
+            return Color.rgb(217, 150, 16);
+        }
+        if ("\u25cf\u84dd".equals(marker)) {
+            return Color.rgb(63, 81, 181);
+        }
+        return Color.rgb(153, 153, 153);
     }
 
     //添加载入动画,从别的地方抄来的，稍加修改，此app大部分代码都是这样的
