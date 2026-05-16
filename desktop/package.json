@@ -1,0 +1,49 @@
+{
+  "name": "clipboard-desktop",
+  "version": "1.1.0",
+  "private": true,
+  "author": "yanghang",
+  "description": "Clipboard Desktop note, todo, research topic, and phone link app.",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win portable",
+    "dist:win": "electron-builder --win portable",
+    "dist:mac": "electron-builder --mac dmg zip",
+    "pack:mac": "electron-builder --mac dir"
+  },
+  "build": {
+    "appId": "com.example.yanghang.clipboard.desktop",
+    "productName": "Clipboard Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "bridge/**/*",
+      "prototype/**/*",
+      "README.md",
+      "DATA_COMPATIBILITY.md",
+      "package.json"
+    ],
+    "win": {
+      "signAndEditExecutable": false,
+      "target": [
+        "portable"
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^39.2.4",
+    "electron-builder": "^26.0.12"
+  }
+}

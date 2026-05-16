@@ -83,6 +83,18 @@ The browser prototype intentionally does not decrypt encrypted Android files. It
 plain JSON. Encrypted import should wait for the Tauri backend so the password is handled by a
 native command and never stored in frontend code.
 
+## Desktop Local Database
+
+The Electron/bridge version stores desktop records in a plain JSON file:
+
+```text
+Documents/ClipboardDesktop/clipboard-data.json
+```
+
+The browser-only prototype still uses `localStorage` as a fallback. When the bridge is running,
+the UI loads from `/api/data/load` and saves to `/api/data/save`; if the JSON file does not exist
+yet, the current fallback data is written into the file on startup.
+
 ## Safer Future Format
 
 For long-term desktop-first backups, prefer a new explicit format:

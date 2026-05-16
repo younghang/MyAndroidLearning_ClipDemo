@@ -106,6 +106,13 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
                 mIDeleteBtnClickListener.onDeleteBtnCilck(v, n);
             }
         });
+        holder.btnSendPc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int n = holder.getAdapterPosition();
+                mIDeleteBtnClickListener.onSendPcBtnClick(v, n);
+            }
+        });
         holder.tvInfoDate.setText(mDatas.get(position).getCreateDate());
         holder.mCardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -209,6 +216,9 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
      * 关闭菜单
      */
     public void closeMenu() {
+        if (mMenu == null) {
+            return;
+        }
         mMenu.closeMenu();
         mMenu = null;
 
@@ -235,6 +245,8 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
 
 
         void onDeleteBtnCilck(View view, int position);
+
+        void onSendPcBtnClick(View view, int position);
     }
 
     private SpannableString applyTodoMarkerSpans(String text) {
@@ -327,6 +339,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
     CardView mCardView;
     TextView tvInfoDate;
     TextView btnDelete;
+    TextView btnSendPc;
     ViewGroup layoutContent;
     public ClipInfoViewHolder(View itemView) {
         super(itemView);
@@ -335,6 +348,7 @@ public class ListClipInfoAdapter extends RecyclerView.Adapter<ListClipInfoAdapte
         tvInfoDate= (TextView) itemView.findViewById(R.id.tv_infoDate);
         mCardView = (CardView) itemView.findViewById(R.id.messageCardView);
         btnDelete = (TextView) itemView.findViewById(R.id.tv_delete);
+        btnSendPc = (TextView) itemView.findViewById(R.id.tv_send_pc);
         layoutContent = (ViewGroup) itemView.findViewById(R.id.item_clip_layout_main_content);
         ((SlidingButtonView) itemView).setSlidingButtonListener(ListClipInfoAdapter.this);
 

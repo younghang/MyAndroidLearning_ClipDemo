@@ -1,9 +1,7 @@
-﻿using NetFwTypeLib;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FileServer
 {
@@ -17,37 +15,12 @@ namespace FileServer
         /// <param name="protocol">协议(TCP、UDP)</param>
         public static void NetFwAddPorts(string name, int port, string protocol)
         {
-            //创建firewall管理类的实例
-            INetFwMgr netFwMgr = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
-
-            INetFwOpenPort objPort = (INetFwOpenPort)Activator.CreateInstance(
-                Type.GetTypeFromProgID("HNetCfg.FwOpenPort"));
-
-            objPort.Name = name;
-            objPort.Port = port;
-            if (protocol.ToUpper() == "TCP")
-            {
-                objPort.Protocol = NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
-            }
-            else
-            {
-                objPort.Protocol = NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_UDP;
-            }
-            objPort.Scope = NET_FW_SCOPE_.NET_FW_SCOPE_ALL;
-            objPort.Enabled = true;
-
-            bool exist = false;
-            //加入到防火墙的管理策略
-            foreach (INetFwOpenPort mPort in netFwMgr.LocalPolicy.CurrentProfile.GloballyOpenPorts)
-            {
-                if (objPort == mPort)
-                {
-                    exist = true;
-                    break;
-                }
-            }
-            if (!exist) netFwMgr.LocalPolicy.CurrentProfile.GloballyOpenPorts.Add(objPort);
+            string safeName = Quote(name);
+            string safeProtocol = NormalizeProtocol(protocol);
+            RunNetsh("advfirewall firewall delete rule name=" + safeName + " protocol=" + safeProtocol + " localport=" + port);
+            RunNetsh("advfirewall firewall add rule name=" + safeName + " dir=in action=allow protocol=" + safeProtocol + " localport=" + port + " enable=yes");
         }
+
         /// <summary>
         /// 将应用程序添加到防火墙例外
         /// </summary>
@@ -55,36 +28,16 @@ namespace FileServer
         /// <param name="executablePath">应用程序可执行文件全路径</param>
         public static void NetFwAddApps(string name, string executablePath)
         {
-            //创建firewall管理类的实例
-            INetFwMgr netFwMgr = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
-
-            INetFwAuthorizedApplication app = (INetFwAuthorizedApplication)Activator.CreateInstance(
-                Type.GetTypeFromProgID("HNetCfg.FwAuthorizedApplication"));
-
-            //在例外列表里，程序显示的名称
-            app.Name = name;
-
-            //程序的路径及文件名
-            app.ProcessImageFileName = executablePath;
-
-            //是否启用该规则
-            app.Enabled = true;
-
-            //加入到防火墙的管理策略
-            netFwMgr.LocalPolicy.CurrentProfile.AuthorizedApplications.Add(app);
-
-            bool exist = false;
-            //加入到防火墙的管理策略
-            foreach (INetFwAuthorizedApplication mApp in netFwMgr.LocalPolicy.CurrentProfile.AuthorizedApplications)
+            if (string.IsNullOrEmpty(executablePath) || !File.Exists(executablePath))
             {
-                if (app == mApp)
-                {
-                    exist = true;
-                    break;
-                }
+                return;
             }
-            if (!exist) netFwMgr.LocalPolicy.CurrentProfile.AuthorizedApplications.Add(app);
+            string safeName = Quote(name);
+            string safePath = Quote(executablePath);
+            RunNetsh("advfirewall firewall delete rule name=" + safeName + " program=" + safePath);
+            RunNetsh("advfirewall firewall add rule name=" + safeName + " dir=in action=allow program=" + safePath + " enable=yes");
         }
+
         /// <summary>
         /// 删除防火墙例外端口
         /// </summary>
@@ -92,26 +45,62 @@ namespace FileServer
         /// <param name="protocol">协议（TCP、UDP）</param>
         public static void NetFwDelApps(int port, string protocol)
         {
-            INetFwMgr netFwMgr = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
-            if (protocol == "TCP")
-            {
-                netFwMgr.LocalPolicy.CurrentProfile.GloballyOpenPorts.Remove(port, NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP);
-            }
-            else
-            {
-                netFwMgr.LocalPolicy.CurrentProfile.GloballyOpenPorts.Remove(port, NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_UDP);
-            }
+            RunNetsh("advfirewall firewall delete rule protocol=" + NormalizeProtocol(protocol) + " localport=" + port);
         }
+
         /// <summary>
         /// 删除防火墙例外中应用程序
         /// </summary>
         /// <param name="executablePath">程序的绝对路径</param>
         public static void NetFwDelApps(string executablePath)
         {
-            INetFwMgr netFwMgr = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
+            if (string.IsNullOrEmpty(executablePath))
+            {
+                return;
+            }
+            RunNetsh("advfirewall firewall delete rule program=" + Quote(executablePath));
+        }
 
-            netFwMgr.LocalPolicy.CurrentProfile.AuthorizedApplications.Remove(executablePath);
+        private static string NormalizeProtocol(string protocol)
+        {
+            return string.Equals(protocol, "UDP", StringComparison.OrdinalIgnoreCase) ? "UDP" : "TCP";
+        }
 
+        private static string Quote(string value)
+        {
+            if (value == null)
+            {
+                value = "";
+            }
+            return "\"" + value.Replace("\"", "\\\"") + "\"";
+        }
+
+        private static void RunNetsh(string arguments)
+        {
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.FileName = "netsh";
+                startInfo.Arguments = arguments;
+                startInfo.CreateNoWindow = true;
+                startInfo.UseShellExecute = false;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.StandardOutputEncoding = Encoding.Default;
+                startInfo.StandardErrorEncoding = Encoding.Default;
+
+                using (Process process = Process.Start(startInfo))
+                {
+                    if (process != null)
+                    {
+                        process.WaitForExit(3000);
+                    }
+                }
+            }
+            catch
+            {
+                // 防火墙规则失败不应该阻止主程序启动，用户仍可手动允许网络访问。
+            }
         }
     }
 }

@@ -6,17 +6,23 @@
   <title>Clipboard Desktop Prototype</title>
   <style>
     :root {
-      --bg: #f4f5f7;
+      --bg: #f6f7f9;
       --panel: #ffffff;
-      --text: #242832;
-      --muted: #6f7684;
-      --line: #d9dde5;
-      --primary: #3f51b5;
-      --green: #0b9f6a;
-      --orange: #d99016;
-      --red: #d5403c;
-      --purple: #8b5fbf;
+      --panel-soft: #fbfbfc;
+      --text: #2f3437;
+      --muted: #787774;
+      --line: #e6e4df;
+      --primary: #2f80ed;
+      --primary-soft: #eaf3ff;
+      --green: #0f8f66;
+      --green-soft: #eaf7f1;
+      --orange: #c98618;
+      --orange-soft: #fbf1d9;
+      --red: #d44c47;
+      --red-soft: #fdebec;
+      --purple: #7a5eb8;
       --radius: 8px;
+      --soft-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
     }
 
     * {
@@ -40,23 +46,36 @@
     }
 
     button {
-      border: 1px solid var(--line);
-      background: #fff;
-      color: var(--text);
-      border-radius: 6px;
-      padding: 7px 10px;
+      border: 1px solid transparent;
+      background: #f1f1ef;
+      color: #37352f;
+      border-radius: 7px;
+      padding: 7px 12px;
       cursor: pointer;
+      font-weight: 650;
+      line-height: 1.2;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+    }
+
+    button:hover {
+      background: #e9e9e6;
+      border-color: #dedbd5;
     }
 
     button.primary {
       background: var(--primary);
       border-color: var(--primary);
       color: #fff;
+      box-shadow: 0 8px 18px rgba(47, 128, 237, 0.18);
+    }
+
+    button.primary:hover {
+      background: #1f73df;
+      border-color: #1f73df;
     }
 
     button.danger {
-      background: #fff5f5;
-      border-color: #f2b5b5;
+      background: var(--red-soft);
       color: var(--red);
     }
 
@@ -64,19 +83,49 @@
       background: transparent;
     }
 
+    button.icon-button {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      font-size: 16px;
+    }
+
+    button.segment {
+      background: transparent;
+      border-color: transparent;
+      color: var(--muted);
+    }
+
+    button.segment.active {
+      background: #fff;
+      border-color: var(--line);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+
     .app {
       display: grid;
-      grid-template-columns: 220px 320px minmax(0, 1fr);
+      grid-template-columns: 208px var(--list-pane-width, 260px) minmax(0, 1fr);
       height: 100vh;
       transition: grid-template-columns 0.18s ease;
     }
 
     .app.sidebar-collapsed {
-      grid-template-columns: 56px 320px minmax(0, 1fr);
+      grid-template-columns: 56px var(--list-pane-width, 260px) minmax(0, 1fr);
+    }
+
+    .app.list-collapsed {
+      grid-template-columns: 208px 0 minmax(0, 1fr);
+    }
+
+    .app.sidebar-collapsed.list-collapsed {
+      grid-template-columns: 56px 0 minmax(0, 1fr);
     }
 
     .sidebar {
-      background: #20242e;
+      background: #242424;
       color: #fff;
       padding: 14px;
       display: flex;
@@ -164,11 +213,44 @@
     }
 
     .list-pane {
+      position: relative;
       border-right: 1px solid var(--line);
-      background: var(--panel);
+      background: rgba(255, 255, 255, 0.94);
       display: flex;
       flex-direction: column;
       min-width: 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .app.list-collapsed .list-pane {
+      border-right: 0;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .list-resizer {
+      position: absolute;
+      top: 0;
+      right: -4px;
+      width: 8px;
+      height: 100%;
+      cursor: col-resize;
+      z-index: 6;
+    }
+
+    .list-resizer::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 3px;
+      width: 1px;
+      background: transparent;
+    }
+
+    .list-resizer:hover::after {
+      background: #b7c3d8;
     }
 
     .list-toolbar {
@@ -189,6 +271,7 @@
       border-radius: 6px;
       padding: 8px 10px;
       min-width: 0;
+      background: #f7f7f5;
     }
 
     .list {
@@ -199,9 +282,10 @@
     .list-item {
       border: 1px solid transparent;
       border-radius: var(--radius);
-      padding: 10px;
-      margin-bottom: 7px;
+      padding: 9px 10px;
+      margin-bottom: 6px;
       cursor: pointer;
+      background: rgba(255, 255, 255, 0.68);
     }
 
     .list-item:hover {
@@ -210,7 +294,8 @@
 
     .list-item.active {
       border-color: var(--primary);
-      background: #f4f6ff;
+      background: linear-gradient(135deg, #f4f9ff, #ffffff);
+      box-shadow: 0 8px 22px rgba(47, 128, 237, 0.1);
     }
 
     .list-title {
@@ -225,6 +310,10 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .workspace {
@@ -263,12 +352,12 @@
       position: absolute;
       right: 0;
       top: calc(100% + 7px);
-      width: 210px;
-      padding: 6px;
+      width: 236px;
+      padding: 7px;
       background: #fff;
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      box-shadow: 0 16px 40px rgba(36, 40, 50, 0.16);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
       display: none;
       z-index: 30;
     }
@@ -283,23 +372,235 @@
       background: transparent;
       text-align: left;
       border-radius: 5px;
-      padding: 8px 10px;
+      padding: 9px 10px;
+      color: var(--text);
     }
 
     .data-menu button:hover {
       background: #f3f5fa;
     }
 
+    .data-menu-separator {
+      height: 1px;
+      margin: 5px 4px;
+      background: var(--line);
+    }
+
+    .data-menu .danger-menu {
+      color: var(--red);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.24);
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .format-dialog {
+      width: min(420px, 100%);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+      overflow: hidden;
+    }
+
+    .format-dialog-header {
+      padding: 18px 18px 10px;
+    }
+
+    .format-dialog-title {
+      font-size: 17px;
+      font-weight: 760;
+      color: var(--text);
+    }
+
+    .format-dialog-desc {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .format-options {
+      display: grid;
+      gap: 8px;
+      padding: 8px 14px 14px;
+    }
+
+    .format-option {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      text-align: left;
+      box-shadow: none;
+    }
+
+    .format-option:hover {
+      border-color: #c9d7f4;
+      background: #f8fbff;
+    }
+
+    .format-option-icon {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .format-option-title {
+      font-weight: 760;
+      color: var(--text);
+    }
+
+    .format-option-desc {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .format-dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+      background: #fbfbfc;
+    }
+
+    .link-button {
+      min-width: 96px;
+      border-color: #c7dbfb;
+      background: var(--primary-soft);
+      color: var(--primary);
+    }
+
+    .link-button.connected {
+      border-color: #a9dfca;
+      background: #effbf6;
+      color: var(--green);
+    }
+
+    .link-button.offline {
+      color: var(--muted);
+      background: #fff;
+      border-color: var(--line);
+    }
+
+    .phone-panel {
+      position: fixed;
+      right: 18px;
+      top: 58px;
+      width: 360px;
+      max-width: calc(100vw - 36px);
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 18px 55px rgba(36, 40, 50, 0.2);
+      z-index: 80;
+      display: none;
+    }
+
+    .phone-panel.open {
+      display: block;
+    }
+
+    .phone-panel-header {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .phone-panel-title {
+      font-weight: 700;
+      margin-right: auto;
+    }
+
+    .phone-panel-body {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .link-status-card {
+      border: 1px solid #e3e7f0;
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      gap: 6px;
+      background: #fbfcff;
+    }
+
+    .link-status-row {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .link-status-row strong {
+      min-width: 76px;
+      color: var(--text);
+    }
+
+    .phone-panel textarea {
+      min-height: 78px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: 360px;
+      background: #20242e;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 12px;
+      box-shadow: 0 12px 32px rgba(36, 40, 50, 0.28);
+      z-index: 120;
+      display: none;
+    }
+
+    .toast.open {
+      display: block;
+    }
+
     .content {
       overflow: auto;
-      padding: 14px;
+      padding: 18px;
       flex: 1;
+    }
+
+    .content.content-research {
+      overflow: hidden;
+      padding: 12px;
     }
 
     .form-grid {
       display: grid;
       gap: 10px;
-      max-width: 980px;
+      max-width: none;
     }
 
     label {
@@ -331,20 +632,89 @@
       border-radius: var(--radius);
       padding: 12px;
       margin-bottom: 12px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .note-editor-shell {
+      display: grid;
+      gap: 10px;
+      min-height: calc(100vh - 160px);
+    }
+
+    .rich-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 10px;
+      border: 1px solid rgba(218, 224, 236, 0.8);
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: rgba(250, 252, 255, 0.92);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 22px rgba(36, 40, 50, 0.05);
+    }
+
+    .rich-toolbar button {
+      min-width: 34px;
+      height: 32px;
+      padding: 0 9px;
+      font-weight: 700;
+      background: transparent;
+      border-color: transparent;
+    }
+
+    .rich-toolbar button:hover {
+      background: #eef3ff;
+      border-color: #dce4fb;
+    }
+
+    .rich-editor {
+      min-height: calc(100vh - 244px);
+      border: 1px solid var(--line);
+      border-radius: 0 0 var(--radius) var(--radius);
+      background: #fff;
+      padding: 18px 20px;
+      line-height: 1.72;
+      box-shadow: var(--soft-shadow);
+      outline: none;
+      overflow: auto;
+    }
+
+    .rich-editor:focus {
+      border-color: #b9c5ec;
+      box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.12), var(--soft-shadow);
+    }
+
+    .rich-editor h2 {
+      margin: 18px 0 8px;
+      font-size: 22px;
+    }
+
+    .rich-editor blockquote {
+      margin: 12px 0;
+      padding: 8px 12px;
+      border-left: 3px solid var(--primary);
+      background: #f7f8ff;
+      color: #3b4252;
     }
 
     .todo-card {
       padding: 0;
       overflow: hidden;
+      border: 0;
+      box-shadow: none;
+      background: transparent;
     }
 
     .todo-header {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px;
-      border-bottom: 1px solid #eef0f4;
-      background: #fbfcff;
+      padding: 6px 0 12px;
+      border-bottom: 0;
+      background: transparent;
     }
 
     .todo-stats {
@@ -358,23 +728,23 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      padding: 0 12px 12px;
-      background: #fbfcff;
-      border-bottom: 1px solid #eef0f4;
+      padding: 0 0 12px;
+      background: transparent;
+      border-bottom: 0;
     }
 
     .filter-chip {
       border-radius: 999px;
       padding: 6px 11px;
-      background: #fff;
+      background: #f1f1ef;
       color: var(--muted);
       font-size: 12px;
       font-weight: 650;
     }
 
     .filter-chip.active {
-      background: #eef2ff;
-      border-color: #bbc6ff;
+      background: var(--primary-soft);
+      border-color: #c8dcff;
       color: var(--primary);
     }
 
@@ -382,7 +752,7 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      border: 1px solid #e4e7ef;
+      border: 1px solid var(--line);
       border-radius: 999px;
       background: #fff;
       color: var(--muted);
@@ -393,11 +763,15 @@
 
     .todo-table-wrap {
       overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--soft-shadow);
     }
 
     .todo-table {
       width: 100%;
-      min-width: 760px;
+      min-width: 1420px;
       border-collapse: collapse;
       table-layout: fixed;
     }
@@ -409,7 +783,7 @@
 
     .todo-table th:nth-child(2),
     .todo-table td:nth-child(2) {
-      width: 30%;
+      width: 26%;
     }
 
     .todo-table th:nth-child(3),
@@ -438,19 +812,44 @@
 
     .todo-table th:nth-child(9),
     .todo-table td:nth-child(9) {
-      width: 58px;
+      width: 180px;
+    }
+
+    .todo-table th:nth-child(10),
+    .todo-table td:nth-child(10) {
+      width: 160px;
+    }
+
+    .todo-table th:nth-child(11),
+    .todo-table td:nth-child(11) {
+      width: 112px;
+    }
+
+    .todo-table th:nth-child(12),
+    .todo-table td:nth-child(12) {
+      width: 84px;
     }
 
     .todo-table th {
       position: sticky;
       top: 0;
       z-index: 1;
-      background: #fff;
+      background: #fbfbfa;
       color: var(--muted);
       font-size: 12px;
       text-align: left;
       padding: 9px 8px;
       border-bottom: 1px solid #e8ebf2;
+    }
+
+    .todo-table th.sortable {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .todo-table th.sortable:hover {
+      color: var(--primary);
+      background: #f2f6ff;
     }
 
     .todo-table td {
@@ -489,6 +888,7 @@
 
     .todo-title-input {
       min-width: 0;
+      padding-left: calc(7px + var(--todo-depth, 0) * 18px);
     }
 
     .todo-progress-input {
@@ -497,6 +897,25 @@
 
     .todo-date-input {
       min-width: 0;
+    }
+
+    .todo-note-input {
+      min-width: 0;
+    }
+
+    .todo-reminder-cell {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .todo-reminder-cell input {
+      width: 14px;
+      height: 14px;
+      margin: 0 3px 0 0;
     }
 
     .todo-progress-cell {
@@ -522,20 +941,218 @@
       text-decoration: line-through;
     }
 
+    .todo-view-switch {
+      display: inline-flex;
+      gap: 4px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7f7f5;
+    }
+
+    .todo-matrix-board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(268px, 1fr));
+      gap: 14px;
+      overflow: auto;
+      padding-bottom: 4px;
+    }
+
+    .todo-column {
+      min-height: 340px;
+      border-radius: 14px;
+      padding: 12px;
+      border: 1px solid transparent;
+    }
+
+    .todo-column.q1 {
+      background: #fff4f4;
+      border-color: #f8cccc;
+    }
+
+    .todo-column.q2 {
+      background: #f1f7ff;
+      border-color: #cfe3fb;
+    }
+
+    .todo-column.q3 {
+      background: #fff9e8;
+      border-color: #f2dfaa;
+    }
+
+    .todo-column.q4 {
+      background: #eef8f1;
+      border-color: #cfe8d6;
+    }
+
+    .todo-column-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-weight: 750;
+      margin-bottom: 10px;
+    }
+
+    .todo-column.q1 .todo-column-title {
+      background: #ffd9d9;
+      color: #7a2926;
+    }
+
+    .todo-column.q2 .todo-column-title {
+      background: #dbeeff;
+      color: #244a73;
+    }
+
+    .todo-column.q3 .todo-column-title {
+      background: #f5e5b7;
+      color: #6b551e;
+    }
+
+    .todo-column.q4 .todo-column-title {
+      background: #d6eddc;
+      color: #28583b;
+    }
+
+    .todo-task-card {
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      display: grid;
+      gap: 9px;
+    }
+
+    .todo-task-card.done {
+      opacity: 0.62;
+    }
+
+    .todo-task-title {
+      border: 0;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 750;
+      background: transparent;
+    }
+
+    .todo-task-meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .todo-parent-tag {
+      display: inline-flex;
+      max-width: 100%;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eef2f7;
+      color: #566173;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .todo-priority-tag {
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-weight: 700;
+    }
+
+    .todo-priority-tag.high {
+      color: #8a2c28;
+      background: #ffdada;
+    }
+
+    .todo-priority-tag.medium {
+      color: #7a5b18;
+      background: #f3e1ad;
+    }
+
+    .todo-priority-tag.low {
+      color: #2f5c8a;
+      background: #d9ebff;
+    }
+
+    .todo-card-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .todo-card-actions select,
+    .todo-card-actions input {
+      padding: 6px 7px;
+      border-radius: 6px;
+      min-width: 0;
+    }
+
+    .todo-card-parent {
+      grid-column: 1 / -1;
+    }
+
+    .todo-add-card {
+      width: 100%;
+      border: 1px dashed rgba(0, 0, 0, 0.14);
+      background: rgba(255, 255, 255, 0.55);
+      color: var(--primary);
+      text-align: left;
+      padding: 10px 12px;
+    }
+
     .topic-layout {
       display: grid;
       grid-template-columns: 1fr 320px;
       gap: 12px;
-      min-height: calc(100vh - 86px);
+      height: calc(100vh - 76px);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .topic-layout.inspector-hidden {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .topic-layout.inspector-hidden .inspector {
+      display: none;
+    }
+
+    .topic-layout.fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      min-height: 100vh;
+      background: #f7f9fc;
+      padding: 12px;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .topic-layout.fullscreen .map-shell {
+      min-height: calc(100vh - 24px);
+    }
+
+    .topic-layout.fullscreen .inspector {
+      display: none;
     }
 
     .map-shell {
       position: relative;
-      background: #fbfcff;
+      background:
+        linear-gradient(rgba(214, 220, 232, 0.28) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(214, 220, 232, 0.28) 1px, transparent 1px),
+        #fbfcff;
+      background-size: 28px 28px;
       border: 1px solid var(--line);
       border-radius: var(--radius);
       overflow: hidden;
-      min-height: 620px;
+      min-height: 0;
+      height: 100%;
+      box-shadow: var(--soft-shadow);
     }
 
     .map-help {
@@ -561,10 +1178,10 @@
       display: flex;
       gap: 6px;
       padding: 5px;
-      border: 1px solid rgba(217, 221, 229, 0.72);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.78);
-      box-shadow: 0 10px 24px rgba(36, 40, 50, 0.08);
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 24px rgba(36, 40, 50, 0.06);
     }
 
     .map-controls button {
@@ -622,7 +1239,8 @@
       width: 1600px;
       height: 900px;
       transform-origin: 0 0;
-      will-change: transform;
+      overflow: visible;
+      text-rendering: geometricPrecision;
     }
 
     .edges {
@@ -631,6 +1249,7 @@
       width: 1600px;
       height: 900px;
       pointer-events: none;
+      overflow: visible;
     }
 
     .node {
@@ -642,12 +1261,17 @@
       border: 1.5px solid var(--primary);
       border-radius: var(--radius);
       padding: 10px;
-      box-shadow: 0 8px 24px rgba(36, 40, 50, 0.08);
+      box-shadow: 0 10px 28px rgba(36, 40, 50, 0.1);
       cursor: pointer;
     }
 
     .node.active {
       box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.18), 0 10px 24px rgba(36, 40, 50, 0.12);
+    }
+
+    .node.expanded {
+      z-index: 5;
+      box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.2), 0 18px 46px rgba(36, 40, 50, 0.18);
     }
 
     .root-node {
@@ -678,14 +1302,71 @@
       line-height: 1.35;
     }
 
+    .node-detail {
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid #eef1f7;
+      color: #3f4654;
+      font-size: 12px;
+      line-height: 1.55;
+      max-height: 170px;
+      overflow: auto;
+    }
+
+    .node-detail-title {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .node-detail a {
+      display: block;
+      color: var(--primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .inspector textarea {
       min-height: 110px;
     }
 
     .inspector {
       min-width: 0;
+      overflow: hidden;
+      max-height: none;
+    }
+
+    .relation-list {
+      display: grid;
+      gap: 6px;
+      max-height: 180px;
       overflow: auto;
-      max-height: calc(100vh - 86px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 8px;
+      background: #fff;
+    }
+
+    .relation-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 5px 6px;
+      border-radius: 6px;
+    }
+
+    .relation-option:hover {
+      background: #f5f7fc;
+    }
+
+    .relation-option input {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
     }
 
     .pill-row {
@@ -733,42 +1414,85 @@
       <div class="list-toolbar">
         <div class="search-row">
           <input id="searchInput" placeholder="搜索标题和内容" />
-          <button id="newButton" class="primary">新建</button>
+          <button id="newButton" class="primary" title="新建">＋ 新建</button>
         </div>
       </div>
       <div id="list" class="list"></div>
+      <div id="listPaneResizer" class="list-resizer" title="拖动调整列表宽度"></div>
     </section>
 
     <main class="workspace">
       <div class="topbar">
-        <div id="topbarTitle" class="topbar-title">笔记</div>
-        <div class="topbar-actions">
-          <button id="saveButton" class="primary">保存</button>
+          <button id="listPaneToggle" class="icon-button" title="收起/展开记录列表">☰</button>
+          <div id="topbarTitle" class="topbar-title">笔记</div>
+          <div class="topbar-actions">
+          <button id="saveButton" class="primary" title="保存">💾</button>
+          <button id="phoneLinkButton" class="link-button offline" title="手机连接">📱 手机</button>
           <div id="dataMenuWrap" class="menu-wrap">
-            <button id="dataMenuButton">数据 ▾</button>
+            <button id="dataMenuButton" title="数据导入导出">☷ 数据 ▾</button>
             <div class="data-menu">
-              <button id="exportButton">导出原型 JSON</button>
-              <button id="importPrototypeButton">导入原型 JSON</button>
-              <button id="importAndroidButton">导入安卓明文 JSON</button>
-              <button id="encryptedImportButton">安卓加密导入说明</button>
+              <button id="exportBackupButton">导出备份...</button>
+              <button id="importBackupButton">导入备份...</button>
+              <button id="exportAndroidButton">导出到安卓...</button>
+              <button id="importAndroidButton">从安卓导入...</button>
+              <div class="data-menu-separator"></div>
+              <button id="clearAllDataButton" class="danger-menu">清空所有数据</button>
             </div>
           </div>
-          <button id="deleteRecordButton" class="danger">删除记录</button>
-          <button id="resetButton">恢复示例</button>
-          <input id="importFile" type="file" accept="application/json,.json" hidden />
+          <input id="importFile" type="file" accept="application/json,.json,.sphykey" hidden />
         </div>
       </div>
       <div id="content" class="content"></div>
     </main>
   </div>
   <div id="contextMenu" class="context-menu"></div>
+  <div id="formatModal" class="modal-backdrop">
+    <div class="format-dialog">
+      <div class="format-dialog-header">
+        <div id="formatModalTitle" class="format-dialog-title">选择格式</div>
+        <div id="formatModalDesc" class="format-dialog-desc"></div>
+      </div>
+      <div id="formatModalOptions" class="format-options"></div>
+      <div class="format-dialog-footer">
+        <button id="formatModalCancel" class="ghost">取消</button>
+      </div>
+    </div>
+  </div>
+  <div id="phonePanel" class="phone-panel">
+    <div class="phone-panel-header">
+      <div class="phone-panel-title">手机互传</div>
+      <button id="refreshPhoneLinkButton">刷新</button>
+      <button id="closePhonePanelButton" class="ghost">×</button>
+    </div>
+    <div class="phone-panel-body">
+      <div class="link-status-card">
+        <div class="link-status-row"><strong>桥接服务</strong><span id="bridgeStatusText">未检测</span></div>
+        <div class="link-status-row"><strong>手机连接</strong><span id="phoneStatusText">未连接</span></div>
+        <div class="link-status-row"><strong>监听端口</strong><span id="phonePortText">UDP 20311 / TCP 20310</span></div>
+      </div>
+      <label>发送到手机剪贴板</label>
+      <textarea id="sendClipboardText" placeholder="输入要同步到手机剪贴板的文字"></textarea>
+      <button id="sendClipboardButton" class="primary">发送到手机</button>
+      <label>发送文件到手机</label>
+      <input id="phoneFileInput" type="file" />
+      <button id="sendFileButton">发送文件</button>
+      <div id="sendFileProgress" class="list-meta"></div>
+      <div class="list-meta">
+        手机端长按右下角连接按钮后，会自动发现这个桌面应用。收到的记录会按类型导入到左侧列表，并保留安卓 orderId；连接后可以在左侧记录上右键发送回手机。
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
 
   <script>
     const STORAGE_KEY = "clipboard-desktop-prototype-v1";
+    const PHONE_LINK_SEQ_KEY = STORAGE_KEY + "-phone-link-seq";
+    const BRIDGE_BASE = "http://127.0.0.1:20312";
     const RESEARCH_DATA_TYPE = "researchTopic";
     const ROOT_NODE_WIDTH = 210;
     const ROOT_NODE_HEIGHT = 86;
     const ROOT_NODE_X = 80;
+    const ROOT_NODE_Y = 120;
     const FIRST_NODE_X = 360;
     const NODE_WIDTH = 210;
     const NODE_HEIGHT = 78;
@@ -794,8 +1518,22 @@
     let selectedId = state.research[0]?.id || null;
     let selectedNodeId = null;
     let importMode = "prototype";
+    let phoneLinkSeq = Number(localStorage.getItem(PHONE_LINK_SEQ_KEY) || 0);
+    let phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
+    let desktopDatabaseReady = false;
+    let desktopDatabaseSaveTimer = null;
+    let desktopDatabaseSaveFailed = false;
     const mapViewports = {};
+    const mapRepaintTimers = {};
     const todoFilters = {};
+    const todoViewModes = {};
+    const todoSorts = {};
+    const todoReminderShown = new Set();
+    const inspectorHiddenKey = STORAGE_KEY + "-research-inspector-hidden";
+    const listPaneWidthKey = STORAGE_KEY + "-list-pane-width";
+    const listPaneCollapsedKey = STORAGE_KEY + "-list-pane-collapsed";
+    let researchInspectorHidden = localStorage.getItem(inspectorHiddenKey) === "1";
+    let researchFullscreen = false;
 
     function sampleState() {
       const freecadTopic = {
@@ -890,10 +1628,58 @@
       if (!("content" in node)) node.content = "";
       if (!Array.isArray(node.links)) node.links = [];
       if (!Array.isArray(node.relatedNodeIds)) node.relatedNodeIds = [];
+      node.links = node.links.map((link) => String(link || "").trim()).filter(Boolean);
+      node.relatedNodeIds = node.relatedNodeIds
+        .map((id) => String(id || "").trim())
+        .filter((id) => id && id !== node.id);
       node.mapPositioned = Boolean(node.mapPositioned);
       node.mapX = Number.isFinite(Number(node.mapX)) ? Number(node.mapX) : 0;
       node.mapY = Number.isFinite(Number(node.mapY)) ? Number(node.mapY) : 0;
+      node.mapRelativePositioned = Boolean(node.mapRelativePositioned);
+      node.mapRelativeX = Number.isFinite(Number(node.mapRelativeX)) ? Number(node.mapRelativeX) : 0;
+      node.mapRelativeY = Number.isFinite(Number(node.mapRelativeY)) ? Number(node.mapRelativeY) : 0;
       return node;
+    }
+
+    function markDesktopAutoPosition(node, value) {
+      if (!node) return;
+      Object.defineProperty(node, "__desktopAutoPositioned", {
+        value: Boolean(value),
+        writable: true,
+        configurable: true,
+        enumerable: false,
+      });
+    }
+
+    function shouldSendMapPosition(node) {
+      return Boolean(node && node.mapPositioned && !node.__desktopAutoPositioned);
+    }
+
+    function applyRelativeNodePositions(topic) {
+      if (!topic || !Array.isArray(topic.nodes)) return;
+      const relativeNodes = topic.nodes.filter((node) => node.mapRelativePositioned && !node.__relativePositionApplied);
+      if (!relativeNodes.length) return;
+      const rootBox = rootBoxForTopic(topic);
+      relativeNodes.forEach((node) => {
+        node.mapX = rootBox.mapX + node.mapRelativeX * ROOT_NODE_WIDTH;
+        node.mapY = rootBox.mapY + node.mapRelativeY * ROOT_NODE_HEIGHT;
+        node.mapPositioned = true;
+        markDesktopAutoPosition(node, false);
+        Object.defineProperty(node, "__relativePositionApplied", {
+          value: true,
+          writable: true,
+          configurable: true,
+          enumerable: false,
+        });
+      });
+    }
+
+    function relativePositionForNode(topic, node) {
+      const rootBox = rootBoxForTopic(topic);
+      return {
+        x: (Number(node.mapX) - rootBox.mapX) / ROOT_NODE_WIDTH,
+        y: (Number(node.mapY) - rootBox.mapY) / ROOT_NODE_HEIGHT,
+      };
     }
 
     function task(title, done) {
@@ -907,6 +1693,11 @@
         urgency: "normal",
         progress: done ? 100 : 0,
         dueDate: oneMonthLater(),
+        parentId: "",
+        content: "",
+        currentDay: false,
+        dailyTask: false,
+        deletedAt: "",
       };
     }
 
@@ -944,6 +1735,58 @@
     function saveState() {
       normalizeState(state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+      queueDesktopDatabaseSave();
+    }
+
+    async function initializeDesktopDatabase() {
+      try {
+        const result = await fetchBridge("/api/data/load");
+        desktopDatabaseReady = true;
+        if (result.ok && result.exists && result.state) {
+          state = normalizeState(result.state);
+          ensureCurrentSelection();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+          render();
+          return;
+        }
+        queueDesktopDatabaseSave(0);
+      } catch (error) {
+        desktopDatabaseReady = false;
+        console.warn("desktop database unavailable", error);
+      }
+    }
+
+    function ensureCurrentSelection() {
+      if (!state[currentType]) currentType = "research";
+      const list = currentList();
+      if (!list.some((item) => item.id === selectedId)) {
+        selectedId = list[0]?.id || null;
+      }
+      if (currentType !== "research") selectedNodeId = null;
+    }
+
+    function queueDesktopDatabaseSave(delay) {
+      if (!desktopDatabaseReady) return;
+      window.clearTimeout(desktopDatabaseSaveTimer);
+      desktopDatabaseSaveTimer = window.setTimeout(saveDesktopDatabaseNow, delay === undefined ? 350 : delay);
+    }
+
+    async function saveDesktopDatabaseNow() {
+      if (!desktopDatabaseReady) return;
+      try {
+        await fetchBridge("/api/data/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ state: normalizeState(state) }),
+        });
+        desktopDatabaseSaveFailed = false;
+      } catch (error) {
+        console.warn("desktop database save failed", error);
+        if (!desktopDatabaseSaveFailed) {
+          desktopDatabaseSaveFailed = true;
+          showToast("本地数据文件保存失败，已暂存到浏览器缓存");
+        }
+      }
     }
 
     function normalizeState(next) {
@@ -957,6 +1800,12 @@
         if (!item.id) item.id = createId();
         if (!("title" in item)) item.title = "";
         if (!("content" in item)) item.content = "";
+        if (!("contentHtml" in item)) item.contentHtml = "";
+        if (isRichTextContentStorage(item.content)) {
+          const richNote = parseRichTextContent(item.content);
+          item.content = richNote.plainText;
+          item.contentHtml = richNote.html;
+        }
       });
       next.todos = next.todos.filter(Boolean);
       next.todos.forEach((item) => {
@@ -986,6 +1835,7 @@
       document.getElementById("topbarTitle").textContent = typeLabels[currentType];
       renderList();
       renderContent();
+      checkTodoReminders(false);
     }
 
     function renderList() {
@@ -1012,6 +1862,14 @@
           selectedNodeId = null;
           render();
         };
+        div.oncontextmenu = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          selectedId = item.id;
+          selectedNodeId = null;
+          render();
+          showRecordContextMenu(event, item);
+        };
         list.appendChild(div);
       });
     }
@@ -1031,6 +1889,7 @@
     function renderContent() {
       const item = currentItem();
       const content = document.getElementById("content");
+      content.className = `content content-${currentType}`;
       if (!item) {
         content.innerHTML = '<div class="empty">新建一个内容开始</div>';
         return;
@@ -1042,20 +1901,66 @@
 
     function renderNote(container, item) {
       container.innerHTML = `
-        <div class="form-grid">
+        <div class="form-grid note-editor-shell">
           <label>标题</label>
           <input id="noteTitle" value="${escapeAttr(item.title)}" />
-          <label>内容</label>
-          <textarea id="noteContent">${escapeHtml(item.content || "")}</textarea>
+          <div class="rich-toolbar">
+            <button data-command="undo" title="撤销">↶</button>
+            <button data-command="redo" title="重做">↷</button>
+            <button data-command="bold" title="加粗">B</button>
+            <button data-command="italic" title="斜体">I</button>
+            <button data-command="insertUnorderedList" title="列表">•</button>
+            <button data-block="h2" title="二级标题">H2</button>
+            <button data-block="blockquote" title="引用">“</button>
+            <button data-block="p" title="正文">P</button>
+          </div>
+          <div id="noteContent" class="rich-editor" contenteditable="true">${noteEditorHtml(item)}</div>
         </div>
       `;
+      wireRichEditor(item);
+    }
+
+    function noteEditorHtml(item) {
+      if (item.contentHtml) return item.contentHtml;
+      return escapeHtml(item.content || "").replace(/\n/g, "<br>");
+    }
+
+    function wireRichEditor(item) {
+      const titleInput = document.getElementById("noteTitle");
+      const editor = document.getElementById("noteContent");
+      titleInput.oninput = () => {
+        item.title = titleInput.value;
+        saveState();
+        renderList();
+      };
+      document.querySelectorAll(".rich-toolbar button").forEach((button) => {
+        button.onclick = () => {
+          editor.focus();
+          if (button.dataset.command) {
+            document.execCommand(button.dataset.command, false, null);
+          } else if (button.dataset.block) {
+            document.execCommand("formatBlock", false, button.dataset.block);
+          }
+          item.contentHtml = editor.innerHTML;
+          item.content = editor.innerText;
+          saveState();
+          renderList();
+        };
+      });
+      editor.oninput = () => {
+        item.contentHtml = editor.innerHTML;
+        item.content = editor.innerText;
+        saveState();
+        renderList();
+      };
     }
 
     function renderTodo(container, item) {
       if (!Array.isArray(item.tasks)) item.tasks = [];
       item.tasks.forEach(normalizeTaskFields);
       const stats = todoStats(item);
-      const currentFilter = todoFilters[item.id] || "active";
+      const currentFilter = todoFilters[item.id] || "doing";
+      const viewMode = todoViewModes[item.id] || "matrix";
       container.innerHTML = `
         <div class="form-grid">
           <label>阶段标题</label>
@@ -1069,35 +1974,20 @@
                 <span class="stat-pill">高优先 ${stats.high}</span>
                 <span class="stat-pill">逾期 ${stats.overdue}</span>
               </div>
+              <div id="todoViewSwitch" class="todo-view-switch">
+                <button class="segment ${viewMode === "matrix" ? "active" : ""}" data-view="matrix">紧迫性矩阵</button>
+                <button class="segment ${viewMode === "table" ? "active" : ""}" data-view="table">表格</button>
+              </div>
               <button id="addTaskButton" class="primary">添加任务</button>
             </div>
             <div class="todo-filter-row" id="todoFilterRow">
-              ${todoFilterButton("active", "活跃", currentFilter)}
-              ${todoFilterButton("all", "全部", currentFilter)}
               ${todoFilterButton("doing", "进行中", currentFilter)}
-              ${todoFilterButton("done", "已完成", currentFilter)}
-              ${todoFilterButton("high", "高优先", currentFilter)}
-              ${todoFilterButton("overdue", "逾期", currentFilter)}
+              ${todoFilterButton("todo", "待办", currentFilter)}
+              ${todoFilterButton("done", "完成", currentFilter)}
               ${todoFilterButton("trash", "回收站", currentFilter)}
+              ${todoFilterButton("all", "全部", currentFilter)}
             </div>
-            <div class="todo-table-wrap">
-              <table class="todo-table">
-                <thead>
-                  <tr>
-                    <th>完成</th>
-                    <th>任务</th>
-                    <th>状态</th>
-                    <th>优先级</th>
-                    <th>重要</th>
-                    <th>紧急</th>
-                    <th>进度</th>
-                    <th>截止</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody id="taskList"></tbody>
-              </table>
-            </div>
+            <div id="todoBody"></div>
           </div>
           <label>阶段备注</label>
           <textarea id="todoContent">${escapeHtml(item.content || "")}</textarea>
@@ -1109,19 +1999,68 @@
           render();
         };
       });
+      document.querySelectorAll("#todoViewSwitch button").forEach((button) => {
+        button.onclick = () => {
+          todoViewModes[item.id] = button.dataset.view;
+          render();
+        };
+      });
       document.getElementById("addTaskButton").onclick = () => {
         item.tasks.unshift(task("新任务", false));
         saveState();
         render();
       };
-      const taskList = document.getElementById("taskList");
       const visibleTasks = filteredTodoTasks(item.tasks, currentFilter);
-      if (!visibleTasks.length) {
-        taskList.innerHTML = '<tr><td colspan="9" class="list-meta">当前筛选下没有任务</td></tr>';
+      const todoBody = document.getElementById("todoBody");
+      if (viewMode === "table") {
+        renderTodoTable(todoBody, item, visibleTasks);
+      } else {
+        renderTodoMatrix(todoBody, item, visibleTasks);
       }
-      visibleTasks.forEach(({ taskItem, index }) => {
+    }
+
+    function renderTodoTable(container, item, visibleTasks) {
+      container.innerHTML = `
+        <div class="todo-table-wrap">
+          <table class="todo-table">
+            <thead>
+              <tr>
+                ${todoSortHeader(item, "done", "完成")}
+                ${todoSortHeader(item, "title", "任务")}
+                ${todoSortHeader(item, "status", "状态")}
+                ${todoSortHeader(item, "priority", "优先级")}
+                ${todoSortHeader(item, "importance", "重要")}
+                ${todoSortHeader(item, "urgency", "紧急")}
+                ${todoSortHeader(item, "progress", "进度")}
+                ${todoSortHeader(item, "dueDate", "截止")}
+                ${todoSortHeader(item, "content", "备注")}
+                ${todoSortHeader(item, "parentId", "上级")}
+                <th>提醒</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="taskList"></tbody>
+          </table>
+        </div>
+      `;
+      const taskList = document.getElementById("taskList");
+      document.querySelectorAll(".todo-table th.sortable").forEach((header) => {
+        header.onclick = () => {
+          const currentSort = todoSorts[item.id] || {};
+          const key = header.dataset.sort;
+          const direction = currentSort.key === key && currentSort.direction === "asc" ? "desc" : "asc";
+          todoSorts[item.id] = { key, direction };
+          render();
+        };
+      });
+      if (!visibleTasks.length) {
+        taskList.innerHTML = '<tr><td colspan="12" class="list-meta">当前筛选下没有任务</td></tr>';
+      }
+      sortedTodoTasks(item, visibleTasks).forEach(({ taskItem, index }) => {
         const row = document.createElement("tr");
+        const depth = todoTaskDepth(item.tasks, taskItem);
         row.className = `todo-row priority-${taskItem.priority || "medium"}${taskItem.done ? " done" : ""}`;
+        row.style.setProperty("--todo-depth", String(Math.min(depth, 4)));
         row.innerHTML = `
           <td><input class="todo-check" type="checkbox" ${taskItem.done ? "checked" : ""} /></td>
           <td><input class="todo-title-input" type="text" value="${escapeAttr(taskItem.title)}" /></td>
@@ -1157,7 +2096,22 @@
             <div class="progress-track"><div class="progress-fill" style="width:${clamp(Number(taskItem.progress) || 0, 0, 100)}%"></div></div>
           </td>
           <td><input class="todo-date-input" type="date" value="${escapeAttr(taskItem.dueDate || "")}" /></td>
-          <td><button class="ghost">删除</button></td>
+          <td><input class="todo-note-input" type="text" value="${escapeAttr(taskItem.content || "")}" placeholder="备注" /></td>
+          <td>
+            <select class="todo-parent">
+              ${todoParentOptions(item.tasks, taskItem)}
+            </select>
+          </td>
+          <td>
+            <div class="todo-reminder-cell">
+              <label><input class="todo-current-day" type="checkbox" ${taskItem.currentDay ? "checked" : ""} />今日</label>
+              <label><input class="todo-daily-task" type="checkbox" ${taskItem.dailyTask ? "checked" : ""} />每日</label>
+            </div>
+          </td>
+          <td>
+            <button class="ghost todo-add-child" title="添加子任务">＋</button>
+            <button class="ghost todo-remove" title="删除任务">×</button>
+          </td>
         `;
         const checkbox = row.querySelector(".todo-check");
         const input = row.querySelector(".todo-title-input");
@@ -1167,7 +2121,12 @@
         const urgency = row.querySelector(".todo-urgency");
         const progress = row.querySelector(".todo-progress-input");
         const dueDate = row.querySelector(".todo-date-input");
-        const remove = row.querySelector("button");
+        const note = row.querySelector(".todo-note-input");
+        const parent = row.querySelector(".todo-parent");
+        const currentDay = row.querySelector(".todo-current-day");
+        const dailyTask = row.querySelector(".todo-daily-task");
+        const addChild = row.querySelector(".todo-add-child");
+        const remove = row.querySelector(".todo-remove");
         checkbox.onchange = () => {
           taskItem.done = checkbox.checked;
           taskItem.status = checkbox.checked ? "done" : "todo";
@@ -1207,13 +2166,50 @@
           saveState();
           render();
         };
+        bindNumberWheel(progress, (nextValue) => {
+          taskItem.progress = nextValue;
+          taskItem.done = taskItem.progress >= 100;
+          taskItem.status = taskItem.done ? "done" : taskItem.status === "done" ? "todo" : taskItem.status;
+          saveState();
+          row.querySelector(".progress-fill").style.width = `${taskItem.progress}%`;
+          renderList();
+        });
         dueDate.onchange = () => {
           taskItem.dueDate = dueDate.value;
           saveState();
           render();
         };
+        note.oninput = () => {
+          taskItem.content = note.value;
+          saveState();
+        };
+        parent.onchange = () => {
+          taskItem.parentId = parent.value;
+          saveState();
+          render();
+        };
+        currentDay.onchange = () => {
+          taskItem.currentDay = currentDay.checked;
+          saveState();
+          checkTodoReminders(true);
+        };
+        dailyTask.onchange = () => {
+          taskItem.dailyTask = dailyTask.checked;
+          saveState();
+          checkTodoReminders(true);
+        };
+        addChild.onclick = () => {
+          const next = task("新子任务", false);
+          next.parentId = taskItem.id;
+          item.tasks.splice(index + 1, 0, next);
+          saveState();
+          render();
+        };
         remove.onclick = () => {
           item.tasks.splice(index, 1);
+          item.tasks.forEach((candidate) => {
+            if (candidate.parentId === taskItem.id) candidate.parentId = "";
+          });
           saveState();
           render();
         };
@@ -1221,8 +2217,230 @@
       });
     }
 
+    function renderTodoMatrix(container, item, visibleTasks) {
+      const columns = [
+        { key: "q2", title: "Q2: 不紧急-重要", urgency: "normal", importance: "high" },
+        { key: "q1", title: "Q1: 紧急-重要", urgency: "high", importance: "high" },
+        { key: "q3", title: "Q3: 紧急-不重要", urgency: "high", importance: "normal" },
+        { key: "q4", title: "Q4: 不紧急-不重要", urgency: "normal", importance: "normal" },
+      ];
+      container.innerHTML = `<div class="todo-matrix-board" id="todoMatrixBoard"></div>`;
+      const board = document.getElementById("todoMatrixBoard");
+      columns.forEach((column) => {
+        const columnEl = document.createElement("section");
+        columnEl.className = `todo-column ${column.key}`;
+        columnEl.innerHTML = `<div class="todo-column-title">${column.title}</div>`;
+        const tasks = visibleTasks.filter(({ taskItem }) =>
+          (taskItem.urgency || "normal") === column.urgency
+          && (taskItem.importance || "normal") === column.importance);
+        tasks.forEach(({ taskItem, index }) => {
+          const card = document.createElement("article");
+          card.className = `todo-task-card ${taskItem.done ? "done" : ""}`;
+          card.innerHTML = `
+            <input class="todo-task-title" value="${escapeAttr(taskItem.title || "")}" />
+            <div class="todo-task-meta">
+              <label><input class="todo-card-check" type="checkbox" ${taskItem.done ? "checked" : ""} /> 完成</label>
+              <span class="todo-priority-tag ${taskItem.priority || "medium"}">${priorityLabel(taskItem.priority)}</span>
+              ${taskItem.parentId ? `<span class="todo-parent-tag">上级：${escapeHtml(todoTaskTitleById(item.tasks, taskItem.parentId))}</span>` : ""}
+              <span>${escapeHtml(taskItem.dueDate || "未设截止")}</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:${clamp(Number(taskItem.progress) || 0, 0, 100)}%"></div></div>
+            <div class="todo-card-actions">
+              <select class="todo-card-status">
+                <option value="todo" ${taskItem.status === "todo" ? "selected" : ""}>待办</option>
+                <option value="doing" ${taskItem.status === "doing" ? "selected" : ""}>进行中</option>
+                <option value="done" ${taskItem.status === "done" ? "selected" : ""}>完成</option>
+                <option value="trash" ${taskItem.status === "trash" ? "selected" : ""}>回收站</option>
+              </select>
+              <select class="todo-card-priority">
+                <option value="low" ${taskItem.priority === "low" ? "selected" : ""}>低</option>
+                <option value="medium" ${taskItem.priority === "medium" ? "selected" : ""}>中</option>
+                <option value="high" ${taskItem.priority === "high" ? "selected" : ""}>高</option>
+              </select>
+              <input class="todo-card-progress" type="number" min="0" max="100" value="${Number(taskItem.progress) || 0}" />
+              <input class="todo-card-date" type="date" value="${escapeAttr(taskItem.dueDate || "")}" />
+              <input class="todo-card-note" type="text" value="${escapeAttr(taskItem.content || "")}" placeholder="备注" />
+              <select class="todo-card-parent todo-card-parent-select">
+                ${todoParentOptions(item.tasks, taskItem)}
+              </select>
+              <div class="todo-reminder-cell todo-card-parent">
+                <label><input class="todo-card-current-day" type="checkbox" ${taskItem.currentDay ? "checked" : ""} />今日</label>
+                <label><input class="todo-card-daily-task" type="checkbox" ${taskItem.dailyTask ? "checked" : ""} />每日</label>
+              </div>
+            </div>
+          `;
+          const title = card.querySelector(".todo-task-title");
+          const checkbox = card.querySelector(".todo-card-check");
+          const status = card.querySelector(".todo-card-status");
+          const priority = card.querySelector(".todo-card-priority");
+          const progress = card.querySelector(".todo-card-progress");
+          const dueDate = card.querySelector(".todo-card-date");
+          const note = card.querySelector(".todo-card-note");
+          const parent = card.querySelector(".todo-card-parent-select");
+          const currentDay = card.querySelector(".todo-card-current-day");
+          const dailyTask = card.querySelector(".todo-card-daily-task");
+          title.oninput = () => {
+            taskItem.title = title.value;
+            saveState();
+            renderList();
+          };
+          checkbox.onchange = () => {
+            taskItem.done = checkbox.checked;
+            taskItem.status = checkbox.checked ? "done" : "todo";
+            if (checkbox.checked && Number(taskItem.progress) < 100) taskItem.progress = 100;
+            saveState();
+            render();
+          };
+          status.onchange = () => {
+            taskItem.status = status.value;
+            taskItem.done = status.value === "done";
+            if (taskItem.done && Number(taskItem.progress) < 100) taskItem.progress = 100;
+            saveState();
+            render();
+          };
+          priority.onchange = () => {
+            taskItem.priority = priority.value;
+            saveState();
+            render();
+          };
+          progress.onchange = () => {
+            taskItem.progress = clamp(Number(progress.value) || 0, 0, 100);
+            taskItem.done = taskItem.progress >= 100;
+            taskItem.status = taskItem.done ? "done" : taskItem.status === "done" ? "todo" : taskItem.status;
+            saveState();
+            render();
+          };
+          bindNumberWheel(progress, (nextValue) => {
+            taskItem.progress = nextValue;
+            taskItem.done = taskItem.progress >= 100;
+            taskItem.status = taskItem.done ? "done" : taskItem.status === "done" ? "todo" : taskItem.status;
+            saveState();
+            card.querySelector(".progress-fill").style.width = `${taskItem.progress}%`;
+            renderList();
+          });
+          dueDate.onchange = () => {
+            taskItem.dueDate = dueDate.value;
+            saveState();
+            render();
+          };
+          note.oninput = () => {
+            taskItem.content = note.value;
+            saveState();
+          };
+          parent.onchange = () => {
+            taskItem.parentId = parent.value;
+            saveState();
+            render();
+          };
+          currentDay.onchange = () => {
+            taskItem.currentDay = currentDay.checked;
+            saveState();
+            checkTodoReminders(true);
+          };
+          dailyTask.onchange = () => {
+            taskItem.dailyTask = dailyTask.checked;
+            saveState();
+            checkTodoReminders(true);
+          };
+          card.oncontextmenu = (event) => {
+            event.preventDefault();
+            showContextMenu(event, [
+              { label: "移入回收站", run: () => { taskItem.status = "trash"; taskItem.done = false; saveState(); render(); } },
+              { label: "添加子任务", run: () => {
+                const next = task("新子任务", false);
+                next.parentId = taskItem.id;
+                item.tasks.splice(index + 1, 0, next);
+                saveState();
+                render();
+              } },
+              { label: "删除任务", run: () => {
+                item.tasks.splice(index, 1);
+                item.tasks.forEach((candidate) => {
+                  if (candidate.parentId === taskItem.id) candidate.parentId = "";
+                });
+                saveState();
+                render();
+              } },
+            ]);
+          };
+          columnEl.appendChild(card);
+        });
+        const add = document.createElement("button");
+        add.className = "todo-add-card";
+        add.textContent = "+ 新建 item";
+        add.onclick = () => {
+          const next = task("新任务", false);
+          next.urgency = column.urgency;
+          next.importance = column.importance;
+          item.tasks.push(next);
+          saveState();
+          render();
+        };
+        columnEl.appendChild(add);
+        board.appendChild(columnEl);
+      });
+    }
+
+    function priorityLabel(priority) {
+      if (priority === "high") return "高";
+      if (priority === "low") return "低";
+      return "中";
+    }
+
+    function todoTaskTitleById(tasks, id) {
+      const taskItem = (tasks || []).find((candidate) => candidate.id === id || candidate.taskId === id);
+      return taskItem ? (taskItem.title || "未命名任务") : "无";
+    }
+
+    function todoDescendantIds(tasks, taskId, result = new Set()) {
+      (tasks || []).forEach((candidate) => {
+        if (candidate.parentId === taskId && !result.has(candidate.id)) {
+          result.add(candidate.id);
+          todoDescendantIds(tasks, candidate.id, result);
+        }
+      });
+      return result;
+    }
+
+    function todoParentOptions(tasks, taskItem) {
+      const blocked = todoDescendantIds(tasks, taskItem.id);
+      blocked.add(taskItem.id);
+      const options = ['<option value="">无上级</option>'];
+      (tasks || []).forEach((candidate) => {
+        if (!candidate.id || blocked.has(candidate.id)) return;
+        const selected = taskItem.parentId === candidate.id ? "selected" : "";
+        options.push(`<option value="${escapeAttr(candidate.id)}" ${selected}>${escapeHtml(candidate.title || "未命名任务")}</option>`);
+      });
+      return options.join("");
+    }
+
+    function todoTaskDepth(tasks, taskItem) {
+      let depth = 0;
+      let parentId = taskItem.parentId;
+      const visited = new Set([taskItem.id]);
+      while (parentId && depth < 12) {
+        const parent = (tasks || []).find((candidate) => candidate.id === parentId);
+        if (!parent || visited.has(parent.id)) break;
+        visited.add(parent.id);
+        parentId = parent.parentId;
+        depth += 1;
+      }
+      return depth;
+    }
+
+    function bindNumberWheel(input, onValue) {
+      input.onwheel = (event) => {
+        event.preventDefault();
+        const step = event.shiftKey ? 10 : 1;
+        const delta = event.deltaY < 0 ? step : -step;
+        const nextValue = clamp((Number(input.value) || 0) + delta, Number(input.min) || 0, Number(input.max) || 100);
+        input.value = nextValue;
+        onValue(nextValue);
+      };
+    }
+
     function normalizeTaskFields(taskItem) {
-      if (!taskItem.id) taskItem.id = createId();
+      if (!taskItem.id) taskItem.id = taskItem.taskId || createId();
       if (!taskItem.status) taskItem.status = taskItem.done ? "done" : "todo";
       if (typeof taskItem.done !== "boolean") taskItem.done = taskItem.status === "done";
       if (!taskItem.priority) taskItem.priority = "medium";
@@ -1230,6 +2448,11 @@
       if (!taskItem.urgency) taskItem.urgency = "normal";
       if (typeof taskItem.progress !== "number") taskItem.progress = taskItem.done ? 100 : 0;
       if (!("dueDate" in taskItem)) taskItem.dueDate = "";
+      if (!("parentId" in taskItem)) taskItem.parentId = "";
+      if (!("content" in taskItem)) taskItem.content = "";
+      if (!("currentDay" in taskItem)) taskItem.currentDay = false;
+      if (!("dailyTask" in taskItem)) taskItem.dailyTask = false;
+      if (!("deletedAt" in taskItem)) taskItem.deletedAt = "";
     }
 
     function todoStats(item) {
@@ -1244,18 +2467,44 @@
       };
     }
 
+    function todoSortHeader(item, key, label) {
+      const sort = todoSorts[item.id] || {};
+      const mark = sort.key === key ? (sort.direction === "asc" ? " ↑" : " ↓") : "";
+      return `<th class="sortable" data-sort="${key}">${label}${mark}</th>`;
+    }
+
+    function todoSortValue(taskItem, key) {
+      if (key === "done") return taskItem.done || taskItem.status === "done" ? 1 : 0;
+      if (key === "priority") return { high: 3, medium: 2, low: 1 }[taskItem.priority] || 0;
+      if (key === "importance" || key === "urgency") return taskItem[key] === "high" ? 1 : 0;
+      if (key === "progress") return Number(taskItem.progress) || 0;
+      if (key === "parentId") return todoTaskTitleById(currentItem()?.tasks || [], taskItem.parentId || "");
+      return String(taskItem[key] || "").toLowerCase();
+    }
+
+    function sortedTodoTasks(item, tasks) {
+      const sort = todoSorts[item.id];
+      if (!sort || !sort.key) return tasks;
+      const direction = sort.direction === "desc" ? -1 : 1;
+      return [...tasks].sort((left, right) => {
+        const leftValue = todoSortValue(left.taskItem, sort.key);
+        const rightValue = todoSortValue(right.taskItem, sort.key);
+        if (leftValue > rightValue) return direction;
+        if (leftValue < rightValue) return -direction;
+        return left.index - right.index;
+      });
+    }
+
     function filteredTodoTasks(tasks, filter) {
-      const todayText = today();
       return tasks
         .map((taskItem, index) => ({ taskItem, index }))
         .filter(({ taskItem }) => {
           if (filter === "all") return true;
+          if (filter === "todo") return taskItem.status === "todo";
           if (filter === "done") return taskItem.done || taskItem.status === "done";
-          if (filter === "doing") return taskItem.status === "doing";
-          if (filter === "high") return taskItem.priority === "high" && taskItem.status !== "trash";
-          if (filter === "overdue") return taskItem.dueDate && taskItem.dueDate < todayText && !taskItem.done && taskItem.status !== "trash";
+          if (filter === "doing") return taskItem.status === "doing" || taskItem.status === "todo";
           if (filter === "trash") return taskItem.status === "trash";
-          return taskItem.status !== "trash" && !taskItem.done;
+          return taskItem.status === "doing";
         });
     }
 
@@ -1269,10 +2518,45 @@
       return `完成 ${stats.done}/${stats.total} · 进行中 ${stats.doing} · 高优先 ${stats.high}`;
     }
 
+    function checkTodoReminders(force = false) {
+      const todayText = today();
+      const reminders = [];
+      (state.todos || []).forEach((board) => {
+        (board.tasks || []).forEach((taskItem) => {
+          normalizeTaskFields(taskItem);
+          const finished = taskItem.done || taskItem.status === "done" || taskItem.status === "trash";
+          const shouldRemind = !finished && (taskItem.dailyTask || taskItem.currentDay || taskItem.dueDate === todayText);
+          if (shouldRemind) reminders.push({ board, taskItem });
+        });
+      });
+      reminders.slice(0, 3).forEach(({ board, taskItem }) => {
+        const key = `${todayText}:${board.id}:${taskItem.id}`;
+        if (!force && todoReminderShown.has(key)) return;
+        todoReminderShown.add(key);
+        const title = taskItem.dailyTask ? "每日任务提醒" : "待办提醒";
+        const body = `${taskItem.title || "未命名任务"}${board.title ? ` · ${board.title}` : ""}`;
+        showToast(`${title}：${body}`);
+        if ("Notification" in window) {
+          const notify = () => {
+            try {
+              new Notification(title, { body });
+            } catch (error) {
+            }
+          };
+          if (Notification.permission === "granted") {
+            notify();
+          } else if (Notification.permission !== "denied" && force) {
+            Notification.requestPermission().then((permission) => {
+              if (permission === "granted") notify();
+            });
+          }
+        }
+      });
+    }
+
     function renderResearch(container, topic) {
-      if (!selectedNodeId && topic.nodes[0]) selectedNodeId = topic.nodes[0].id;
       container.innerHTML = `
-        <div class="topic-layout">
+        <div class="topic-layout ${researchInspectorHidden ? "inspector-hidden" : ""} ${researchFullscreen ? "fullscreen" : ""}">
           <div class="map-shell" id="mapShell">
             <div class="map-help">
               空白拖动移动画布，滚轮缩放。<br />
@@ -1282,9 +2566,10 @@
               <button id="zoomOutButton" title="缩小">-</button>
               <button id="zoomInButton" title="放大">+</button>
               <button id="fitMapButton" title="适配到视图">适配</button>
-              <button id="resetViewButton" title="重置缩放">1:1</button>
+              <button id="toggleInspectorButton" title="隐藏/显示右侧栏">${researchInspectorHidden ? "侧栏" : "隐藏"}</button>
+              <button id="fullscreenMapButton" title="全屏">${researchFullscreen ? "退出" : "全屏"}</button>
             </div>
-            <div class="map-canvas" id="mapCanvas">
+            <div class="map-canvas" id="mapCanvas" tabindex="0">
               <svg class="edges" id="edges"></svg>
             </div>
           </div>
@@ -1433,8 +2718,10 @@
 
     function drawMap(topic) {
       autoLayoutMissing(topic);
+      applyRelativeNodePositions(topic);
       const canvas = document.getElementById("mapCanvas");
       applyMapTransform(topic);
+      updateMapCanvasSize(topic);
       redrawEdges(topic);
       const rootBox = rootBoxForTopic(topic);
       const root = document.createElement("div");
@@ -1462,15 +2749,18 @@
       };
       canvas.appendChild(root);
       topic.nodes.forEach((node) => {
+        const active = node.id === selectedNodeId;
         const div = document.createElement("div");
-        div.className = "node" + (node.id === selectedNodeId ? " active" : "");
+        div.className = "node" + (active ? " active expanded" : "");
         div.style.left = `${node.mapX}px`;
         div.style.top = `${node.mapY}px`;
         div.style.borderColor = typeColor(node.type);
         div.innerHTML = `
           <div class="node-type" style="color:${typeColor(node.type)}">${nodeTypeLabels[node.type] || node.type}</div>
           <div class="node-title">${escapeHtml(node.title || "未命名")}</div>
+          ${active ? nodeDetailHtml(node) : ""}
         `;
+        wireNodeExternalLinks(div);
         div.onclick = () => {
           selectedNodeId = node.id;
           render();
@@ -1488,11 +2778,45 @@
       });
     }
 
+    function nodeDetailHtml(node) {
+      const content = String(node.content || "").trim();
+      const links = Array.isArray(node.links) ? node.links.filter(Boolean) : [];
+      if (!content && !links.length) return "";
+      const contentHtml = content
+        ? `<div class="node-detail-title">内容</div><div>${escapeHtml(content).replace(/\n/g, "<br>")}</div>`
+        : "";
+      const linksHtml = links.length
+        ? `<div class="node-detail-title">资料链接</div>${links.map((link) => `<a href="${escapeAttr(link)}" target="_blank">${escapeHtml(link)}</a>`).join("")}`
+        : "";
+      return `<div class="node-detail">${contentHtml}${linksHtml}</div>`;
+    }
+
+    function normalizeExternalUrl(url) {
+      const text = String(url || "").trim();
+      if (!text) return "";
+      if (/^[a-z][a-z0-9+.-]*:/i.test(text)) return text;
+      return `https://${text}`;
+    }
+
+    function wireNodeExternalLinks(container) {
+      container.querySelectorAll(".node-detail a[href]").forEach((link) => {
+        link.onclick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const url = normalizeExternalUrl(link.getAttribute("href"));
+          if (url) window.open(url, "_blank", "noopener,noreferrer");
+        };
+        link.onpointerdown = (event) => {
+          event.stopPropagation();
+        };
+      });
+    }
+
     function redrawEdges(topic) {
       const svg = document.getElementById("edges");
       svg.innerHTML = "";
       const rootBox = rootBoxForTopic(topic);
-      topic.nodes.forEach((to) => {
+      topic.nodes.forEach((to, index) => {
         let hasVisibleRelated = false;
         to.relatedNodeIds.forEach((id) => {
           const from = topic.nodes.find((node) => node.id === id);
@@ -1500,10 +2824,35 @@
           hasVisibleRelated = true;
           svg.appendChild(edgePath(from, to));
         });
-        if (!hasVisibleRelated) {
+        if (index === 0 || !hasVisibleRelated) {
           svg.appendChild(rootEdgePath(rootBox, to));
         }
       });
+    }
+
+    function updateMapCanvasSize(topic) {
+      const canvas = document.getElementById("mapCanvas");
+      const svg = document.getElementById("edges");
+      if (!canvas || !svg) return;
+      const rootBox = rootBoxForTopic(topic);
+      const boxes = [
+        { x: rootBox.mapX, y: rootBox.mapY, width: ROOT_NODE_WIDTH, height: ROOT_NODE_HEIGHT },
+        ...topic.nodes.map((node) => ({ x: node.mapX, y: node.mapY, width: NODE_WIDTH, height: NODE_HEIGHT + 22 })),
+      ];
+      const minX = Math.min(...boxes.map((box) => box.x));
+      const minY = Math.min(...boxes.map((box) => box.y));
+      const maxX = Math.max(...boxes.map((box) => box.x + box.width));
+      const maxY = Math.max(...boxes.map((box) => box.y + box.height));
+      const pad = 360;
+      const width = Math.max(1800, Math.ceil(Math.max(maxX, 0) + pad));
+      const height = Math.max(1100, Math.ceil(Math.max(maxY, 0) + pad));
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      svg.style.width = `${width}px`;
+      svg.style.height = `${height}px`;
+      svg.setAttribute("width", String(width));
+      svg.setAttribute("height", String(height));
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     }
 
     function edgePath(from, to) {
@@ -1537,22 +2886,16 @@
     }
 
     function rootBoxForTopic(topic) {
-      const minNodeX = topic.nodes.length ? Math.min(...topic.nodes.map((node) => node.mapX)) : FIRST_NODE_X;
-      const rootX = Math.min(ROOT_NODE_X, minNodeX - 280);
-      let y = 120;
-      const rootLevelNodes = topic.nodes.filter((node) => !hasVisibleRelatedNode(topic, node));
-      const targetNodes = rootLevelNodes.length ? rootLevelNodes : topic.nodes;
-      if (targetNodes.length) {
-        const centerSum = targetNodes.reduce((sum, node) => sum + node.mapY + NODE_HEIGHT / 2, 0);
-        y = centerSum / targetNodes.length - ROOT_NODE_HEIGHT / 2;
-      }
       return {
-        mapX: rootX,
-        mapY: Math.max(40, y),
+        mapX: ROOT_NODE_X,
+        mapY: ROOT_NODE_Y,
       };
     }
 
     function hasVisibleRelatedNode(topic, node) {
+      if (!node || !Array.isArray(node.relatedNodeIds) || !node.relatedNodeIds.length) {
+        return false;
+      }
       return node.relatedNodeIds.some((id) => topic.nodes.some((item) => item.id === id));
     }
 
@@ -1563,6 +2906,7 @@
       let originalX = 0;
       let originalY = 0;
       element.onpointerdown = (event) => {
+        if (event.target.closest("a, button, input, textarea, select")) return;
         dragging = true;
         startX = event.clientX;
         startY = event.clientY;
@@ -1576,6 +2920,11 @@
         node.mapX = originalX + (event.clientX - startX) / viewport.scale;
         node.mapY = originalY + (event.clientY - startY) / viewport.scale;
         node.mapPositioned = true;
+        const relative = relativePositionForNode(topic, node);
+        node.mapRelativePositioned = true;
+        node.mapRelativeX = relative.x;
+        node.mapRelativeY = relative.y;
+        markDesktopAutoPosition(node, false);
         element.style.left = `${node.mapX}px`;
         element.style.top = `${node.mapY}px`;
         redrawEdges(topic);
@@ -1627,6 +2976,7 @@
       viewport.y = focusY - worldY * nextScale;
       viewport.initialized = true;
       applyMapTransform(topic);
+      scheduleMapRepaint(topic);
     }
 
     function zoomMapToCenter(topic, factor) {
@@ -1643,6 +2993,7 @@
       viewport.y = 0;
       viewport.initialized = true;
       applyMapTransform(topic);
+      scheduleMapRepaint(topic);
     }
 
     function fitMapToView(topic) {
@@ -1672,6 +3023,7 @@
       viewport.y = (shell.clientHeight - height * scale) / 2 - minY * scale;
       viewport.initialized = true;
       applyMapTransform(topic);
+      scheduleMapRepaint(topic);
     }
 
     function openMapReadable(topic) {
@@ -1684,6 +3036,16 @@
       viewport.y = Math.max(24, shell.clientHeight / 2 - (rootBox.mapY + ROOT_NODE_HEIGHT / 2));
       viewport.initialized = true;
       applyMapTransform(topic);
+      scheduleMapRepaint(topic);
+    }
+
+    function scheduleMapRepaint(topic) {
+      if (!topic || !topic.id) return;
+      clearTimeout(mapRepaintTimers[topic.id]);
+      mapRepaintTimers[topic.id] = setTimeout(() => {
+        if (currentType !== "research" || currentItem()?.id !== topic.id) return;
+        drawMapOnly(topic);
+      }, 120);
     }
 
     function wireMapShell(topic) {
@@ -1698,6 +3060,11 @@
       shell.onpointerdown = (event) => {
         if (event.target.closest(".node") || event.target.closest(".map-controls")) return;
         hideContextMenu();
+        if (selectedNodeId) {
+          selectedNodeId = null;
+          renderNodeEditor(topic);
+          drawMapOnly(topic);
+        }
         panning = true;
         startX = event.clientX;
         startY = event.clientY;
@@ -1729,7 +3096,16 @@
       document.getElementById("zoomOutButton").onclick = () => zoomMapToCenter(topic, 0.86);
       document.getElementById("zoomInButton").onclick = () => zoomMapToCenter(topic, 1.16);
       document.getElementById("fitMapButton").onclick = () => fitMapToView(topic);
-      document.getElementById("resetViewButton").onclick = () => resetMapViewport(topic);
+      document.getElementById("toggleInspectorButton").onclick = () => {
+        researchInspectorHidden = !researchInspectorHidden;
+        localStorage.setItem(inspectorHiddenKey, researchInspectorHidden ? "1" : "0");
+        render();
+      };
+      document.getElementById("fullscreenMapButton").onclick = () => {
+        researchFullscreen = !researchFullscreen;
+        render();
+        setTimeout(() => fitMapToView(topic), 0);
+      };
     }
 
     function clamp(value, min, max) {
@@ -1758,6 +3134,40 @@
 
     function hideContextMenu() {
       document.getElementById("contextMenu")?.classList.remove("open");
+    }
+
+    function showRecordContextMenu(event, item) {
+      const actions = [
+        {
+          label: "打开记录",
+          run: () => {
+            selectedId = item.id;
+            selectedNodeId = null;
+            render();
+          },
+        },
+      ];
+      if (phoneLinkStatus.connected) {
+        actions.push({
+          label: "复制到手机剪贴板",
+          run: () => sendRecordClipboardToPhone(item),
+        });
+        actions.push({
+          label: "在手机新增此记录",
+          run: () => insertRecordToPhone(item),
+        });
+      }
+      if (phoneLinkStatus.connected && (item.androidOrderId || item.androidOrderId === 0)) {
+        actions.push({
+          label: "同步覆盖手机原记录",
+          run: () => sendRecordToPhone(item),
+        });
+      }
+      actions.push({
+        label: "删除记录",
+        run: () => deleteRecordItem(item),
+      });
+      showContextMenu(event, actions);
     }
 
     function showNodeContextMenu(event, topic, node) {
@@ -1824,8 +3234,13 @@
 
     function renderNodeEditor(topic) {
       const editor = document.getElementById("nodeEditor");
+      const inspectorCards = document.querySelectorAll(".inspector .card");
+      const topicCard = inspectorCards[0];
+      const actionCard = inspectorCards[1];
       const node = topic.nodes.find((item) => item.id === selectedNodeId);
       if (!node) {
+        if (topicCard) topicCard.style.display = "";
+        if (actionCard) actionCard.style.display = "";
         editor.innerHTML = `
           <div class="empty">
             当前是课题根节点。根节点只用于图谱展示，不会写入 nodes。<br />
@@ -1836,9 +3251,16 @@
         document.getElementById("addFirstNodeButton").onclick = () => addChildNode(topic);
         return;
       }
+      if (topicCard) topicCard.style.display = "none";
+      if (actionCard) actionCard.style.display = "none";
       const relationOptions = topic.nodes
         .filter((item) => item.id !== node.id)
-        .map((item) => `<option value="${item.id}" ${node.relatedNodeIds.includes(item.id) ? "selected" : ""}>${escapeHtml(item.title || "未命名")}</option>`)
+        .map((item) => `
+          <label class="relation-option">
+            <input type="checkbox" value="${item.id}" ${node.relatedNodeIds.includes(item.id) ? "checked" : ""} />
+            <span>${escapeHtml(item.title || "未命名")}</span>
+          </label>
+        `)
         .join("");
       const builtInTypeOptions = Object.keys(nodeTypeLabels)
         .map((key) => `<option value="${key}" ${node.type === key ? "selected" : ""}>${nodeTypeLabels[key]}</option>`)
@@ -1860,8 +3282,10 @@
         <label>资料链接</label>
         <textarea id="nodeLinks">${escapeHtml((node.links || []).join("\n"))}</textarea>
         <label>关联节点</label>
-        <select id="nodeRelations" multiple size="5">${relationOptions}</select>
+        <div id="nodeRelations" class="relation-list">${relationOptions || '<div class="list-meta">暂无其他节点</div>'}</div>
         <div class="pill-row">
+          <button id="addChildSelectedNodeButton" class="primary">子节点</button>
+          <button id="addSiblingSelectedNodeButton">并行节点</button>
           <button id="deleteNodeButton">删除节点</button>
         </div>
       `;
@@ -1894,14 +3318,26 @@
           .filter(Boolean);
         saveState();
       };
-      document.getElementById("nodeRelations").onchange = (event) => {
-        node.relatedNodeIds = Array.from(event.target.selectedOptions).map((option) => option.value);
-        saveState();
-        render();
-      };
+      document.querySelectorAll("#nodeRelations input[type='checkbox']").forEach((checkbox) => {
+        checkbox.onchange = () => {
+          const inspector = document.querySelector(".inspector");
+          const inspectorScrollTop = inspector ? inspector.scrollTop : 0;
+          node.relatedNodeIds = Array.from(document.querySelectorAll("#nodeRelations input[type='checkbox']:checked"))
+            .map((item) => item.value);
+          saveState();
+          drawMapOnly(topic);
+          if (inspector) {
+            requestAnimationFrame(() => {
+              inspector.scrollTop = inspectorScrollTop;
+            });
+          }
+        };
+      });
       document.getElementById("deleteNodeButton").onclick = () => {
         deleteSelectedNode(topic);
       };
+      document.getElementById("addChildSelectedNodeButton").onclick = () => addChildNode(topic);
+      document.getElementById("addSiblingSelectedNodeButton").onclick = () => addSiblingNode(topic);
     }
 
     function deleteSelectedNode(topic) {
@@ -2007,6 +3443,11 @@
           node.mapX = FIRST_NODE_X + (level - 1) * 280;
           node.mapY = 90 + index * 130;
           node.mapPositioned = true;
+          const relative = relativePositionForNode(topic, node);
+          node.mapRelativePositioned = !onlyMissing;
+          node.mapRelativeX = relative.x;
+          node.mapRelativeY = relative.y;
+          markDesktopAutoPosition(node, onlyMissing);
         });
       });
     }
@@ -2026,7 +3467,9 @@
       if (!item) return;
       if (currentType === "notes") {
         item.title = document.getElementById("noteTitle")?.value || item.title;
-        item.content = document.getElementById("noteContent")?.value || "";
+        const noteContent = document.getElementById("noteContent");
+        item.contentHtml = noteContent?.innerHTML || item.contentHtml || "";
+        item.content = noteContent?.innerText || "";
       }
       if (currentType === "todos") {
         item.title = document.getElementById("todoTitle")?.value || item.title;
@@ -2061,9 +3504,13 @@
     }
 
     function deleteCurrentRecord() {
-      const list = currentList();
       const item = currentItem();
       if (!item) return;
+      deleteRecordItem(item);
+    }
+
+    function deleteRecordItem(item) {
+      const list = state[item.type] || currentList();
       const title = item.title || "未命名";
       if (!confirm(`确定删除当前${typeLabels[currentType]}记录「${title}」吗？这个操作只删除当前原型里的本地数据。`)) return;
       const index = list.findIndex((value) => value.id === item.id);
@@ -2077,22 +3524,71 @@
 
     function exportData() {
       collectCurrentForm();
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      downloadText(`clipboard-desktop-${today()}.json`, JSON.stringify(state, null, 2), "application/json");
+    }
+
+    function exportAndroidPlainData() {
+      collectCurrentForm();
+      downloadText(`clipboard-android-${today()}.json`, JSON.stringify(androidExportFromState(), null, 2), "application/json");
+    }
+
+    async function exportEncryptedData(kind) {
+      collectCurrentForm();
+      const isAndroid = kind === "android";
+      const password = prompt("请输入加密密码。密码不会保存到代码或本地数据里。");
+      if (!password) return;
+      try {
+        const text = isAndroid
+          ? JSON.stringify(androidExportFromState())
+          : JSON.stringify(state, null, 2);
+        const result = await fetchBridge("/api/data/encrypt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password,
+            text,
+          }),
+        });
+        if (!result.ok) throw new Error("encrypt failed");
+        const prefix = isAndroid ? "clipboard-android" : "clipboard-desktop";
+        downloadText(`${prefix}-${today()}.sphykey`, result.encrypted || "", "text/plain");
+        showToast(isAndroid ? "已导出安卓兼容加密文件" : "已导出桌面端加密备份");
+      } catch (error) {
+        showToast("加密导出失败，请确认 Electron 桥接服务正在运行");
+      }
+    }
+
+    function downloadText(fileName, text, type) {
+      const blob = new Blob([text], { type: type || "text/plain" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `clipboard-desktop-${today()}.json`;
+      link.download = fileName;
       link.click();
       URL.revokeObjectURL(url);
     }
 
     function importData(file) {
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         try {
-          const next = JSON.parse(reader.result);
-          if (importMode === "prototype") {
-            state = normalizePrototypeData(next);
+          let text = String(reader.result || "");
+          if (importMode === "androidEncrypted" || importMode === "prototypeEncrypted") {
+            const password = prompt("请输入这个 .sphykey 文件的密码。");
+            if (!password) return;
+            const result = await fetchBridge("/api/data/decrypt", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ password, encrypted: text }),
+            });
+            if (!result.ok) throw new Error("decrypt failed");
+            text = result.text || "";
+          }
+          const next = JSON.parse(text);
+          if (importMode === "prototype" || importMode === "prototypeEncrypted") {
+            state = autoImportPlainJson(state, next);
+          } else if (importMode === "androidEncrypted") {
+            state = next.clips ? mergeAndroidPlainExport(state, next) : normalizePrototypeData(next);
           } else if (importMode === "androidPlain") {
             state = mergeAndroidPlainExport(state, next);
           }
@@ -2101,12 +3597,19 @@
           saveState();
           render();
         } catch (error) {
-          alert(importMode === "androidPlain"
-            ? "导入失败：目前只支持安卓未加密 JSON，安卓加密文件需要 Tauri 后端解密。"
-            : "导入失败：不是这个原型的 JSON 数据。");
+          alert(importMode === "androidEncrypted" || importMode === "prototypeEncrypted"
+            ? "导入失败：密码不正确，或文件不是可识别的加密备份。"
+            : "导入失败：不是可识别的 JSON 数据。");
         }
       };
       reader.readAsText(file, "utf-8");
+    }
+
+    function autoImportPlainJson(current, next) {
+      if (next && Array.isArray(next.clips)) {
+        return mergeAndroidPlainExport(current, next);
+      }
+      return normalizePrototypeData(next);
     }
 
     function normalizePrototypeData(next) {
@@ -2116,6 +3619,25 @@
       return normalizeState(next);
     }
 
+    function androidExportFromState() {
+      const clips = [];
+      ["notes", "todos", "research"].forEach((type) => {
+        (state[type] || []).forEach((item, index) => {
+          const record = androidRecordFromDesktopItem(item);
+          clips.push({
+            catalogue: record.catalogue || "default",
+            content: record.content || "",
+            datetime: record.createDate || item.updatedAt || today(),
+            remark: record.remarks || item.title || "",
+            orderid: Number.isFinite(Number(record.orderId)) && Number(record.orderId) >= 0
+              ? Number(record.orderId)
+              : clips.length + index,
+          });
+        });
+      });
+      return { clips };
+    }
+
     function mergeAndroidPlainExport(current, androidJson) {
       if (!Array.isArray(androidJson.clips)) {
         throw new Error("invalid android export");
@@ -2123,7 +3645,9 @@
       const imported = { notes: [], todos: [], research: [] };
       androidJson.clips.forEach((clip) => {
         const catalogue = clip.catalogue || "";
-        const title = clip.remark || firstLine(clip.content, "未命名");
+        const rawRemark = clip.remark || "";
+        const rawContent = clip.content || "";
+        const title = rawRemark || firstLine(rawContent, "未命名");
         if (catalogue === "课题") {
           const topic = safeParseJson(clip.content);
           if (topic && Array.isArray(topic.nodes)) {
@@ -2138,6 +3662,7 @@
               viewMode: topic.viewMode || "map",
               nodes: (topic.nodes || []).map(normalizeResearchNode),
               androidOrderId: clip.orderid,
+              androidCreateDate: clip.datetime || "",
               updatedAt: clip.datetime || today(),
             });
           }
@@ -2157,21 +3682,32 @@
                   priority: taskItem.priority || "medium",
                   importance: taskItem.importance || "normal",
                   urgency: taskItem.urgency || "normal",
+                  parentId: taskItem.parentId || "",
+                  content: taskItem.content || "",
+                  currentDay: Boolean(taskItem.currentDay),
+                  dailyTask: Boolean(taskItem.dailyTask),
+                  deletedAt: taskItem.deletedAt || "",
                   progress: Number(taskItem.progress) || 0,
                   dueDate: taskItem.dueDate || taskItem.endTime || "",
                 }))
               : [],
             androidOrderId: clip.orderid,
+            androidCreateDate: clip.datetime || "",
             updatedAt: clip.datetime || today(),
           });
         } else {
+          const noteContent = rawContent || rawRemark;
+          const richNote = parseRichTextContent(noteContent);
+          const noteTitle = rawRemark || firstLine(richNote.plainText, "未命名");
           imported.notes.push({
             id: createId(),
             type: "notes",
-            title,
-            content: clip.content || "",
+            title: noteTitle,
+            content: richNote.plainText,
+            contentHtml: richNote.html,
             androidCatalogue: catalogue,
             androidOrderId: clip.orderid,
+            androidCreateDate: clip.datetime || "",
             updatedAt: clip.datetime || today(),
           });
         }
@@ -2183,12 +3719,632 @@
       });
     }
 
+    function recordFromPhoneMessage(record) {
+      const catalogue = record.catalogue || "";
+      const rawRemarks = record.remarks || record.remark || "";
+      const rawContent = record.content || "";
+      const title = rawRemarks || firstLine(rawContent, "手机记录");
+      const baseFields = {
+        androidRecordId: record.recordId || String(record.orderId || ""),
+        androidOrderId: record.orderId,
+        androidCatalogue: catalogue,
+        androidDeviceId: record.deviceId || "",
+        androidCreateDate: record.createDate || "",
+        lastPhoneMessageId: record.messageId || "",
+        updatedAt: record.createDate || today(),
+      };
+      if (catalogue === "课题") {
+        const topic = safeParseJson(record.content);
+        if (topic && Array.isArray(topic.nodes)) {
+          return normalizeResearchTopic({
+            ...baseFields,
+            id: createId(),
+            type: "research",
+            dataType: RESEARCH_DATA_TYPE,
+            title: topic.title || title,
+            problem: topic.problem || "",
+            goal: topic.goal || "",
+            conclusion: topic.conclusion || "",
+            viewMode: topic.viewMode || "map",
+            nodes: (topic.nodes || []).map(normalizeResearchNode),
+          });
+        }
+      }
+      if (catalogue === "待办事项") {
+        const board = safeParseJson(record.content);
+        return {
+          ...baseFields,
+          id: createId(),
+          type: "todos",
+          title,
+          content: board?.content || record.content || "",
+          tasks: Array.isArray(board?.tasks)
+            ? board.tasks.map((taskItem) => ({
+                id: taskItem.taskId || taskItem.id || createId(),
+                title: taskItem.title || "未命名任务",
+                done: taskItem.finished || taskItem.status === "done",
+                status: taskItem.status || (taskItem.finished ? "done" : "todo"),
+                priority: taskItem.priority || "medium",
+                importance: taskItem.importance || "normal",
+                urgency: taskItem.urgency || "normal",
+                parentId: taskItem.parentId || "",
+                content: taskItem.content || "",
+                currentDay: Boolean(taskItem.currentDay),
+                dailyTask: Boolean(taskItem.dailyTask),
+                deletedAt: taskItem.deletedAt || "",
+                progress: Number(taskItem.progress) || 0,
+                dueDate: taskItem.dueDate || taskItem.endTime || "",
+              }))
+            : [],
+        };
+      }
+      const noteContent = rawContent || rawRemarks;
+      const richNote = parseRichTextContent(noteContent);
+      const noteTitle = rawRemarks
+        ? firstLine(rawRemarks, catalogue && catalogue !== "default" ? catalogue : "手机记录")
+        : firstLine(richNote.plainText, catalogue && catalogue !== "default" ? catalogue : "手机记录");
+      return {
+        ...baseFields,
+        id: createId(),
+        type: "notes",
+        title: noteTitle,
+        content: richNote.plainText,
+        contentHtml: richNote.html,
+      };
+    }
+
+    function upsertPhoneRecord(record) {
+      const item = recordFromPhoneMessage(record);
+      const list = state[item.type] || [];
+      const index = list.findIndex((existing) => samePhoneRecord(existing, item));
+      if (index >= 0) {
+        item.id = list[index].id;
+        list[index] = { ...list[index], ...item };
+      } else {
+        list.unshift(item);
+      }
+      normalizeState(state);
+      currentType = item.type;
+      selectedId = item.id;
+      selectedNodeId = null;
+      saveState();
+      render();
+      showToast(`已接收手机记录：${item.title || "未命名"}`);
+    }
+
+    function samePhoneRecord(left, right) {
+      if (!left || !right) return false;
+      if (left.androidRecordId && right.androidRecordId && left.androidRecordId === right.androidRecordId) return true;
+      return left.androidOrderId !== undefined
+        && right.androidOrderId !== undefined
+        && String(left.androidOrderId) === String(right.androidOrderId)
+        && (left.androidCatalogue || "") === (right.androidCatalogue || "");
+    }
+
+    async function refreshPhoneLinkStatus(showMessage) {
+      try {
+        const result = await fetchBridge("/api/link/status");
+        phoneLinkStatus = result;
+        if (result.nextSeq < phoneLinkSeq) {
+          phoneLinkSeq = 0;
+          localStorage.setItem(PHONE_LINK_SEQ_KEY, "0");
+        }
+        renderPhoneLinkStatus();
+      } catch (error) {
+        phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
+        renderPhoneLinkStatus();
+        if (showMessage) showToast("未检测到桥接服务，请运行 desktop/run-linked-prototype.bat");
+      }
+    }
+
+    async function pollPhoneLinkEvents() {
+      try {
+        const result = await fetchBridge(`/api/link/events?since=${phoneLinkSeq}`);
+        (result.events || []).forEach(handlePhoneLinkEvent);
+        phoneLinkSeq = result.nextSeq || phoneLinkSeq;
+        localStorage.setItem(PHONE_LINK_SEQ_KEY, String(phoneLinkSeq));
+      } catch (error) {
+        // 桥接服务未启动时保持安静，状态轮询会负责提示。
+      }
+    }
+
+    function handlePhoneLinkEvent(event) {
+      if (event.type === "record_push" && event.payload?.record) {
+        collectCurrentForm();
+        upsertPhoneRecord(event.payload.record);
+      } else if (event.type === "record_update_ack") {
+        const orderId = event.payload?.orderId;
+        if (event.payload?.updated) {
+          showToast(`手机已更新记录：${orderId}`);
+        } else {
+          showToast(`手机没有找到这条记录：${orderId}`);
+        }
+      } else if (event.type === "record_insert_ack") {
+        const orderId = event.payload?.orderId;
+        if (event.payload?.inserted) {
+          showToast(`手机已新增记录：${orderId}`);
+        } else {
+          showToast("手机新增记录失败");
+        }
+      } else if (event.type === "clipboard_push") {
+        showToast("手机剪贴板已同步到电脑");
+      } else if (event.type === "clipboard_error") {
+        showToast(`电脑剪贴板写入失败：${event.payload?.message || ""}`);
+      } else if (event.type === "file_push") {
+        const fileName = event.payload?.fileName || "文件";
+        showToast(`已接收手机文件：${fileName}`);
+      } else if (event.type === "port_error") {
+        showToast(event.payload?.message || "手机连接端口被占用");
+      } else if (event.type === "phone_connected") {
+        refreshPhoneLinkStatus(false);
+        showToast("手机已连接");
+      } else if (event.type === "phone_disconnected") {
+        refreshPhoneLinkStatus(false);
+        showToast("手机已断开");
+      }
+    }
+
+    function renderPhoneLinkStatus() {
+      const button = document.getElementById("phoneLinkButton");
+      const bridgeText = document.getElementById("bridgeStatusText");
+      const phoneText = document.getElementById("phoneStatusText");
+      const portText = document.getElementById("phonePortText");
+      const ports = phoneLinkStatus.ports || { udp: 20311, tcp: 20310, http: 20312 };
+      const portErrors = Object.values(phoneLinkStatus.serverStatus || {})
+        .filter((item) => item && item.ok === false && item.message)
+        .map((item) => item.message);
+      button.classList.toggle("connected", Boolean(phoneLinkStatus.connected));
+      button.classList.toggle("offline", !phoneLinkStatus.bridge);
+      button.textContent = phoneLinkStatus.connected ? "📱 已连接" : phoneLinkStatus.bridge ? "📱 等待" : "📱 手机";
+      bridgeText.textContent = portErrors.length ? "端口异常" : phoneLinkStatus.bridge ? "运行中" : "未启动";
+      phoneText.textContent = phoneLinkStatus.connected
+        ? `${phoneLinkStatus.device?.name || "Android"} ${phoneLinkStatus.device?.address || ""}`
+        : "未连接";
+      portText.textContent = portErrors.length ? portErrors.join("；") : `UDP ${ports.udp} / TCP ${ports.tcp} / HTTP ${ports.http}`;
+    }
+
+    async function fetchBridge(path, options) {
+      const response = await fetch(BRIDGE_BASE + path, options);
+      if (!response.ok) throw new Error(`bridge ${response.status}`);
+      return response.json();
+    }
+
+    async function sendClipboardToPhone() {
+      const text = document.getElementById("sendClipboardText").value;
+      if (!text.trim()) {
+        showToast("先输入要发送的剪贴板文字");
+        return;
+      }
+      await sendTextToPhoneClipboard(text);
+    }
+
+    async function sendTextToPhoneClipboard(text) {
+      try {
+        await fetchBridge("/api/link/send-clipboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        showToast("已发送到手机剪贴板");
+      } catch (error) {
+        showToast("发送失败，请确认手机已连接");
+      }
+    }
+
+    async function sendRecordClipboardToPhone(item) {
+      if (!item) return;
+      collectCurrentForm();
+      const text = recordClipboardText(item);
+      if (!text.trim()) {
+        showToast("这条记录没有可发送的文字");
+        return;
+      }
+      await sendTextToPhoneClipboard(text);
+    }
+
+    function recordClipboardText(item) {
+      if (item.type === "todos") {
+        const lines = [];
+        if (item.title) lines.push(item.title);
+        if (item.content) lines.push(item.content);
+        const tasks = Array.isArray(item.tasks) ? item.tasks : [];
+        tasks
+          .filter((taskItem) => taskItem.status !== "trash")
+          .forEach((taskItem) => {
+            const mark = taskItem.done || taskItem.status === "done" ? "[x]" : "[ ]";
+            const tags = [taskItem.priority, taskItem.dueDate].filter(Boolean).join(" / ");
+            lines.push(`${mark} ${taskItem.title || "未命名任务"}${tags ? `  ${tags}` : ""}`);
+          });
+        return lines.join("\n");
+      }
+      if (item.type === "research") {
+        const lines = [];
+        if (item.title) lines.push(item.title);
+        if (item.problem) lines.push(`问题：${item.problem}`);
+        if (item.goal) lines.push(`目标：${item.goal}`);
+        if (item.conclusion) lines.push(`结论：${item.conclusion}`);
+        (item.nodes || []).forEach((node) => {
+          const label = nodeTypeLabels[node.type] || node.type || "节点";
+          lines.push(`- [${label}] ${node.title || "未命名"}`);
+          if (node.content) lines.push(`  ${node.content}`);
+          if (Array.isArray(node.links) && node.links.length) lines.push(`  ${node.links.join(" / ")}`);
+        });
+        return lines.join("\n");
+      }
+      return [item.title || "", item.content || ""].filter(Boolean).join("\n\n");
+    }
+
+    async function sendMessageToPhone() {
+      const text = document.getElementById("sendClipboardText").value;
+      if (!text.trim()) {
+        showToast("先输入要发送的消息");
+        return;
+      }
+      try {
+        await fetchBridge("/api/link/send-message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        showToast("消息已发送到手机");
+      } catch (error) {
+        showToast("发送失败，请确认手机已连接");
+      }
+    }
+
+    async function sendCurrentRecordToPhone() {
+      collectCurrentForm();
+      const item = currentItem();
+      if (!item) return;
+      await sendRecordToPhone(item);
+    }
+
+    async function sendRecordToPhone(item) {
+      if (!item) return;
+      collectCurrentForm();
+      const record = androidRecordFromDesktopItem(item);
+      if (!record.orderId && record.orderId !== 0) {
+        showToast("这条记录没有手机 orderId，不能覆盖回手机");
+        return;
+      }
+      try {
+        await fetchBridge("/api/link/send-record", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ record }),
+        });
+        showToast("已发送到手机，等待手机确认");
+      } catch (error) {
+        showToast("发送失败，请确认手机已连接");
+      }
+    }
+
+    async function insertRecordToPhone(item) {
+      if (!item) return;
+      collectCurrentForm();
+      const record = androidRecordFromDesktopItem(item);
+      delete record.orderId;
+      delete record.recordId;
+      try {
+        await fetchBridge("/api/link/insert-record", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ record }),
+        });
+        showToast("已发送到手机，等待新增确认");
+      } catch (error) {
+        showToast("发送失败，请确认手机已连接");
+      }
+    }
+
+    async function sendFileToPhone() {
+      const input = document.getElementById("phoneFileInput");
+      const file = input.files?.[0];
+      if (!file) {
+        showToast("先选择一个文件");
+        return;
+      }
+      const progress = document.getElementById("sendFileProgress");
+      const transferId = createId();
+      const chunkSize = 48 * 1024;
+      try {
+        progress.textContent = "正在建立文件传输...";
+        await sendFileChunkMessage({
+          phase: "start",
+          transferId,
+          fileName: file.name,
+          mimeType: file.type || "application/octet-stream",
+          size: file.size,
+        });
+        let offset = 0;
+        let index = 0;
+        while (offset < file.size) {
+          const chunk = file.slice(offset, Math.min(offset + chunkSize, file.size));
+          const base64 = arrayBufferToBase64(await chunk.arrayBuffer());
+          await sendFileChunkMessage({
+            phase: "chunk",
+            transferId,
+            fileName: file.name,
+            mimeType: file.type || "application/octet-stream",
+            size: file.size,
+            index,
+            offset,
+            base64,
+          });
+          offset += chunk.size;
+          index++;
+          const percent = file.size ? Math.floor((offset / file.size) * 100) : 100;
+          progress.textContent = `正在发送 ${file.name}：${percent}%`;
+        }
+        await sendFileChunkMessage({
+          phase: "end",
+          transferId,
+          fileName: file.name,
+          mimeType: file.type || "application/octet-stream",
+          size: file.size,
+          index,
+          offset,
+        });
+        progress.textContent = "文件发送完成";
+        showToast("文件已发送到手机");
+      } catch (error) {
+        progress.textContent = "";
+        showToast("发送失败，请确认手机已连接");
+      }
+    }
+
+    async function sendFileChunkMessage(body) {
+      return fetchBridge("/api/link/send-file-chunk", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    }
+
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    function androidRecordFromDesktopItem(item) {
+      const orderId = Number(item.androidOrderId);
+      if (item.type === "research") {
+        return {
+          recordId: item.androidRecordId || String(item.androidOrderId || ""),
+          orderId,
+          catalogue: "课题",
+          remarks: item.title || "未命名课题",
+          content: JSON.stringify({
+            dataType: RESEARCH_DATA_TYPE,
+            title: item.title || "",
+            problem: item.problem || "",
+            goal: item.goal || "",
+            conclusion: item.conclusion || "",
+            viewMode: item.viewMode || "map",
+            nodes: (item.nodes || []).map((node) => ({
+              ...androidResearchNodeFromDesktop(item, node),
+            })),
+          }),
+          createDate: item.androidCreateDate || item.updatedAt || today(),
+        };
+      }
+      if (item.type === "todos") {
+        return {
+          recordId: item.androidRecordId || String(item.androidOrderId || ""),
+          orderId,
+          catalogue: "待办事项",
+          remarks: item.title || "新待办",
+          content: JSON.stringify({
+            dataType: "board",
+            content: item.content || "",
+            status: "todo",
+            priority: "medium",
+            importance: "normal",
+            urgency: "normal",
+            tasks: (item.tasks || []).map((taskItem) => ({
+              dataType: "task",
+              taskId: taskItem.id || createId(),
+              parentId: taskItem.parentId || "",
+              title: taskItem.title || "",
+              content: taskItem.content || "",
+              endTime: taskItem.dueDate || "",
+              finished: Boolean(taskItem.done || taskItem.status === "done"),
+              currentDay: Boolean(taskItem.currentDay),
+              dailyTask: Boolean(taskItem.dailyTask),
+              status: taskItem.status || (taskItem.done ? "done" : "todo"),
+              priority: taskItem.priority || "medium",
+              importance: taskItem.importance || "normal",
+              urgency: taskItem.urgency || "normal",
+              progress: Number(taskItem.progress) || 0,
+              deletedAt: taskItem.deletedAt || "",
+            })),
+          }),
+          createDate: item.androidCreateDate || item.updatedAt || today(),
+        };
+      }
+      return {
+        recordId: item.androidRecordId || String(item.androidOrderId || ""),
+        orderId,
+        catalogue: item.androidCatalogue || "default",
+        remarks: item.title || "桌面笔记",
+        content: richTextStorageFromNote(item),
+        createDate: item.androidCreateDate || item.updatedAt || today(),
+      };
+    }
+
+    function androidResearchNodeFromDesktop(topic, node) {
+      const hasPosition = shouldSendMapPosition(node);
+      const relative = hasPosition ? relativePositionForNode(topic, node) : { x: 0, y: 0 };
+      return {
+        id: node.id || createId(),
+        type: node.type || "note",
+        title: node.title || "",
+        content: node.content || "",
+        links: Array.isArray(node.links) ? node.links : [],
+        relatedNodeIds: Array.isArray(node.relatedNodeIds) ? node.relatedNodeIds : [],
+        mapPositioned: hasPosition,
+        mapX: Number(node.mapX) || 0,
+        mapY: Number(node.mapY) || 0,
+        mapRelativePositioned: hasPosition,
+        mapRelativeX: relative.x,
+        mapRelativeY: relative.y,
+      };
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("open");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("open"), 2600);
+    }
+
+    function chooseDataFormat(config) {
+      const modal = document.getElementById("formatModal");
+      const title = document.getElementById("formatModalTitle");
+      const desc = document.getElementById("formatModalDesc");
+      const options = document.getElementById("formatModalOptions");
+      title.textContent = config.title || "选择格式";
+      desc.textContent = config.desc || "";
+      options.innerHTML = "";
+      modal.classList.add("open");
+      return new Promise((resolve) => {
+        const close = (value) => {
+          modal.classList.remove("open");
+          document.getElementById("formatModalCancel").onclick = null;
+          modal.onclick = null;
+          resolve(value);
+        };
+        (config.options || []).forEach((option) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "format-option";
+          button.innerHTML = `
+            <span class="format-option-icon">${option.icon || "J"}</span>
+            <span>
+              <span class="format-option-title">${option.title}</span>
+              <span class="format-option-desc">${option.desc || ""}</span>
+            </span>
+          `;
+          button.onclick = () => close(option.value);
+          options.appendChild(button);
+        });
+        document.getElementById("formatModalCancel").onclick = () => close(null);
+        modal.onclick = (event) => {
+          if (event.target === modal) close(null);
+        };
+      });
+    }
+
+    async function chooseExportBackup() {
+      closeDataMenu();
+      const format = await chooseDataFormat({
+        title: "导出备份",
+        desc: "备份给电脑端自己恢复使用。明文方便查看，加密适合保存到网盘或移动硬盘。",
+        options: [
+          { value: "plain", icon: "J", title: "明文 JSON", desc: "最方便检查和迁移，文件内容可直接打开。" },
+          { value: "encrypted", icon: "锁", title: "加密 .sphykey", desc: "需要密码恢复，不会把密码保存进项目。" },
+        ],
+      });
+      if (format === "plain") exportData();
+      if (format === "encrypted") await exportEncryptedData("desktop");
+    }
+
+    async function chooseImportBackup() {
+      closeDataMenu();
+      const format = await chooseDataFormat({
+        title: "导入备份",
+        desc: "用于恢复电脑端备份，也能自动识别安卓明文 JSON。",
+        options: [
+          { value: "plain", icon: "J", title: "明文 JSON", desc: "导入桌面备份或安卓明文 JSON。" },
+          { value: "encrypted", icon: "锁", title: "加密 .sphykey", desc: "导入之前用密码加密过的备份。" },
+        ],
+      });
+      if (!format) return;
+      importMode = format === "encrypted" ? "prototypeEncrypted" : "prototype";
+      document.getElementById("importFile").click();
+    }
+
+    async function chooseExportAndroid() {
+      closeDataMenu();
+      const format = await chooseDataFormat({
+        title: "导出到安卓",
+        desc: "导出成安卓端能读取的备份格式。",
+        options: [
+          { value: "plain", icon: "J", title: "安卓明文 JSON", desc: "方便调试，也可以直接查看内容。" },
+          { value: "encrypted", icon: "锁", title: "安卓加密 .sphykey", desc: "和安卓加密备份兼容，需要输入密码。" },
+        ],
+      });
+      if (format === "plain") exportAndroidPlainData();
+      if (format === "encrypted") await exportEncryptedData("android");
+    }
+
+    async function chooseImportAndroid() {
+      closeDataMenu();
+      const format = await chooseDataFormat({
+        title: "从安卓导入",
+        desc: "读取安卓端导出的明文或加密备份，并合并进电脑端列表。",
+        options: [
+          { value: "plain", icon: "J", title: "安卓明文 JSON", desc: "导入安卓导出的 JSON 数据。" },
+          { value: "encrypted", icon: "锁", title: "安卓加密 .sphykey", desc: "输入密码后解密导入。" },
+        ],
+      });
+      if (!format) return;
+      importMode = format === "encrypted" ? "androidEncrypted" : "androidPlain";
+      document.getElementById("importFile").click();
+    }
+
     function safeParseJson(value) {
       try {
         return JSON.parse(value || "");
       } catch (error) {
         return null;
       }
+    }
+
+    function parseRichTextContent(value) {
+      const text = String(value || "");
+      const data = safeParseJson(text);
+      if (data && (data.dataType === "richText" || "html" in data)) {
+        const html = String(data.html || "");
+        const plainText = String(data.plainText || htmlToPlainText(html));
+        return {
+          plainText,
+          html: html || escapeHtml(plainText).replace(/\n/g, "<br>"),
+        };
+      }
+      return {
+        plainText: text,
+        html: escapeHtml(text).replace(/\n/g, "<br>"),
+      };
+    }
+
+    function isRichTextContentStorage(value) {
+      const data = safeParseJson(value);
+      return Boolean(data && (data.dataType === "richText" || "html" in data));
+    }
+
+    function richTextStorageFromNote(item) {
+      const plainText = item.content || htmlToPlainText(item.contentHtml || "");
+      const html = item.contentHtml || escapeHtml(plainText).replace(/\n/g, "<br>");
+      if (!html || html === escapeHtml(plainText).replace(/\n/g, "<br>")) {
+        return plainText;
+      }
+      return JSON.stringify({
+        dataType: "richText",
+        plainText,
+        html,
+      });
+    }
+
+    function htmlToPlainText(html) {
+      const div = document.createElement("div");
+      div.innerHTML = html || "";
+      return div.textContent || div.innerText || "";
     }
 
     function firstLine(value, fallback) {
@@ -2224,10 +4380,49 @@
     if (localStorage.getItem(sidebarCollapsedKey) === "1") {
       appElement.classList.add("sidebar-collapsed");
     }
+    const savedListWidth = Number(localStorage.getItem(listPaneWidthKey) || 260);
+    appElement.style.setProperty("--list-pane-width", `${clamp(savedListWidth, 180, 520)}px`);
+    if (localStorage.getItem(listPaneCollapsedKey) === "1") {
+      appElement.classList.add("list-collapsed");
+    }
     document.getElementById("sidebarToggle").onclick = () => {
       appElement.classList.toggle("sidebar-collapsed");
       localStorage.setItem(sidebarCollapsedKey, appElement.classList.contains("sidebar-collapsed") ? "1" : "0");
     };
+    document.getElementById("listPaneToggle").onclick = () => {
+      appElement.classList.toggle("list-collapsed");
+      localStorage.setItem(listPaneCollapsedKey, appElement.classList.contains("list-collapsed") ? "1" : "0");
+    };
+    document.getElementById("listPaneResizer").onmousedown = (event) => {
+      event.preventDefault();
+      appElement.classList.remove("list-collapsed");
+      localStorage.setItem(listPaneCollapsedKey, "0");
+      const startX = event.clientX;
+      const currentWidth = Number.parseInt(getComputedStyle(appElement).getPropertyValue("--list-pane-width"), 10) || 260;
+      const onMove = (moveEvent) => {
+        const nextWidth = clamp(currentWidth + moveEvent.clientX - startX, 180, 520);
+        appElement.style.setProperty("--list-pane-width", `${nextWidth}px`);
+        localStorage.setItem(listPaneWidthKey, String(nextWidth));
+      };
+      const onUp = () => {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      };
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    };
+
+    const phonePanel = document.getElementById("phonePanel");
+    document.getElementById("phoneLinkButton").onclick = () => {
+      phonePanel.classList.toggle("open");
+      refreshPhoneLinkStatus(true);
+    };
+    document.getElementById("closePhonePanelButton").onclick = () => {
+      phonePanel.classList.remove("open");
+    };
+    document.getElementById("refreshPhoneLinkButton").onclick = () => refreshPhoneLinkStatus(true);
+    document.getElementById("sendClipboardButton").onclick = sendClipboardToPhone;
+    document.getElementById("sendFileButton").onclick = sendFileToPhone;
 
     const dataMenuWrap = document.getElementById("dataMenuWrap");
     function closeDataMenu() {
@@ -2239,6 +4434,9 @@
     };
     document.addEventListener("click", (event) => {
       if (!dataMenuWrap.contains(event.target)) closeDataMenu();
+      if (!phonePanel.contains(event.target) && event.target.id !== "phoneLinkButton") {
+        phonePanel.classList.remove("open");
+      }
       if (!event.target.closest(".context-menu")) hideContextMenu();
     });
 
@@ -2248,32 +4446,20 @@
       collectCurrentForm();
       render();
     };
-    document.getElementById("deleteRecordButton").onclick = deleteCurrentRecord;
-    document.getElementById("resetButton").onclick = () => {
-      if (!confirm("恢复示例会覆盖原型本地数据，确定吗？")) return;
-      state = sampleState();
-      selectedId = state[currentType][0]?.id || null;
+    document.getElementById("exportBackupButton").onclick = chooseExportBackup;
+    document.getElementById("importBackupButton").onclick = chooseImportBackup;
+    document.getElementById("exportAndroidButton").onclick = chooseExportAndroid;
+    document.getElementById("importAndroidButton").onclick = chooseImportAndroid;
+    document.getElementById("clearAllDataButton").onclick = () => {
+      closeDataMenu();
+      if (!confirm("确定清空桌面端所有本地数据吗？建议先导出备份。")) return;
+      if (prompt("输入“清空”确认这个操作。") !== "清空") return;
+      state = normalizeState({ notes: [], todos: [], research: [] });
+      selectedId = null;
       selectedNodeId = null;
       saveState();
       render();
-    };
-    document.getElementById("exportButton").onclick = () => {
-      closeDataMenu();
-      exportData();
-    };
-    document.getElementById("importPrototypeButton").onclick = () => {
-      closeDataMenu();
-      importMode = "prototype";
-      document.getElementById("importFile").click();
-    };
-    document.getElementById("importAndroidButton").onclick = () => {
-      closeDataMenu();
-      importMode = "androidPlain";
-      document.getElementById("importFile").click();
-    };
-    document.getElementById("encryptedImportButton").onclick = () => {
-      closeDataMenu();
-      alert("安卓加密文件不会在这个浏览器原型里解密。后续 Tauri 版会在 Rust 后端实现兼容解密，密码只由用户输入，不会写进代码或文档。");
+      showToast("已清空所有桌面端本地数据");
     };
     document.getElementById("importFile").onchange = (event) => {
       const file = event.target.files?.[0];
@@ -2284,6 +4470,13 @@
     document.addEventListener("keydown", (event) => {
       const tag = event.target.tagName;
       const isEditingText = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+      if (currentType === "research" && event.key === "Escape" && isEditingText) {
+        event.preventDefault();
+        event.target.blur();
+        document.getElementById("mapCanvas")?.focus();
+        drawMapOnly(currentItem());
+        return;
+      }
       if (isEditingText || currentType !== "research") return;
       const topic = currentItem();
       if (!topic) return;
@@ -2326,7 +4519,11 @@
       }
     });
 
-    saveState();
+    initializeDesktopDatabase();
+    refreshPhoneLinkStatus(false);
+    setInterval(() => refreshPhoneLinkStatus(false), 4000);
+    setInterval(pollPhoneLinkEvents, 1200);
+    setInterval(() => checkTodoReminders(false), 10 * 60 * 1000);
     render();
   </script>
 </body>

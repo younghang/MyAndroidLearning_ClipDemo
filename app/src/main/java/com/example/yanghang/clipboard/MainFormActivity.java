@@ -3,6 +3,7 @@ package com.example.yanghang.clipboard;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -49,6 +50,7 @@ import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
+import com.example.yanghang.clipboard.ConnectToPC.PcLinkManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
@@ -79,6 +81,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
     private static final String DONT_ASK_AGAIN = "dont_ask_again";
     public static final int REQUEST_TEXT_EDITE_BACK = 0;
+    private static final int REQUEST_PC_LINK_FILE = 20310;
     public static final String LIST_DATA = "listdataToEdite";
     public static final String LIST_DATA_POS = "listdataToEditePos";
     private static final int MSG_FINISH_SORTING_DATA = 123;
@@ -112,6 +115,12 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     private List<DailyTaskData> dailyList;
     private ListData todayMissionList;
     private View popPositionTagView;
+    private FloatingActionButton pcFloatingButton;
+    private boolean isPcLinkMode;
+    private PcLinkManager pcLinkManager;
+    private ClipboardManager pcClipboardManager;
+    private ClipboardManager.OnPrimaryClipChangedListener pcClipboardListener;
+    private boolean isApplyingClipboardFromPc;
     Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -236,8 +245,215 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         }
     }
 
+    private void updatePcFloatingButton(boolean pcLinkMode) {
+        isPcLinkMode = pcLinkMode;
+        if (pcFloatingButton == null) {
+            return;
+        }
+        if (isPcLinkMode) {
+            pcFloatingButton.setImageResource(R.drawable.ic_pc_link_white_24dp);
+            pcFloatingButton.setRotation(0);
+            return;
+        }
+        pcFloatingButton.setImageResource(android.R.drawable.ic_menu_send);
+        pcFloatingButton.setRotation(-90);
+    }
+
+    private void initialPcLink() {
+        pcLinkManager = PcLinkManager.getInstance(getApplicationContext());
+        pcLinkManager.setListener(new PcLinkManager.Listener() {
+            @Override
+            public void onStateChanged(final int state, final String message, final String pcName) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updatePcFloatingButton(state != PcLinkManager.STATE_DISCONNECTED);
+                        if (message != null && !message.trim().equals("")) {
+                            Toast.makeText(MainFormActivity.this, message, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+
+            @Override
+            public void onClipboardFromPc(final String text) {
+                if (text == null) {
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        isApplyingClipboardFromPc = true;
+                        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        clipboardManager.setPrimaryClip(ClipData.newPlainText("PC", text));
+                        isApplyingClipboardFromPc = false;
+                        Toast.makeText(MainFormActivity.this, "电脑剪贴板已同步到手机", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onMessageFromPc(final String text) {
+                if (text == null) {
+                    return;
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        clipboardManager.setPrimaryClip(ClipData.newPlainText("PC", text));
+                        Toast.makeText(MainFormActivity.this, "电脑消息已复制到手机剪贴板", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onRecordUpdateFromPc(final ListData data) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshLayout.setRefreshing(true);
+                    }
+                });
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final boolean updated = dbListInfoManager.updateDataByOrderId(data.getOrderID(),
+                                data.getCatalogue(), data.getRemarks(), data.getContent(), data.getCreateDate());
+                        if (pcLinkManager != null) {
+                            pcLinkManager.sendRecordUpdateAck(data.getOrderID(), updated);
+                        }
+                        final List<ListData> nextDatas = dbListInfoManager.getDatas(currentCatalogue);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshLayout.setRefreshing(false);
+                                listDatas = nextDatas;
+                                listClipInfoAdapter.setDatas(listDatas);
+                                Toast.makeText(MainFormActivity.this,
+                                        updated ? "电脑修改已更新到手机记录：" + data.getOrderID() : "电脑回传失败，未找到记录：" + data.getOrderID(),
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onRecordInsertFromPc(final ListData data) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshLayout.setRefreshing(true);
+                    }
+                });
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        final int orderId = dbListInfoManager.getDataCount();
+                        data.setOrderID(orderId);
+                        final boolean inserted = dbListInfoManager.insertData(data) != -1;
+                        if (pcLinkManager != null) {
+                            pcLinkManager.sendRecordInsertAck(orderId, inserted);
+                        }
+                        final List<ListData> nextDatas = dbListInfoManager.getDatas(currentCatalogue);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                refreshLayout.setRefreshing(false);
+                                listDatas = nextDatas;
+                                listClipInfoAdapter.setDatas(listDatas);
+                                Toast.makeText(MainFormActivity.this,
+                                        inserted ? "电脑记录已新增到手机：" + orderId : "电脑记录新增失败",
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                }).start();
+            }
+
+            @Override
+            public void onFileFromPc(final String filePath) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainFormActivity.this, "电脑文件已保存：" + filePath, Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+        });
+        setupPcClipboardSync();
+    }
+
+    private void setupPcClipboardSync() {
+        pcClipboardManager = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        pcClipboardListener = new ClipboardManager.OnPrimaryClipChangedListener() {
+            @Override
+            public void onPrimaryClipChanged() {
+                if (isApplyingClipboardFromPc || pcLinkManager == null || !pcLinkManager.isConnected()) {
+                    return;
+                }
+                String text = getClipboardText();
+                if (text == null || text.trim().equals("")) {
+                    return;
+                }
+                pcLinkManager.sendClipboard(text);
+            }
+        };
+        pcClipboardManager.addPrimaryClipChangedListener(pcClipboardListener);
+    }
+
+    private String getClipboardText() {
+        try {
+            ClipData clipData = pcClipboardManager.getPrimaryClip();
+            if (clipData == null || clipData.getItemCount() == 0) {
+                return "";
+            }
+            CharSequence text = clipData.getItemAt(0).coerceToText(this);
+            return text == null ? "" : text.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private void openPcLinkFilePicker() {
+        if (pcLinkManager == null || !pcLinkManager.isConnected()) {
+            Toast.makeText(MainFormActivity.this, "请先连接电脑", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.setType("*/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivityForResult(intent, REQUEST_PC_LINK_FILE);
+    }
+
+    private void showPcLinkMenu(View anchor) {
+        PopupMenu popupMenu = new PopupMenu(MainFormActivity.this, anchor);
+        popupMenu.getMenu().add("发送文件到电脑");
+        popupMenu.getMenu().add("断开电脑连接");
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                String title = item.getTitle().toString();
+                if ("发送文件到电脑".equals(title)) {
+                    openPcLinkFilePicker();
+                    return true;
+                }
+                if ("断开电脑连接".equals(title) && pcLinkManager != null) {
+                    pcLinkManager.disconnect();
+                    return true;
+                }
+                return false;
+            }
+        });
+        popupMenu.show();
+    }
+
     private void InitialView() {
         dbListInfoManager = new DBListInfoManager(MainFormActivity.this.getApplicationContext());
+        initialPcLink();
 //        helper = new DaoMaster.DevOpenHelper(MainFormActivity.this, "user-db", null);
 //        db = helper.getWritableDatabase();
 //        master = new DaoMaster(db);
@@ -276,14 +492,36 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
 //不是兼容包
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        pcFloatingButton = (FloatingActionButton) findViewById(R.id.fab);
+        updatePcFloatingButton(false);
+        pcFloatingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (pcLinkManager != null && pcLinkManager.isConnected()) {
+                    showPcLinkMenu(view);
+                    return;
+                }
+                if (pcLinkManager != null && pcLinkManager.isDiscovering()) {
+                    pcLinkManager.disconnect();
+                    return;
+                }
                 Intent intent = new Intent(MainFormActivity.this, ActivityConnect.class);
                 startActivity(intent);
-
-
+            }
+        });
+        pcFloatingButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                if (pcLinkManager != null) {
+                    if (pcLinkManager.isConnected()) {
+                        openPcLinkFilePicker();
+                    } else if (pcLinkManager.isDiscovering()) {
+                        Toast.makeText(MainFormActivity.this, "正在发现电脑", Toast.LENGTH_SHORT).show();
+                    } else {
+                        pcLinkManager.discoverAndConnect();
+                    }
+                }
+                return true;
             }
         });
 
@@ -551,6 +789,26 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
+            case REQUEST_PC_LINK_FILE:
+                if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+                    final Uri fileUri = data.getData();
+                    Toast.makeText(MainFormActivity.this, "正在发送文件到电脑", Toast.LENGTH_SHORT).show();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            final boolean success = pcLinkManager != null && pcLinkManager.sendFile(fileUri);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainFormActivity.this,
+                                            success ? "文件已发送到电脑" : "文件发送失败，请确认电脑连接正常",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }).start();
+                }
+                return;
             case REQUEST_TEXT_EDITE_BACK:
                 if (resultCode == RESULT_OK) {
                     ListData listData = (ListData) data.getExtras().get(LIST_DATA);
@@ -827,6 +1085,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (pcClipboardManager != null && pcClipboardListener != null) {
+            pcClipboardManager.removePrimaryClipChangedListener(pcClipboardListener);
+        }
         saveCatalogueToInternal();
     }
 
@@ -952,6 +1213,34 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
 
             }
         }).setDuration(BaseTransientBottomBar.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onSendPcBtnClick(View view, int position) {
+        if (listClipInfoAdapter != null) {
+            listClipInfoAdapter.closeMenu();
+        }
+        if (pcLinkManager == null || !pcLinkManager.isConnected()) {
+            Toast.makeText(MainFormActivity.this, "请先长按右下角按钮连接电脑", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final ListData data = listClipInfoAdapter.getItemData(position);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                final boolean success = pcLinkManager.sendRecord(data);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (success) {
+                            Toast.makeText(MainFormActivity.this, "已发送到电脑：" + data.getOrderID(), Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainFormActivity.this, "发送失败，请重新连接电脑", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 
     private boolean softDeleteTodoIfNeeded(final int pos, final ListData oldData) {

@@ -7,7 +7,7 @@ It is intentionally not connected to the old Android Gradle project. Do not add 
 
 ## Current Runnable Prototype
 
-The current prototype has no build step and can run directly in a browser:
+The prototype can still run directly in a browser:
 
 ```text
 desktop/prototype/index.html
@@ -61,6 +61,74 @@ Import:
 - Encrypted Android import is intentionally disabled in the browser prototype.
 
 This lets the product shape evolve before the full Tauri shell is introduced.
+
+## Electron Desktop Shell
+
+The current packaged desktop app uses Electron because it can reuse the existing
+Node bridge for LAN discovery, clipboard sync, record sync, and file transfer.
+
+Development run:
+
+```powershell
+cd desktop
+npm install
+npm start
+```
+
+Windows portable build:
+
+```powershell
+cd desktop
+npm run dist
+```
+
+Or double-click:
+
+```text
+desktop/build-electron.bat
+```
+
+Build output:
+
+```text
+desktop/dist/Clipboard Desktop 1.1.0.exe
+desktop/dist/win-unpacked/Clipboard Desktop.exe
+```
+
+macOS unsigned build:
+
+```bash
+cd desktop
+npm install
+npm run dist:mac
+```
+
+Or run:
+
+```bash
+chmod +x build-mac.sh
+./build-mac.sh
+```
+
+The macOS build should be run on a Mac. The current config creates unsigned
+`.dmg` and `.zip` packages for local use; publishing to other machines later
+should add Apple Developer signing and notarization.
+
+The packaged app stores files received from the phone under:
+
+```text
+Documents/ClipboardDesktop/received
+```
+
+The packaged app stores note, todo, and research-topic data in:
+
+```text
+Documents/ClipboardDesktop/clipboard-data.json
+```
+
+When the bridge is not running, the prototype still falls back to browser
+`localStorage`. When the bridge starts for the first time and no JSON data file
+exists yet, it migrates the current `localStorage` data into `clipboard-data.json`.
 
 ## Planned Stack
 

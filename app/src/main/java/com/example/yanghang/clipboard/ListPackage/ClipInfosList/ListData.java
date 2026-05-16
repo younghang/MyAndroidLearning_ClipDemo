@@ -7,6 +7,7 @@ import com.example.yanghang.clipboard.ActivityAccountBook;
 import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.JsonData.AssetData;
 import com.example.yanghang.clipboard.Fragment.JsonData.DiaryData;
+import com.example.yanghang.clipboard.Fragment.JsonData.RichTextData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
@@ -181,6 +182,9 @@ public class ListData implements Serializable {
                         break;
 
                 }
+                break;
+            default:
+                strMessage = RichTextData.toPlainText(Content);
                 break;
 
         }

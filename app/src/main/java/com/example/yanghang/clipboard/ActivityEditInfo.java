@@ -174,7 +174,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
                     listData.setCatalogue(catalogueName);
                 }
 
-                fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
+                fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit, true);
                 notShowSpinner=false;
                 break;
 

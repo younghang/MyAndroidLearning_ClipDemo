@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:theme="@style/AppTheme.AppBarOverlay"
     tools:context="com.example.yanghang.clipboard.ActivityEditInfo">
 
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/edit_coordinator"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:theme="@style/AppTheme.AppBarOverlay">
 
     <com.google.android.material.appbar.AppBarLayout
 
@@ -71,11 +75,111 @@
     <FrameLayout
         android:id="@+id/mainFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
 
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <HorizontalScrollView
+        android:id="@+id/rich_text_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FAFBFE"
+        android:clickable="true"
+        android:elevation="8dp"
+        android:fillViewport="false"
+        android:focusable="true"
+        android:overScrollMode="never"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="7dp"
+            android:paddingTop="7dp">
+
+            <TextView
+                android:id="@+id/rich_bold"
+                android:layout_width="42dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="B"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/rich_italic"
+                android:layout_width="42dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="I"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/rich_title"
+                android:layout_width="42dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="H"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/rich_quote"
+                android:layout_width="42dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="❝"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/rich_bullet"
+                android:layout_width="42dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="•"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="22sp" />
+
+            <TextView
+                android:id="@+id/rich_clear_line"
+                android:layout_width="50dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="Tx"
+                android:textColor="#6F7684"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/rich_clear"
+                android:layout_width="50dp"
+                android:layout_height="34dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:gravity="center"
+                android:text="T-"
+                android:textColor="#6F7684"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+
+</FrameLayout>
 
 

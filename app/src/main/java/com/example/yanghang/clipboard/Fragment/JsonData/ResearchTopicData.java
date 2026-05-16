@@ -370,6 +370,9 @@ public class ResearchTopicData {
         private boolean mapPositioned;
         private float mapX;
         private float mapY;
+        private boolean mapRelativePositioned;
+        private float mapRelativeX;
+        private float mapRelativeY;
         private List<String> links;
         private List<String> relatedNodeIds;
 
@@ -383,6 +386,22 @@ public class ResearchTopicData {
             setContent(getContent());
             getLinks();
             getRelatedNodeIds();
+            for (int i = links.size() - 1; i >= 0; i--) {
+                String link = links.get(i);
+                if (link == null || link.trim().equals("")) {
+                    links.remove(i);
+                } else {
+                    links.set(i, link.trim());
+                }
+            }
+            for (int i = relatedNodeIds.size() - 1; i >= 0; i--) {
+                String relatedId = relatedNodeIds.get(i);
+                if (relatedId == null || relatedId.trim().equals("") || relatedId.trim().equals(id)) {
+                    relatedNodeIds.remove(i);
+                } else {
+                    relatedNodeIds.set(i, relatedId.trim());
+                }
+            }
         }
 
         public String getId() {
@@ -451,6 +470,30 @@ public class ResearchTopicData {
 
         public void setMapY(float mapY) {
             this.mapY = mapY;
+        }
+
+        public boolean isMapRelativePositioned() {
+            return mapRelativePositioned;
+        }
+
+        public void setMapRelativePositioned(boolean mapRelativePositioned) {
+            this.mapRelativePositioned = mapRelativePositioned;
+        }
+
+        public float getMapRelativeX() {
+            return mapRelativeX;
+        }
+
+        public void setMapRelativeX(float mapRelativeX) {
+            this.mapRelativeX = mapRelativeX;
+        }
+
+        public float getMapRelativeY() {
+            return mapRelativeY;
+        }
+
+        public void setMapRelativeY(float mapRelativeY) {
+            this.mapRelativeY = mapRelativeY;
         }
 
         public List<String> getLinks() {

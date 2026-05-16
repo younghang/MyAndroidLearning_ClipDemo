@@ -10,18 +10,36 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_marginTop="8dp"
-            android:id="@+id/tv_delete"
-            android:layout_width="100dp"
-            android:minHeight="80dp"
+        <LinearLayout
+            android:id="@+id/layout_clip_menu"
+            android:layout_width="180dp"
             android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
             android:layout_toRightOf="@+id/item_clip_layout_main_content"
-            android:background="@color/red"
-            android:gravity="center"
-            android:text="删 除"
-            android:textSize="18sp"
-            android:textColor="#DDFFFFFF" />
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_send_pc"
+                android:layout_width="90dp"
+                android:layout_height="match_parent"
+                android:minHeight="80dp"
+                android:background="#3F51B5"
+                android:gravity="center"
+                android:text="发 送"
+                android:textColor="#DDFFFFFF"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tv_delete"
+                android:layout_width="90dp"
+                android:layout_height="match_parent"
+                android:minHeight="80dp"
+                android:background="@color/red"
+                android:gravity="center"
+                android:text="删 除"
+                android:textColor="#DDFFFFFF"
+                android:textSize="18sp" />
+        </LinearLayout>
     <RelativeLayout
         android:id="@+id/item_clip_layout_main_content"
         android:layout_width="match_parent"

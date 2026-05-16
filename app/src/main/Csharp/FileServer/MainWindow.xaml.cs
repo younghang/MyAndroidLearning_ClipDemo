@@ -27,12 +27,29 @@ namespace FileServer
         {
             InitializeComponent();
 
+            StartLanLinkServer();
             serverThread = new Thread(new ThreadStart(RunServer));
             serverThread.Start();
 
         }
         Thread serverThread;
         Server server = null;
+        LanLinkServer lanLinkServer = null;
+        private void StartLanLinkServer()
+        {
+            try
+            {
+                INetFwManger.NetFwAddPorts("clipboardLanLinkTcp", LanLinkServer.TcpPort, "TCP");
+                INetFwManger.NetFwAddPorts("clipboardLanLinkUdp", LanLinkServer.UdpPort, "UDP");
+            }
+            catch (Exception e)
+            {
+                SetString("添加局域网连接防火墙规则失败：" + e.Message);
+            }
+            lanLinkServer = new LanLinkServer();
+            lanLinkServer.UpdateMessage += SetString;
+            lanLinkServer.Start();
+        }
         public void RunServer()
         {
             //setPortFireWall("20300", "fileServer");
@@ -78,6 +95,10 @@ namespace FileServer
             System.Environment.Exit(0);
             try
             {
+                if (lanLinkServer != null)
+                {
+                    lanLinkServer.Close();
+                }
                 serverThread.Abort();
                 server.Close();
             }

@@ -164,6 +164,9 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
             node.setMapPositioned(false);
             node.setMapX(0);
             node.setMapY(0);
+            node.setMapRelativePositioned(false);
+            node.setMapRelativeX(0);
+            node.setMapRelativeY(0);
         }
     }
 

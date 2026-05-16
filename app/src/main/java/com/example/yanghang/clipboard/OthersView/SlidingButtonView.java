@@ -6,8 +6,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.HorizontalScrollView;
-import android.widget.TextView;
-
 import com.example.yanghang.clipboard.R;
 
 /**
@@ -16,7 +14,7 @@ import com.example.yanghang.clipboard.R;
 //这个是之前想滑动item出现delete按钮的例子
 public class SlidingButtonView extends HorizontalScrollView {
 
-    private TextView mTextView_Delete;
+    private View mMenuView;
 
     private int mScrollWidth;
 
@@ -45,7 +43,10 @@ public class SlidingButtonView extends HorizontalScrollView {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         if(!once){
-            mTextView_Delete = (TextView) findViewById(R.id.tv_delete);
+            mMenuView = findViewById(R.id.layout_clip_menu);
+            if (mMenuView == null) {
+                mMenuView = findViewById(R.id.tv_delete);
+            }
             once = true;
         }
 
@@ -57,7 +58,7 @@ public class SlidingButtonView extends HorizontalScrollView {
         if(changed){
             this.scrollTo(0,0);
             //获取水平滚动条可以滑动的范围，即右侧按钮的宽度
-            mScrollWidth = mTextView_Delete.getWidth();
+            mScrollWidth = mMenuView == null ? 0 : mMenuView.getWidth();
 //            Log.i("asd", "mScrollWidth:" + mScrollWidth);
         }
 
@@ -85,7 +86,9 @@ public class SlidingButtonView extends HorizontalScrollView {
     @Override
     protected void onScrollChanged(int l, int t, int oldl, int oldt) {
         super.onScrollChanged(l, t, oldl, oldt);
-        mTextView_Delete.setTranslationX(l - mScrollWidth);
+        if (mMenuView != null) {
+            mMenuView.setTranslationX(l - mScrollWidth);
+        }
     }
 
     /**

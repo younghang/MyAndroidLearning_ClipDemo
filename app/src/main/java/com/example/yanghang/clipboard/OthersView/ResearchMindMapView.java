@@ -311,6 +311,11 @@ public class ResearchMindMapView extends View {
         pressedNodeBox.node.setMapPositioned(true);
         pressedNodeBox.node.setMapX(left);
         pressedNodeBox.node.setMapY(top);
+        if (rootBox != null && rootBox.rect.width() > 0 && rootBox.rect.height() > 0) {
+            pressedNodeBox.node.setMapRelativePositioned(true);
+            pressedNodeBox.node.setMapRelativeX((left - rootBox.rect.left) / rootBox.rect.width());
+            pressedNodeBox.node.setMapRelativeY((top - rootBox.rect.top) / rootBox.rect.height());
+        }
         updateMapBounds();
         invalidate();
     }
@@ -429,7 +434,11 @@ public class ResearchMindMapView extends View {
             for (int i = 0; i < column.size(); i++) {
                 NodeBox box = column.get(i);
                 box.rect.set(x, y, x + nodeWidth, y + nodeHeight);
-                if (box.node.isMapPositioned()) {
+                if (box.node.isMapRelativePositioned()) {
+                    float left = rootBox.rect.left + box.node.getMapRelativeX() * rootBox.rect.width();
+                    float top = rootBox.rect.top + box.node.getMapRelativeY() * rootBox.rect.height();
+                    box.rect.offsetTo(left, top);
+                } else if (box.node.isMapPositioned()) {
                     box.rect.offsetTo(box.node.getMapX(), box.node.getMapY());
                 } else {
                     moveBoxToOpenSlot(box, placedBoxes, rowGap);
@@ -538,7 +547,7 @@ public class ResearchMindMapView extends View {
                 hasVisibleRelated = true;
                 drawCurve(canvas, from.rect.right, from.rect.centerY(), to.rect.left, to.rect.centerY(), from.color);
             }
-            if (!hasVisibleRelated) {
+            if (i == 0 || !hasVisibleRelated) {
                 drawCurve(canvas, rootBox.rect.right, rootBox.rect.centerY(), to.rect.left, to.rect.centerY(), to.color);
             }
         }
