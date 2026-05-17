@@ -43,6 +43,13 @@ function prepareStorageDirs() {
 }
 
 function executableBaseDir() {
+  // electron-builder portable runs from a temp unpack dir; these point to the outer exe.
+  if (app.isPackaged && process.env.PORTABLE_EXECUTABLE_DIR) {
+    return process.env.PORTABLE_EXECUTABLE_DIR;
+  }
+  if (app.isPackaged && process.env.PORTABLE_EXECUTABLE_FILE) {
+    return path.dirname(process.env.PORTABLE_EXECUTABLE_FILE);
+  }
   if (app.isPackaged) {
     return path.dirname(app.getPath("exe"));
   }
