@@ -98,7 +98,6 @@ public class ResearchMindMapView extends View {
         gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {
-                cancelZoomAnimation();
                 longPressHandled = false;
                 return true;
             }
@@ -109,6 +108,7 @@ public class ResearchMindMapView extends View {
                     return true;
                 }
                 if (!scaleGestureDetector.isInProgress()) {
+                    cancelZoomAnimation();
                     offsetX -= distanceX;
                     offsetY -= distanceY;
                     invalidate();
@@ -117,7 +117,7 @@ public class ResearchMindMapView extends View {
             }
 
             @Override
-            public boolean onSingleTapUp(MotionEvent e) {
+            public boolean onSingleTapConfirmed(MotionEvent e) {
                 if (longPressHandled) {
                     return true;
                 }
@@ -143,9 +143,6 @@ public class ResearchMindMapView extends View {
 
             @Override
             public boolean onDoubleTap(MotionEvent e) {
-                if (findNodeAt(e.getX(), e.getY()) != null) {
-                    return true;
-                }
                 zoomBlankAreaAt(e.getX(), e.getY());
                 return true;
             }
@@ -162,6 +159,9 @@ public class ResearchMindMapView extends View {
                 return true;
             }
         });
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            scaleGestureDetector.setQuickScaleEnabled(false);
+        }
     }
 
     public void setTopicData(ResearchTopicData topicData) {
@@ -286,6 +286,7 @@ public class ResearchMindMapView extends View {
                     if (dx < dp(5) && dy < dp(5)) {
                         return false;
                     }
+                    cancelZoomAnimation();
                     nodeDragging = true;
                     longPressHandled = true;
                 }

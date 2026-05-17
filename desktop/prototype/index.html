@@ -1148,8 +1148,9 @@
 
     .todo-matrix-board {
       display: grid;
-      grid-template-columns: repeat(4, minmax(268px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(4, minmax(236px, 1fr));
+      align-items: start;
+      gap: 12px;
       overflow: auto;
       padding-bottom: 4px;
     }
@@ -1157,7 +1158,7 @@
     .todo-column {
       min-height: 340px;
       border-radius: 14px;
-      padding: 12px;
+      padding: 10px;
       border: 1px solid transparent;
     }
 
@@ -1214,24 +1215,61 @@
     .todo-task-card {
       background: #fff;
       border: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 12px;
-      margin-bottom: 10px;
-      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      margin-bottom: 11px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
       display: grid;
-      gap: 9px;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
+    }
+
+    .todo-task-card:hover {
+      border-color: #cbd7ef;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+      transform: translateY(-1px);
     }
 
     .todo-task-card.done {
       opacity: 0.62;
     }
 
+    .todo-card-top {
+      display: grid;
+      grid-template-columns: 20px 1fr auto;
+      align-items: start;
+      gap: 9px;
+      min-width: 0;
+    }
+
+    .todo-card-checkbox {
+      width: 16px;
+      height: 16px;
+      margin-top: 3px;
+    }
+
     .todo-task-title {
       border: 0;
       padding: 0;
+      min-width: 0;
+      color: var(--text);
       font-size: 15px;
       font-weight: 750;
+      line-height: 1.45;
       background: transparent;
+    }
+
+    .todo-row.todo-child-row .todo-title-main {
+      color: #667085;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .todo-row.todo-child-row .todo-subtitle,
+    .todo-row.todo-child-row .todo-note-preview {
+      color: #8a92a3;
+      font-size: 12px;
     }
 
     .todo-task-meta {
@@ -1241,6 +1279,49 @@
       flex-wrap: wrap;
       color: var(--muted);
       font-size: 12px;
+    }
+
+    .todo-card-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .todo-date-badge {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f7f8fb;
+      color: #596276;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .todo-card-note-preview {
+      color: #465061;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .todo-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .todo-mini-action {
+      border: 0;
+      background: transparent;
+      color: var(--primary);
+      padding: 3px 6px;
+      box-shadow: none;
     }
 
     .todo-parent-tag {
@@ -1299,6 +1380,209 @@
       color: var(--primary);
       text-align: left;
       padding: 10px 12px;
+    }
+
+    .todo-table.todo-table-modern {
+      min-width: 1040px;
+      table-layout: auto;
+    }
+
+    .todo-table-modern th:nth-child(1),
+    .todo-table-modern td:nth-child(1) {
+      width: 46px;
+    }
+
+    .todo-table-modern th:nth-child(2),
+    .todo-table-modern td:nth-child(2) {
+      min-width: 280px;
+      width: 34%;
+    }
+
+    .todo-table-modern th:nth-child(3),
+    .todo-table-modern td:nth-child(3),
+    .todo-table-modern th:nth-child(4),
+    .todo-table-modern td:nth-child(4),
+    .todo-table-modern th:nth-child(5),
+    .todo-table-modern td:nth-child(5),
+    .todo-table-modern th:nth-child(6),
+    .todo-table-modern td:nth-child(6) {
+      width: 82px;
+    }
+
+    .todo-table-modern th:nth-child(7),
+    .todo-table-modern td:nth-child(7) {
+      width: 130px;
+    }
+
+    .todo-table-modern th:nth-child(8),
+    .todo-table-modern td:nth-child(8) {
+      width: 118px;
+    }
+
+    .todo-table-modern th:nth-child(9),
+    .todo-table-modern td:nth-child(9) {
+      min-width: 240px;
+      width: 28%;
+    }
+
+    .todo-table-modern th:nth-child(10),
+    .todo-table-modern td:nth-child(10) {
+      width: 92px;
+    }
+
+    .todo-table-modern th:nth-child(11),
+    .todo-table-modern td:nth-child(11) {
+      width: 98px;
+    }
+
+    .todo-title-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding-left: calc(var(--todo-depth, 0) * 22px);
+    }
+
+    .todo-depth-mark {
+      width: 16px;
+      height: 18px;
+      flex: 0 0 16px;
+      border-left: 2px solid #dde4ee;
+      border-bottom: 2px solid #dde4ee;
+      border-radius: 0 0 0 6px;
+      opacity: calc(var(--todo-depth, 0) * 0.55);
+    }
+
+    .todo-title-main {
+      min-width: 0;
+      font-weight: 720;
+      line-height: 1.35;
+      cursor: pointer;
+    }
+
+    .todo-title-main:hover {
+      color: var(--primary);
+    }
+
+    .todo-subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .todo-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #f3f5f8;
+      color: #586174;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .todo-pill.status-doing {
+      color: #8b5a12;
+      background: #fff3d7;
+    }
+
+    .todo-pill.status-done {
+      color: #23724a;
+      background: #daf4e7;
+    }
+
+    .todo-pill.status-trash {
+      color: #7b8190;
+      background: #eef0f4;
+    }
+
+    .todo-pill.priority-high,
+    .todo-pill.level-high {
+      color: #8a2c28;
+      background: #ffe1df;
+    }
+
+    .todo-pill.priority-low {
+      color: #2f5c8a;
+      background: #dceeff;
+    }
+
+    .todo-note-preview {
+      color: #3f4654;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .todo-empty-note {
+      color: #a1a7b3;
+    }
+
+    .todo-action-row {
+      display: flex;
+      gap: 5px;
+      justify-content: flex-end;
+    }
+
+    .todo-action-row button {
+      min-width: 30px;
+      padding: 5px 7px;
+    }
+
+    .todo-task-dialog {
+      width: min(720px, 100%);
+    }
+
+    .todo-task-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 8px 18px 18px;
+    }
+
+    .todo-task-form label {
+      margin: 0;
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .todo-task-form label.full {
+      grid-column: 1 / -1;
+    }
+
+    .todo-task-form textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .todo-task-form .check-row {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 18px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .todo-task-form .check-row label {
+      display: inline-flex;
+      grid-template-columns: none;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      font-weight: 650;
     }
 
     .topic-layout {
@@ -1474,6 +1758,16 @@
       pointer-events: none;
     }
 
+    .map-selection-box {
+      position: absolute;
+      z-index: 8;
+      border: 1px solid rgba(47, 128, 237, 0.78);
+      border-radius: 8px;
+      background: rgba(47, 128, 237, 0.12);
+      pointer-events: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+    }
+
     .node {
       position: absolute;
       z-index: 2;
@@ -1526,6 +1820,19 @@
 
     .node.active {
       box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.18), 0 10px 24px rgba(36, 40, 50, 0.12);
+    }
+
+    .node.multi-selected {
+      box-shadow: 0 0 0 3px rgba(47, 128, 237, 0.2), 0 14px 34px rgba(36, 40, 50, 0.14);
+    }
+
+    .node.multi-selected::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border: 1px dashed rgba(47, 128, 237, 0.72);
+      border-radius: 10px;
+      pointer-events: none;
     }
 
     .node.expanded {
@@ -1717,6 +2024,20 @@
       </div>
     </div>
   </div>
+  <div id="todoTaskModal" class="modal-backdrop">
+    <div class="format-dialog todo-task-dialog">
+      <div class="format-dialog-header">
+        <div id="todoTaskModalTitle" class="format-dialog-title">编辑任务</div>
+        <div class="format-dialog-desc">任务字段会按安卓端待办事项结构保存，可同步回手机。</div>
+      </div>
+      <div id="todoTaskModalBody"></div>
+      <div class="format-dialog-footer">
+        <button id="todoTaskModalDelete" class="ghost">移入回收站</button>
+        <button id="todoTaskModalCancel" class="ghost">取消</button>
+        <button id="todoTaskModalSave" class="primary">保存</button>
+      </div>
+    </div>
+  </div>
   <div id="phonePanel" class="phone-panel">
     <div class="phone-panel-header">
       <div class="phone-panel-title">手机互传</div>
@@ -1833,6 +2154,7 @@
     let currentType = "research";
     let selectedId = state.research[0]?.id || null;
     let selectedNodeId = null;
+    let selectedNodeIds = new Set();
     let importMode = "prototype";
     let phoneLinkSeq = Number(localStorage.getItem(PHONE_LINK_SEQ_KEY) || 0);
     let phoneLinkStatus = { bridge: false, connected: false, device: null, ports: null };
@@ -2092,7 +2414,10 @@
       if (!list.some((item) => item.id === selectedId)) {
         selectedId = list[0]?.id || null;
       }
-      if (currentType !== "research") selectedNodeId = null;
+      if (currentType !== "research") {
+        selectedNodeId = null;
+        selectedNodeIds.clear();
+      }
     }
 
     function queueDesktopDatabaseSave(delay) {
@@ -2145,6 +2470,7 @@
         if (!("title" in item)) item.title = "";
         if (!("content" in item)) item.content = "";
         if (!("updatedAt" in item)) item.updatedAt = today();
+        normalizeTodoBoardStorage(item);
         if (!Array.isArray(item.tasks)) item.tasks = [];
         item.tasks.forEach(normalizeTaskFields);
       });
@@ -2364,17 +2690,118 @@
         };
       });
       document.getElementById("addTaskButton").onclick = () => {
-        item.tasks.unshift(task("新任务", false));
-        saveState();
-        render();
+        showTodoTaskDialog(item, null, -1);
       };
       const visibleTasks = filteredTodoTasks(item.tasks, currentFilter);
       const todoBody = document.getElementById("todoBody");
       if (viewMode === "table") {
-        renderTodoTable(todoBody, item, visibleTasks);
+        renderTodoTableModern(todoBody, item, visibleTasks);
       } else {
         renderTodoMatrix(todoBody, item, visibleTasks);
       }
+    }
+
+    function renderTodoTableModern(container, item, visibleTasks) {
+      const rows = orderedTodoTaskEntries(item, visibleTasks);
+      container.innerHTML = `
+        <div class="todo-table-wrap">
+          <table class="todo-table todo-table-modern">
+            <thead>
+              <tr>
+                ${todoSortHeader(item, "done", "完成")}
+                ${todoSortHeader(item, "title", "任务")}
+                ${todoSortHeader(item, "status", "状态")}
+                ${todoSortHeader(item, "priority", "优先级")}
+                ${todoSortHeader(item, "importance", "重要")}
+                ${todoSortHeader(item, "urgency", "紧急")}
+                ${todoSortHeader(item, "progress", "进度")}
+                ${todoSortHeader(item, "dueDate", "截止")}
+                ${todoSortHeader(item, "content", "备注")}
+                <th>提醒</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="taskList"></tbody>
+          </table>
+        </div>
+      `;
+      const taskList = document.getElementById("taskList");
+      document.querySelectorAll(".todo-table th.sortable").forEach((header) => {
+        header.onclick = () => {
+          const currentSort = todoSorts[item.id] || {};
+          const key = header.dataset.sort;
+          const direction = currentSort.key === key && currentSort.direction === "asc" ? "desc" : "asc";
+          todoSorts[item.id] = { key, direction };
+          render();
+        };
+      });
+      if (!rows.length) {
+        taskList.innerHTML = '<tr><td colspan="11" class="list-meta">当前筛选下没有任务</td></tr>';
+        return;
+      }
+      rows.forEach(({ taskItem, index, depth }) => {
+        const progressValue = clamp(Number(taskItem.progress) || 0, 0, 100);
+        const parentTitle = taskItem.parentId ? todoTaskTitleById(item.tasks, taskItem.parentId) : "";
+        const note = (taskItem.content || "").trim();
+        const row = document.createElement("tr");
+        row.className = `todo-row priority-${taskItem.priority || "medium"}${taskItem.done ? " done" : ""}${depth > 0 ? " todo-child-row" : ""}`;
+        row.style.setProperty("--todo-depth", String(Math.min(depth, 6)));
+        row.innerHTML = `
+          <td><input class="todo-check" type="checkbox" ${taskItem.done ? "checked" : ""} /></td>
+          <td>
+            <div class="todo-title-cell">
+              <span class="todo-depth-mark" style="opacity:${depth ? 1 : 0}"></span>
+              <div class="todo-title-main-wrap">
+                <div class="todo-title-main">${escapeHtml(taskItem.title || "未命名任务")}</div>
+                ${parentTitle ? `<div class="todo-subtitle">上级：${escapeHtml(parentTitle)}</div>` : ""}
+              </div>
+            </div>
+          </td>
+          <td><span class="todo-pill status-${escapeAttr(taskItem.status || "todo")}">${todoStatusText(taskItem.status)}</span></td>
+          <td><span class="todo-pill priority-${escapeAttr(taskItem.priority || "medium")}">${todoPriorityText(taskItem.priority)}</span></td>
+          <td><span class="todo-pill level-${escapeAttr(taskItem.importance || "normal")}">${todoLevelText(taskItem.importance, "普通", "重要")}</span></td>
+          <td><span class="todo-pill level-${escapeAttr(taskItem.urgency || "normal")}">${todoLevelText(taskItem.urgency, "普通", "紧急")}</span></td>
+          <td>
+            <strong>${progressValue}%</strong>
+            <div class="progress-track"><div class="progress-fill" style="width:${progressValue}%"></div></div>
+          </td>
+          <td>${escapeHtml(taskItem.dueDate || "未设")}</td>
+          <td><div class="todo-note-preview ${note ? "" : "todo-empty-note"}" title="${escapeAttr(note)}">${escapeHtml(note || "无备注")}</div></td>
+          <td>
+            <div class="todo-reminder-cell">
+              ${taskItem.currentDay ? "<span>今日</span>" : ""}
+              ${taskItem.dailyTask ? "<span>每日</span>" : ""}
+              ${!taskItem.currentDay && !taskItem.dailyTask ? "<span>-</span>" : ""}
+            </div>
+          </td>
+          <td>
+            <div class="todo-action-row">
+              <button class="ghost todo-edit" title="编辑任务">编辑</button>
+              <button class="ghost todo-add-child" title="添加子任务">＋</button>
+            </div>
+          </td>
+        `;
+        row.ondblclick = () => showTodoTaskDialog(item, taskItem, index);
+        row.querySelector(".todo-title-main").onclick = () => showTodoTaskDialog(item, taskItem, index);
+        row.querySelector(".todo-edit").onclick = () => showTodoTaskDialog(item, taskItem, index);
+        row.querySelector(".todo-add-child").onclick = () => showTodoTaskDialog(item, null, -1, { parentId: taskItem.id, insertAfter: index });
+        row.querySelector(".todo-check").onchange = (event) => {
+          taskItem.done = event.target.checked;
+          taskItem.status = event.target.checked ? "done" : "todo";
+          if (taskItem.done && Number(taskItem.progress) < 100) taskItem.progress = 100;
+          saveState();
+          render();
+        };
+        row.oncontextmenu = (event) => {
+          event.preventDefault();
+          showContextMenu(event, [
+            { label: "编辑任务", run: () => showTodoTaskDialog(item, taskItem, index) },
+            { label: "添加子任务", run: () => showTodoTaskDialog(item, null, -1, { parentId: taskItem.id, insertAfter: index }) },
+            { label: taskItem.status === "trash" ? "彻底删除" : "移入回收站", run: () => deleteTodoTask(item, taskItem, index) },
+          ]);
+        };
+        taskList.appendChild(row);
+      });
     }
 
     function renderTodoTable(container, item, visibleTasks) {
@@ -2576,9 +3003,11 @@
     }
 
     function renderTodoMatrix(container, item, visibleTasks) {
+      renderTodoMatrixModern(container, item, visibleTasks);
+      return;
       const columns = [
-        { key: "q2", title: "Q2: 不紧急-重要", urgency: "normal", importance: "high" },
         { key: "q1", title: "Q1: 紧急-重要", urgency: "high", importance: "high" },
+        { key: "q2", title: "Q2: 不紧急-重要", urgency: "normal", importance: "high" },
         { key: "q3", title: "Q3: 紧急-不重要", urgency: "high", importance: "normal" },
         { key: "q4", title: "Q4: 不紧急-不重要", urgency: "normal", importance: "normal" },
       ];
@@ -2595,7 +3024,7 @@
           const card = document.createElement("article");
           card.className = `todo-task-card ${taskItem.done ? "done" : ""}`;
           card.innerHTML = `
-            <input class="todo-task-title" value="${escapeAttr(taskItem.title || "")}" />
+          <div class="todo-task-title">${escapeHtml(taskItem.title || "未命名任务")}</div>
             <div class="todo-task-meta">
               <label><input class="todo-card-check" type="checkbox" ${taskItem.done ? "checked" : ""} /> 完成</label>
               <span class="todo-priority-tag ${taskItem.priority || "medium"}">${priorityLabel(taskItem.priority)}</span>
@@ -2627,7 +3056,6 @@
               </div>
             </div>
           `;
-          const title = card.querySelector(".todo-task-title");
           const checkbox = card.querySelector(".todo-card-check");
           const status = card.querySelector(".todo-card-status");
           const priority = card.querySelector(".todo-card-priority");
@@ -2637,11 +3065,7 @@
           const parent = card.querySelector(".todo-card-parent-select");
           const currentDay = card.querySelector(".todo-card-current-day");
           const dailyTask = card.querySelector(".todo-card-daily-task");
-          title.oninput = () => {
-            taskItem.title = title.value;
-            saveState();
-            renderList();
-          };
+          card.querySelector(".todo-task-title").onclick = () => showTodoTaskDialog(item, taskItem, index);
           checkbox.onchange = () => {
             taskItem.done = checkbox.checked;
             taskItem.status = checkbox.checked ? "done" : "todo";
@@ -2704,13 +3128,7 @@
             event.preventDefault();
             showContextMenu(event, [
               { label: "移入回收站", run: () => { taskItem.status = "trash"; taskItem.done = false; saveState(); render(); } },
-              { label: "添加子任务", run: () => {
-                const next = task("新子任务", false);
-                next.parentId = taskItem.id;
-                item.tasks.splice(index + 1, 0, next);
-                saveState();
-                render();
-              } },
+              { label: "添加子任务", run: () => showTodoTaskDialog(item, null, -1, { parentId: taskItem.id, insertAfter: index }) },
               { label: "删除任务", run: () => {
                 item.tasks.splice(index, 1);
                 item.tasks.forEach((candidate) => {
@@ -2727,12 +3145,85 @@
         add.className = "todo-add-card";
         add.textContent = "+ 新建 item";
         add.onclick = () => {
-          const next = task("新任务", false);
-          next.urgency = column.urgency;
-          next.importance = column.importance;
-          item.tasks.push(next);
-          saveState();
-          render();
+          showTodoTaskDialog(item, null, -1, { urgency: column.urgency, importance: column.importance, insertAfter: item.tasks.length - 1 });
+        };
+        columnEl.appendChild(add);
+        board.appendChild(columnEl);
+      });
+    }
+
+    function renderTodoMatrixModern(container, item, visibleTasks) {
+      const columns = [
+        { key: "q1", title: "Q1: 紧急-重要", urgency: "high", importance: "high" },
+        { key: "q2", title: "Q2: 不紧急-重要", urgency: "normal", importance: "high" },
+        { key: "q3", title: "Q3: 紧急-不重要", urgency: "high", importance: "normal" },
+        { key: "q4", title: "Q4: 不紧急-不重要", urgency: "normal", importance: "normal" },
+      ];
+      container.innerHTML = `<div class="todo-matrix-board" id="todoMatrixBoard"></div>`;
+      const board = document.getElementById("todoMatrixBoard");
+      const orderedEntries = orderedTodoTaskEntries(item, visibleTasks);
+      columns.forEach((column) => {
+        const columnEl = document.createElement("section");
+        columnEl.className = `todo-column ${column.key}`;
+        columnEl.innerHTML = `<div class="todo-column-title">${column.title}</div>`;
+        const tasks = orderedEntries.filter(({ taskItem }) =>
+          (taskItem.urgency || "normal") === column.urgency
+          && (taskItem.importance || "normal") === column.importance);
+        tasks.forEach(({ taskItem, index, depth }) => {
+          const progressValue = clamp(Number(taskItem.progress) || 0, 0, 100);
+          const note = (taskItem.content || "").trim();
+          const parentTitle = taskItem.parentId ? todoTaskTitleById(item.tasks, taskItem.parentId) : "";
+          const card = document.createElement("article");
+          card.className = `todo-task-card ${taskItem.done ? "done" : ""}`;
+          card.innerHTML = `
+            <div class="todo-card-top">
+              <input class="todo-card-check todo-card-checkbox" type="checkbox" ${taskItem.done ? "checked" : ""} />
+              <div>
+                <div class="todo-task-title" style="padding-left:${Math.min(depth, 4) * 12}px">${escapeHtml(taskItem.title || "未命名任务")}</div>
+                ${parentTitle ? `<div class="todo-subtitle">上级：${escapeHtml(parentTitle)}</div>` : ""}
+              </div>
+              <button class="todo-mini-action todo-card-edit" title="编辑任务">编辑</button>
+            </div>
+            <div class="todo-card-badges">
+              <span class="todo-pill status-${escapeAttr(taskItem.status || "todo")}">${todoStatusText(taskItem.status)}</span>
+              <span class="todo-pill priority-${escapeAttr(taskItem.priority || "medium")}">优先级 ${todoPriorityText(taskItem.priority)}</span>
+              <span class="todo-date-badge">${escapeHtml(taskItem.dueDate || "未设截止")}</span>
+              ${taskItem.currentDay ? `<span class="todo-pill">今日</span>` : ""}
+              ${taskItem.dailyTask ? `<span class="todo-pill">每日</span>` : ""}
+            </div>
+            <div>
+              <div class="progress-track"><div class="progress-fill" style="width:${progressValue}%"></div></div>
+              <div class="todo-card-footer"><span>进度 ${progressValue}%</span><span>${todoLevelText(taskItem.urgency, "普通", "紧急")} / ${todoLevelText(taskItem.importance, "普通", "重要")}</span></div>
+            </div>
+            ${note ? `<div class="todo-card-note-preview">${escapeHtml(note)}</div>` : ""}
+          `;
+          const checkbox = card.querySelector(".todo-card-check");
+          card.querySelector(".todo-card-edit").onclick = (event) => {
+            event.stopPropagation();
+            showTodoTaskDialog(item, taskItem, index);
+          };
+          checkbox.onchange = () => {
+            taskItem.done = checkbox.checked;
+            taskItem.status = checkbox.checked ? "done" : "todo";
+            if (checkbox.checked && Number(taskItem.progress) < 100) taskItem.progress = 100;
+            saveState();
+            render();
+          };
+          card.oncontextmenu = (event) => {
+            event.preventDefault();
+            showContextMenu(event, [
+              { label: "编辑任务", run: () => showTodoTaskDialog(item, taskItem, index) },
+              { label: "添加子任务", run: () => showTodoTaskDialog(item, null, -1, { parentId: taskItem.id, insertAfter: index }) },
+              { label: taskItem.status === "trash" ? "彻底删除" : "移入回收站", run: () => deleteTodoTask(item, taskItem, index) },
+            ]);
+          };
+          columnEl.appendChild(card);
+        });
+        const add = document.createElement("button");
+        add.className = "todo-add-card";
+        add.textContent = "+ 新建任务";
+        add.onclick = () => {
+          showTodoTaskDialog(item, null, -1, { urgency: column.urgency, importance: column.importance, insertAfter: item.tasks.length - 1 });
         };
         columnEl.appendChild(add);
         board.appendChild(columnEl);
@@ -2743,6 +3234,209 @@
       if (priority === "high") return "高";
       if (priority === "low") return "低";
       return "中";
+    }
+
+    function orderedTodoTaskEntries(item, visibleTasks) {
+      const sort = todoSorts[item.id];
+      const visibleIds = new Set(visibleTasks.map(({ taskItem }) => taskItem.id));
+      const visited = new Set();
+      const childrenMap = new Map();
+      (item.tasks || []).forEach((taskItem, index) => {
+        normalizeTaskFields(taskItem);
+        const parentId = taskItem.parentId || "";
+        if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
+        childrenMap.get(parentId).push({ taskItem, index });
+      });
+      if (sort && sort.key) {
+        childrenMap.forEach((entries) => {
+          entries.sort((left, right) => {
+            const direction = sort.direction === "desc" ? -1 : 1;
+            const leftValue = todoSortValue(left.taskItem, sort.key);
+            const rightValue = todoSortValue(right.taskItem, sort.key);
+            if (leftValue > rightValue) return direction;
+            if (leftValue < rightValue) return -direction;
+            return left.index - right.index;
+          });
+        });
+      }
+      const rows = [];
+      const visit = (parentId, depth) => {
+        (childrenMap.get(parentId) || []).forEach((entry) => {
+          if (visited.has(entry.taskItem.id)) return;
+          visited.add(entry.taskItem.id);
+          if (visibleIds.has(entry.taskItem.id)) rows.push({ ...entry, depth });
+          visit(entry.taskItem.id, depth + 1);
+        });
+      };
+      visit("", 0);
+      (item.tasks || []).forEach((taskItem, index) => {
+        if (!visited.has(taskItem.id)) {
+          visited.add(taskItem.id);
+          if (visibleIds.has(taskItem.id)) rows.push({ taskItem, index, depth: todoTaskDepth(item.tasks, taskItem) });
+          visit(taskItem.id, todoTaskDepth(item.tasks, taskItem) + 1);
+        }
+      });
+      return rows;
+    }
+
+    function todoStatusText(status) {
+      if (status === "doing") return "进行中";
+      if (status === "done") return "完成";
+      if (status === "trash") return "回收站";
+      return "待办";
+    }
+
+    function todoPriorityText(priority) {
+      if (priority === "high") return "高";
+      if (priority === "low") return "低";
+      return "中";
+    }
+
+    function todoLevelText(value, normalText, highText) {
+      return value === "high" ? highText : normalText;
+    }
+
+    function todoParentOptionsClean(tasks, taskItem) {
+      const blocked = todoDescendantIds(tasks, taskItem.id);
+      blocked.add(taskItem.id);
+      const options = ['<option value="">无上级</option>'];
+      (tasks || []).forEach((candidate) => {
+        if (!candidate.id || blocked.has(candidate.id)) return;
+        const selected = taskItem.parentId === candidate.id ? "selected" : "";
+        options.push(`<option value="${escapeAttr(candidate.id)}" ${selected}>${escapeHtml(candidate.title || "未命名任务")}</option>`);
+      });
+      return options.join("");
+    }
+
+    function showTodoTaskDialog(item, sourceTask, editingIndex, options = {}) {
+      const isNew = !sourceTask;
+      const draft = isNew ? task("", false) : { ...sourceTask };
+      if (options.parentId) draft.parentId = options.parentId;
+      if (options.urgency) draft.urgency = options.urgency;
+      if (options.importance) draft.importance = options.importance;
+      const modal = document.getElementById("todoTaskModal");
+      const body = document.getElementById("todoTaskModalBody");
+      document.getElementById("todoTaskModalTitle").textContent = isNew ? "添加任务" : "编辑任务";
+      body.innerHTML = `
+        <div class="todo-task-form">
+          <label class="full">标题
+            <input id="todoDialogTitle" value="${escapeAttr(draft.title || "")}" placeholder="任务标题" />
+          </label>
+          <label>状态
+            <select id="todoDialogStatus">
+              <option value="todo" ${draft.status === "todo" ? "selected" : ""}>待办</option>
+              <option value="doing" ${draft.status === "doing" ? "selected" : ""}>进行中</option>
+              <option value="done" ${draft.status === "done" ? "selected" : ""}>完成</option>
+              <option value="trash" ${draft.status === "trash" ? "selected" : ""}>回收站</option>
+            </select>
+          </label>
+          <label>优先级
+            <select id="todoDialogPriority">
+              <option value="low" ${draft.priority === "low" ? "selected" : ""}>低</option>
+              <option value="medium" ${draft.priority === "medium" ? "selected" : ""}>中</option>
+              <option value="high" ${draft.priority === "high" ? "selected" : ""}>高</option>
+            </select>
+          </label>
+          <label>重要性
+            <select id="todoDialogImportance">
+              <option value="normal" ${draft.importance === "normal" ? "selected" : ""}>普通</option>
+              <option value="high" ${draft.importance === "high" ? "selected" : ""}>重要</option>
+            </select>
+          </label>
+          <label>紧急性
+            <select id="todoDialogUrgency">
+              <option value="normal" ${draft.urgency === "normal" ? "selected" : ""}>普通</option>
+              <option value="high" ${draft.urgency === "high" ? "selected" : ""}>紧急</option>
+            </select>
+          </label>
+          <label>上级任务
+            <select id="todoDialogParent">${todoParentOptionsClean(item.tasks, draft)}</select>
+          </label>
+          <label>截止日期
+            <input id="todoDialogDueDate" type="date" value="${escapeAttr(draft.dueDate || "")}" />
+          </label>
+          <label>进度
+            <input id="todoDialogProgress" type="number" min="0" max="100" value="${clamp(Number(draft.progress) || 0, 0, 100)}" />
+          </label>
+          <div class="check-row">
+            <label><input id="todoDialogCurrentDay" type="checkbox" ${draft.currentDay ? "checked" : ""} /> 今日提醒</label>
+            <label><input id="todoDialogDailyTask" type="checkbox" ${draft.dailyTask ? "checked" : ""} /> 每日任务</label>
+          </div>
+          <label class="full">备注
+            <textarea id="todoDialogContent" placeholder="补充说明、链接、阶段记录">${escapeHtml(draft.content || "")}</textarea>
+          </label>
+        </div>
+      `;
+      modal.classList.add("open");
+      const close = () => {
+        modal.classList.remove("open");
+        modal.onclick = null;
+      };
+      const readDraft = () => {
+        draft.title = document.getElementById("todoDialogTitle").value.trim() || "未命名任务";
+        draft.status = document.getElementById("todoDialogStatus").value;
+        draft.done = draft.status === "done";
+        draft.priority = document.getElementById("todoDialogPriority").value;
+        draft.importance = document.getElementById("todoDialogImportance").value;
+        draft.urgency = document.getElementById("todoDialogUrgency").value;
+        draft.parentId = document.getElementById("todoDialogParent").value;
+        draft.dueDate = document.getElementById("todoDialogDueDate").value;
+        draft.progress = clamp(Number(document.getElementById("todoDialogProgress").value) || 0, 0, 100);
+        draft.currentDay = document.getElementById("todoDialogCurrentDay").checked;
+        draft.dailyTask = document.getElementById("todoDialogDailyTask").checked;
+        draft.content = document.getElementById("todoDialogContent").value;
+        if (draft.progress >= 100) {
+          draft.done = true;
+          draft.status = "done";
+        } else if (draft.status === "done") {
+          draft.progress = 100;
+          draft.done = true;
+        }
+        if (draft.status === "trash" && !draft.deletedAt) draft.deletedAt = nowIso();
+        if (draft.status !== "trash") draft.deletedAt = "";
+        normalizeTaskFields(draft);
+      };
+      document.getElementById("todoTaskModalSave").onclick = () => {
+        readDraft();
+        if (isNew) {
+          const insertAt = typeof options.insertAfter === "number" ? options.insertAfter + 1 : 0;
+          item.tasks.splice(insertAt, 0, draft);
+        } else {
+          item.tasks[editingIndex] = draft;
+        }
+        saveState();
+        close();
+        render();
+      };
+      document.getElementById("todoTaskModalCancel").onclick = close;
+      const deleteButton = document.getElementById("todoTaskModalDelete");
+      deleteButton.style.visibility = isNew ? "hidden" : "visible";
+      deleteButton.textContent = sourceTask && sourceTask.status === "trash" ? "彻底删除" : "移入回收站";
+      deleteButton.onclick = () => {
+        if (!isNew) {
+          deleteTodoTask(item, sourceTask, editingIndex);
+        }
+        close();
+      };
+      modal.onclick = (event) => {
+        if (event.target === modal) close();
+      };
+      setTimeout(() => document.getElementById("todoDialogTitle")?.focus(), 0);
+    }
+
+    function deleteTodoTask(item, taskItem, index) {
+      if (taskItem.status === "trash") {
+        item.tasks.splice(index, 1);
+        item.tasks.forEach((candidate) => {
+          if (candidate.parentId === taskItem.id) candidate.parentId = "";
+        });
+      } else {
+        taskItem.status = "trash";
+        taskItem.done = false;
+        taskItem.deletedAt = nowIso();
+      }
+      saveState();
+      render();
     }
 
     function todoTaskTitleById(tasks, id) {
@@ -2795,6 +3489,33 @@
         input.value = nextValue;
         onValue(nextValue);
       };
+    }
+
+    function normalizeTodoBoardStorage(item) {
+      const board = safeParseJson(item.content);
+      if (!board || !(Array.isArray(board.tasks) || board.dataType === "board")) {
+        return;
+      }
+      item.content = board.content || "";
+      if ((!Array.isArray(item.tasks) || item.tasks.length === 0) && Array.isArray(board.tasks)) {
+        item.tasks = board.tasks.map((taskItem) => ({
+          id: taskItem.taskId || taskItem.id || createId(),
+          title: taskItem.title || "未命名任务",
+          done: Boolean(taskItem.finished || taskItem.done || taskItem.status === "done"),
+          status: taskItem.status || (taskItem.finished || taskItem.done ? "done" : "todo"),
+          priority: taskItem.priority || "medium",
+          importance: taskItem.importance || "normal",
+          urgency: taskItem.urgency || "normal",
+          parentId: taskItem.parentId || "",
+          content: taskItem.content || "",
+          currentDay: Boolean(taskItem.currentDay),
+          dailyTask: Boolean(taskItem.dailyTask),
+          deletedAt: taskItem.deletedAt || "",
+          progress: Number(taskItem.progress) || 0,
+          dueDate: taskItem.dueDate || taskItem.endTime || "",
+        }));
+      }
+      if (board.updatedAt && !item.updatedAt) item.updatedAt = board.updatedAt;
     }
 
     function normalizeTaskFields(taskItem) {
@@ -2920,6 +3641,9 @@
               空白拖动移动画布，滚轮缩放。<br />
               右键打开快捷菜单，点连线可删除，拖节点圆点可连接。<br />
               <span class="kbd">Space</span> 改标题，<span class="kbd">F</span> 适配。
+            </div>
+            <div class="map-help" style="left:auto; right:12px; bottom:52px;">
+              <span class="kbd">Shift</span>/<span class="kbd">Ctrl</span> 拖框多选，拖动选中节点可一起移动
             </div>
             <div class="map-controls">
               <button id="zoomOutButton" title="缩小">-</button>
@@ -3095,6 +3819,7 @@
       `;
       root.onclick = () => {
         selectedNodeId = null;
+        selectedNodeIds.clear();
         renderNodeEditor(topic);
         drawMapOnly(topic);
       };
@@ -3102,6 +3827,7 @@
         event.preventDefault();
         event.stopPropagation();
         selectedNodeId = null;
+        selectedNodeIds.clear();
         renderNodeEditor(topic);
         drawMapOnly(topic);
         showRootContextMenu(event, topic);
@@ -3109,8 +3835,9 @@
       canvas.appendChild(root);
       topic.nodes.forEach((node) => {
         const active = node.id === selectedNodeId;
+        const multiSelected = selectedNodeIds.has(node.id);
         const div = document.createElement("div");
-        div.className = "node" + (active ? " active expanded" : "");
+        div.className = "node" + (active ? " active expanded" : "") + (multiSelected ? " multi-selected" : "");
         div.dataset.nodeId = node.id;
         div.style.left = `${node.mapX}px`;
         div.style.top = `${node.mapY}px`;
@@ -3124,14 +3851,30 @@
         `;
         wireNodeExternalLinks(div);
         wireNodeConnectors(div, topic, node);
-        div.onclick = () => {
+        div.onclick = (event) => {
+          if (div.dataset.justDragged === "1") {
+            delete div.dataset.justDragged;
+            return;
+          }
+          if (event.shiftKey || event.ctrlKey || event.metaKey) {
+            toggleResearchNodeSelection(node.id);
+            updateNodeSelectionClasses();
+            renderNodeEditor(topic);
+            return;
+          }
           selectedNodeId = node.id;
+          selectedNodeIds.clear();
+          selectedNodeIds.add(node.id);
           render();
         };
         div.oncontextmenu = (event) => {
           event.preventDefault();
           event.stopPropagation();
           selectedNodeId = node.id;
+          if (!selectedNodeIds.has(node.id)) {
+            selectedNodeIds.clear();
+            selectedNodeIds.add(node.id);
+          }
           renderNodeEditor(topic);
           drawMapOnly(topic);
           showNodeContextMenu(event, topic, node);
@@ -3278,6 +4021,49 @@
       };
     }
 
+    function toggleResearchNodeSelection(nodeId) {
+      if (!nodeId) return;
+      if (selectedNodeIds.has(nodeId)) {
+        selectedNodeIds.delete(nodeId);
+        if (selectedNodeId === nodeId) {
+          selectedNodeId = selectedNodeIds.values().next().value || null;
+        }
+      } else {
+        selectedNodeIds.add(nodeId);
+        selectedNodeId = nodeId;
+      }
+    }
+
+    function updateNodeSelectionClasses() {
+      document.querySelectorAll("#mapCanvas .node[data-node-id]").forEach((element) => {
+        const isSelected = selectedNodeIds.has(element.dataset.nodeId);
+        element.classList.toggle("multi-selected", isSelected);
+        element.classList.toggle("active", element.dataset.nodeId === selectedNodeId);
+      });
+    }
+
+    function nodeWorldRect(node) {
+      return {
+        left: node.mapX,
+        top: node.mapY,
+        right: node.mapX + NODE_WIDTH,
+        bottom: node.mapY + NODE_HEIGHT + 22,
+      };
+    }
+
+    function intersectsWorldRect(a, b) {
+      return a.left <= b.right && a.right >= b.left && a.top <= b.bottom && a.bottom >= b.top;
+    }
+
+    function updateNodeMapMetadata(topic, node) {
+      node.mapPositioned = true;
+      const relative = relativePositionForNode(topic, node);
+      node.mapRelativePositioned = true;
+      node.mapRelativeX = relative.x;
+      node.mapRelativeY = relative.y;
+      markDesktopAutoPosition(node, false);
+    }
+
     function hasVisibleRelatedNode(topic, node) {
       if (!node || !Array.isArray(node.relatedNodeIds) || !node.relatedNodeIds.length) {
         return false;
@@ -3376,39 +4162,65 @@
 
     function makeDraggable(element, node, topic) {
       let dragging = false;
+      let moved = false;
       let startX = 0;
       let startY = 0;
-      let originalX = 0;
-      let originalY = 0;
+      let dragNodes = [];
+      let originalPositions = new Map();
       element.onpointerdown = (event) => {
         if (event.target.closest("a, button, input, textarea, select, .node-connector")) return;
+        if (!event.shiftKey && !event.ctrlKey && !event.metaKey && !selectedNodeIds.has(node.id)) {
+          selectedNodeIds.clear();
+          selectedNodeIds.add(node.id);
+          selectedNodeId = node.id;
+          updateNodeSelectionClasses();
+          renderNodeEditor(topic);
+        }
         dragging = true;
+        moved = false;
         startX = event.clientX;
         startY = event.clientY;
-        originalX = node.mapX;
-        originalY = node.mapY;
+        dragNodes = topic.nodes.filter((item) => selectedNodeIds.has(item.id));
+        if (!dragNodes.length) dragNodes = [node];
+        originalPositions = new Map(dragNodes.map((item) => [item.id, { x: item.mapX, y: item.mapY }]));
         element.setPointerCapture(event.pointerId);
       };
       element.onpointermove = (event) => {
         if (!dragging) return;
         const viewport = getTopicViewport(topic);
-        node.mapX = originalX + (event.clientX - startX) / viewport.scale;
-        node.mapY = originalY + (event.clientY - startY) / viewport.scale;
-        node.mapPositioned = true;
-        const relative = relativePositionForNode(topic, node);
-        node.mapRelativePositioned = true;
-        node.mapRelativeX = relative.x;
-        node.mapRelativeY = relative.y;
-        markDesktopAutoPosition(node, false);
-        element.style.left = `${node.mapX}px`;
-        element.style.top = `${node.mapY}px`;
+        const dx = (event.clientX - startX) / viewport.scale;
+        const dy = (event.clientY - startY) / viewport.scale;
+        if (Math.abs(event.clientX - startX) > 3 || Math.abs(event.clientY - startY) > 3) {
+          moved = true;
+        }
+        dragNodes.forEach((item) => {
+          const original = originalPositions.get(item.id);
+          if (!original) return;
+          item.mapX = original.x + dx;
+          item.mapY = original.y + dy;
+          updateNodeMapMetadata(topic, item);
+          const itemElement = findMapNodeElement(item.id);
+          if (itemElement) {
+            itemElement.style.left = `${item.mapX}px`;
+            itemElement.style.top = `${item.mapY}px`;
+          }
+        });
         redrawEdges(topic);
       };
       element.onpointerup = () => {
         if (!dragging) return;
         dragging = false;
+        if (moved) {
+          element.dataset.justDragged = "1";
+          setTimeout(() => delete element.dataset.justDragged, 200);
+        }
         saveState();
       };
+    }
+
+    function findMapNodeElement(nodeId) {
+      return Array.from(document.querySelectorAll("#mapCanvas .node[data-node-id]"))
+        .find((element) => element.dataset.nodeId === String(nodeId)) || null;
     }
 
     function getTopicViewport(topic) {
@@ -3531,12 +4343,70 @@
       let startY = 0;
       let originX = 0;
       let originY = 0;
+      let selecting = false;
+      let selectionBox = null;
+      let selectionStartX = 0;
+      let selectionStartY = 0;
+      let selectionBaseIds = [];
+      let selectionAdditive = false;
+
+      const removeSelectionBox = () => {
+        if (selectionBox) selectionBox.remove();
+        selectionBox = null;
+      };
+
+      const updateSelectionBox = (event) => {
+        if (!selectionBox) return;
+        const shellRect = shell.getBoundingClientRect();
+        const left = Math.min(selectionStartX, event.clientX);
+        const top = Math.min(selectionStartY, event.clientY);
+        const width = Math.abs(event.clientX - selectionStartX);
+        const height = Math.abs(event.clientY - selectionStartY);
+        selectionBox.style.left = `${left - shellRect.left}px`;
+        selectionBox.style.top = `${top - shellRect.top}px`;
+        selectionBox.style.width = `${width}px`;
+        selectionBox.style.height = `${height}px`;
+
+        selectedNodeIds = new Set(selectionAdditive ? selectionBaseIds : []);
+        const startWorld = clientToWorld(topic, selectionStartX, selectionStartY);
+        const endWorld = clientToWorld(topic, event.clientX, event.clientY);
+        const worldRect = {
+          left: Math.min(startWorld.x, endWorld.x),
+          top: Math.min(startWorld.y, endWorld.y),
+          right: Math.max(startWorld.x, endWorld.x),
+          bottom: Math.max(startWorld.y, endWorld.y),
+        };
+        const hits = topic.nodes.filter((node) => intersectsWorldRect(nodeWorldRect(node), worldRect));
+        hits.forEach((node) => selectedNodeIds.add(node.id));
+        if (hits.length) {
+          selectedNodeId = hits[hits.length - 1].id;
+        } else if (!selectionAdditive) {
+          selectedNodeId = null;
+        }
+        updateNodeSelectionClasses();
+      };
 
       shell.onpointerdown = (event) => {
         if (event.target.closest(".node") || event.target.closest(".map-controls")) return;
         hideContextMenu();
+        if (event.shiftKey || event.ctrlKey || event.metaKey) {
+          selecting = true;
+          panning = false;
+          selectionStartX = event.clientX;
+          selectionStartY = event.clientY;
+          selectionAdditive = event.ctrlKey || event.metaKey;
+          selectionBaseIds = Array.from(selectedNodeIds);
+          removeSelectionBox();
+          selectionBox = document.createElement("div");
+          selectionBox.className = "map-selection-box";
+          shell.appendChild(selectionBox);
+          shell.setPointerCapture(event.pointerId);
+          updateSelectionBox(event);
+          return;
+        }
         if (selectedNodeId) {
           selectedNodeId = null;
+          selectedNodeIds.clear();
           renderNodeEditor(topic);
           drawMapOnly(topic);
         }
@@ -3549,6 +4419,10 @@
         shell.setPointerCapture(event.pointerId);
       };
       shell.onpointermove = (event) => {
+        if (selecting) {
+          updateSelectionBox(event);
+          return;
+        }
         if (!panning) return;
         const viewport = getTopicViewport(topic);
         viewport.x = originX + event.clientX - startX;
@@ -3557,6 +4431,13 @@
         applyMapTransform(topic);
       };
       shell.onpointerup = () => {
+        if (selecting) {
+          selecting = false;
+          removeSelectionBox();
+          renderNodeEditor(topic);
+          drawMapOnly(topic);
+          return;
+        }
         panning = false;
       };
       shell.onwheel = (event) => {
@@ -4181,7 +5062,7 @@
             id: createId(),
             type: "todos",
             title,
-            content: board?.content || clip.content || "",
+            content: board ? (board.content || "") : (clip.content || ""),
             tasks: Array.isArray(board?.tasks)
               ? board.tasks.map((taskItem) => ({
                   id: taskItem.taskId || taskItem.id || createId(),
@@ -4268,7 +5149,7 @@
           id: createId(),
           type: "todos",
           title,
-          content: board?.content || record.content || "",
+          content: board ? (board.content || "") : (record.content || ""),
           tasks: Array.isArray(board?.tasks)
             ? board.tasks.map((taskItem) => ({
                 id: taskItem.taskId || taskItem.id || createId(),
