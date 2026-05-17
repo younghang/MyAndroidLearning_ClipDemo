@@ -21,6 +21,7 @@ The desktop app only needs a subset at first:
 - simple notes
 - todo boards
 - research topics
+- projects
 
 ## Research Topic Content
 
@@ -85,15 +86,41 @@ native command and never stored in frontend code.
 
 ## Desktop Local Database
 
-The Electron/bridge version stores desktop records in a plain JSON file:
+The Electron/bridge version stores desktop records in SQLite. In the packaged app, the primary
+location is next to the `.exe`:
 
 ```text
-Documents/ClipboardDesktop/clipboard-data.json
+<exe folder>/ClipboardDesktop/data/clipboard-desktop.sqlite
 ```
 
-The browser-only prototype still uses `localStorage` as a fallback. When the bridge is running,
-the UI loads from `/api/data/load` and saves to `/api/data/save`; if the JSON file does not exist
-yet, the current fallback data is written into the file on startup.
+The database contains a `records` table. Each note, todo board, research topic, and project is
+stored as one row with its type, title, update time, sort order, Android id metadata, and full JSON
+payload. The UI still loads from `/api/data/load` and saves to `/api/data/save`, so the frontend
+state shape remains compatible with the original prototype.
+
+Received files and project deliverables also live under the same portable folder:
+
+```text
+<exe folder>/ClipboardDesktop/received
+<exe folder>/ClipboardDesktop/projects
+```
+
+If the `.exe` folder is not writable, the Electron shell reports a storage warning and temporarily
+uses the user's Documents folder instead:
+
+```text
+Documents/ClipboardDesktop
+```
+
+The old JSON file is still supported as a migration source:
+
+```text
+<storage folder>/data/clipboard-data.json
+```
+
+If the SQLite database is empty and the JSON file exists, the bridge imports that JSON state into
+SQLite on startup. The browser-only prototype still uses `localStorage` as a fallback when the
+bridge is not running.
 
 ## Desktop Peer Link V2
 

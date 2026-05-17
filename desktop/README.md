@@ -1,6 +1,7 @@
 # Clipboard Desktop
 
-This folder is an independent desktop workspace for the note, todo, and research-topic features.
+This folder is an independent desktop workspace for the note, todo, research-topic, and project
+management features.
 
 It is intentionally not connected to the old Android Gradle project. Do not add this folder to
 `settings.gradle`; the Android app should keep building exactly as before.
@@ -18,6 +19,7 @@ Open that file to try:
 - Notes
 - Todo tables
 - Research topics
+- Project management
 - Basic search
 - Local save via browser `localStorage`
 - JSON export/import for prototype data
@@ -114,21 +116,30 @@ The macOS build should be run on a Mac. The current config creates unsigned
 `.dmg` and `.zip` packages for local use; publishing to other machines later
 should add Apple Developer signing and notarization.
 
-The packaged app stores files received from the phone under:
+The packaged app stores files and data next to the `.exe`, under:
 
 ```text
-Documents/ClipboardDesktop/received
+<exe folder>/ClipboardDesktop
 ```
 
-The packaged app stores note, todo, and research-topic data in:
+Inside that folder:
 
 ```text
-Documents/ClipboardDesktop/clipboard-data.json
+data/clipboard-desktop.sqlite      note, todo, research-topic, and project data
+received/                          received phone/desktop files
+projects/                          managed project deliverables
 ```
 
 When the bridge is not running, the prototype still falls back to browser
-`localStorage`. When the bridge starts for the first time and no JSON data file
-exists yet, it migrates the current `localStorage` data into `clipboard-data.json`.
+`localStorage`. When the bridge starts for the first time and the SQLite database
+is empty, it writes the current `localStorage` data into `clipboard-desktop.sqlite`.
+If an older `clipboard-data.json` exists, the bridge imports it into SQLite on startup.
+
+If the `.exe` folder is not writable, the app shows a storage warning and temporarily uses:
+
+```text
+Documents/ClipboardDesktop
+```
 
 ## Device Link
 

@@ -48,6 +48,8 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
             ResearchTopicData.TYPE_TOOL,
             ResearchTopicData.TYPE_NOTE
     };
+    private static final String PREFS_NAME = "research_topic_preferences";
+    private static final String PREF_LAST_NODE_TYPE = "last_node_type";
 
     private ScrollView scrollView;
     private LinearLayout rootLayout;
@@ -131,7 +133,7 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
             return;
         }
         collectFromViews();
-        showNodeEditDialog(ResearchTopicData.createNode(ResearchTopicData.TYPE_NOTE, "", "", ""), -1);
+        showNodeEditDialog(ResearchTopicData.createNode(getLastNodeType(), "", "", ""), -1);
     }
 
     public void resetMindMapLayout() {
@@ -486,7 +488,7 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
             return;
         }
         parentNode.normalize();
-        ResearchTopicData.ResearchNode childNode = ResearchTopicData.createNode(ResearchTopicData.TYPE_NOTE, "", "", "");
+        ResearchTopicData.ResearchNode childNode = ResearchTopicData.createNode(getLastNodeType(), "", "", "");
         childNode.getRelatedNodeIds().add(parentNode.getId());
         showNodeEditDialog(childNode, -1);
     }
@@ -611,8 +613,27 @@ public class FragmentResearchTopic extends FragmentEditAbstract {
         }
     }
 
+    private String getLastNodeType() {
+        if (getActivity() == null) {
+            return ResearchTopicData.TYPE_NOTE;
+        }
+        return getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(PREF_LAST_NODE_TYPE, ResearchTopicData.TYPE_NOTE);
+    }
+
+    private void saveLastNodeType(String type) {
+        if (getActivity() == null || type == null || type.trim().equals("")) {
+            return;
+        }
+        getActivity().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(PREF_LAST_NODE_TYPE, type)
+                .apply();
+    }
+
     private void saveNodeFromDialog(NodeEditHolder holder) {
         holder.node.setType(holder.typeValue);
+        saveLastNodeType(holder.typeValue);
         holder.node.setTitle(holder.titleEdit.getText().toString());
         holder.node.setContent(holder.contentEdit.getText().toString());
         holder.node.getLinks().clear();

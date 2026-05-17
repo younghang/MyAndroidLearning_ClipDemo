@@ -16,6 +16,8 @@ import android.view.animation.DecelerateInterpolator;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -454,6 +456,7 @@ public class ResearchMindMapView extends View {
             nodeBoxes.add(box);
             nodeBoxMap.put(node.getId(), box);
         }
+        sortColumnsByParent(columns, levelMap);
 
         float nodeWidth = dp(190);
         float nodeHeight = dp(76);
@@ -495,6 +498,58 @@ public class ResearchMindMapView extends View {
         mapWidth = rootRight + columnGap + maxLevel * nodeWidth + Math.max(0, maxLevel - 1) * columnGap + dp(40);
         updateMapBounds();
         layoutDirty = false;
+    }
+
+    private void sortColumnsByParent(List<List<NodeBox>> columns, final Map<String, Integer> levelMap) {
+        Map<String, Integer> previousOrder = new HashMap<String, Integer>();
+        for (int level = 1; level < columns.size(); level++) {
+            List<NodeBox> column = columns.get(level);
+            final Map<String, Integer> parentOrder = previousOrder;
+            Collections.sort(column, new Comparator<NodeBox>() {
+                @Override
+                public int compare(NodeBox left, NodeBox right) {
+                    int leftParentOrder = getPrimaryParentOrder(left, levelMap, parentOrder);
+                    int rightParentOrder = getPrimaryParentOrder(right, levelMap, parentOrder);
+                    if (leftParentOrder != rightParentOrder) {
+                        return leftParentOrder - rightParentOrder;
+                    }
+                    return left.index - right.index;
+                }
+            });
+            previousOrder = new HashMap<String, Integer>();
+            for (int i = 0; i < column.size(); i++) {
+                NodeBox box = column.get(i);
+                if (box != null && box.node != null) {
+                    previousOrder.put(box.node.getId(), i);
+                }
+            }
+        }
+    }
+
+    private int getPrimaryParentOrder(NodeBox box, Map<String, Integer> levelMap, Map<String, Integer> parentOrder) {
+        if (box == null || box.node == null || box.node.getRelatedNodeIds().size() == 0) {
+            return 10000 + (box == null ? 0 : box.index);
+        }
+        int bestOrder = Integer.MAX_VALUE;
+        for (int i = 0; i < box.node.getRelatedNodeIds().size(); i++) {
+            String relatedId = box.node.getRelatedNodeIds().get(i);
+            Integer relatedLevel = levelMap.get(relatedId);
+            if (relatedLevel == null) {
+                continue;
+            }
+            Integer order = parentOrder.get(relatedId);
+            int candidate = order == null ? 9000 + relatedLevel : order;
+            if (relatedLevel != box.level - 1) {
+                candidate += 5000;
+            }
+            if (candidate < bestOrder) {
+                bestOrder = candidate;
+            }
+        }
+        if (bestOrder == Integer.MAX_VALUE) {
+            return 10000 + box.index;
+        }
+        return bestOrder * 1000 + box.index;
     }
 
     private void moveBoxToOpenSlot(NodeBox box, List<NodeBox> placedBoxes, float rowGap) {

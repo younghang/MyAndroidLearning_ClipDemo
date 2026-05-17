@@ -7,6 +7,13 @@ const path = require("path");
 const { spawn } = require("child_process");
 const { encryptAndroidText, decryptAndroidText } = require("./androidCrypto");
 
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require("node:sqlite"));
+} catch (error) {
+  DatabaseSync = null;
+}
+
 const HTTP_PORT = 20312;
 const TCP_PORT = 20310;
 const DESKTOP_TCP_PORT = 20313;
@@ -21,7 +28,10 @@ const rootDir = process.env.CLIPBOARD_DESKTOP_ROOT || path.resolve(__dirname, ".
 const prototypeDir = process.env.CLIPBOARD_DESKTOP_PROTOTYPE_DIR || path.join(rootDir, "prototype");
 const receivedDir = process.env.CLIPBOARD_DESKTOP_RECEIVED_DIR || path.join(rootDir, "received");
 const dataDir = process.env.CLIPBOARD_DESKTOP_DATA_DIR || path.join(rootDir, "data");
+const projectsDir = process.env.CLIPBOARD_DESKTOP_PROJECTS_DIR || path.join(rootDir, "projects");
 const dataFilePath = path.join(dataDir, "clipboard-data.json");
+const sqliteFilePath = path.join(dataDir, "clipboard-desktop.sqlite");
+const storageWarning = process.env.CLIPBOARD_DESKTOP_STORAGE_WARNING || "";
 const desktopDeviceId = getDesktopDeviceId();
 const desktopPairCode = createPairCode();
 
@@ -32,6 +42,7 @@ let eventSeq = 0;
 const events = [];
 let clipboardWriteChain = Promise.resolve();
 const incomingFileTransfers = new Map();
+const incomingProjectFileTransfers = new Map();
 const discoveredDesktopPeers = new Map();
 const serverStatus = {
   udp: { ok: false, message: "" },
@@ -39,6 +50,17 @@ const serverStatus = {
   desktopTcp: { ok: false, message: "" },
   http: { ok: false, message: "" },
 };
+
+function currentStorageInfo() {
+  return {
+    dataDir,
+    receivedDir,
+    projectsDir,
+    sqliteFilePath,
+    legacyJsonFilePath: dataFilePath,
+    warning: storageWarning,
+  };
+}
 
 function markServerPort(name, ok, message) {
   serverStatus[name] = { ok, message: message || "" };
@@ -700,6 +722,56 @@ function saveReceivedFile(message) {
   return filePath;
 }
 
+function startProjectFileImport(body) {
+  const projectId = String(body.projectId || "project").replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80) || "project";
+  const rawFileName = sanitizeFileName(String(body.fileName || "file")).trim();
+  const fileName = rawFileName && !/^\.+$/.test(rawFileName) ? rawFileName : "file";
+  const addedAt = body.addedAt ? new Date(body.addedAt) : new Date();
+  const safeDate = Number.isFinite(addedAt.getTime()) ? addedAt : new Date();
+  const year = String(safeDate.getFullYear());
+  const month = String(safeDate.getMonth() + 1).padStart(2, "0");
+  const fileDir = path.join(projectsDir, projectId, "deliverables", year, month);
+  fs.mkdirSync(fileDir, { recursive: true });
+  const filePath = availableFilePath(fileDir, fileName);
+  const relativePath = path.relative(rootDir, filePath).split(path.sep).join("/");
+  const transferId = String(body.transferId || createId());
+  const stream = fs.createWriteStream(filePath);
+  incomingProjectFileTransfers.set(transferId, {
+    transferId,
+    filePath,
+    relativePath,
+    fileName: path.basename(filePath),
+    stream,
+    received: 0,
+    size: Number(body.size) || 0,
+  });
+  return { transferId, relativePath, fileName: path.basename(filePath) };
+}
+
+function appendProjectFileImport(body) {
+  const transferId = String(body.transferId || "");
+  const transfer = incomingProjectFileTransfers.get(transferId);
+  if (!transfer) throw new Error("project file transfer not found");
+  const buffer = Buffer.from(String(body.base64 || ""), "base64");
+  transfer.stream.write(buffer);
+  transfer.received += buffer.length;
+  return { received: transfer.received, size: transfer.size };
+}
+
+function finishProjectFileImport(body, callback) {
+  const transferId = String(body.transferId || "");
+  const transfer = incomingProjectFileTransfers.get(transferId);
+  if (!transfer) throw new Error("project file transfer not found");
+  transfer.stream.end(() => {
+    incomingProjectFileTransfers.delete(transferId);
+    callback({
+      relativePath: transfer.relativePath,
+      fileName: transfer.fileName,
+      size: transfer.size || transfer.received,
+    });
+  });
+}
+
 function getDesktopDeviceId() {
   try {
     fs.mkdirSync(dataDir, { recursive: true });
@@ -717,6 +789,46 @@ function getDesktopDeviceId() {
 }
 
 function loadDesktopData() {
+  if (!DatabaseSync) {
+    return loadDesktopJsonData();
+  }
+  const db = openDesktopDatabase();
+  try {
+    const countRow = db.prepare("SELECT COUNT(*) AS count FROM records").get();
+    if (Number(countRow.count) > 0) {
+      return {
+        exists: true,
+        path: sqliteFilePath,
+        legacyPath: dataFilePath,
+        storage: "sqlite",
+        state: readStateFromDatabase(db),
+      };
+    }
+  } finally {
+    db.close();
+  }
+  const legacy = loadDesktopJsonData();
+  if (legacy.exists && legacy.state) {
+    saveDesktopData(legacy.state);
+    return {
+      exists: true,
+      path: sqliteFilePath,
+      legacyPath: dataFilePath,
+      storage: "sqlite",
+      migratedFrom: "json",
+      state: legacy.state,
+    };
+  }
+  return {
+    exists: false,
+    path: sqliteFilePath,
+    legacyPath: dataFilePath,
+    storage: "sqlite",
+    state: null,
+  };
+}
+
+function loadDesktopJsonData() {
   if (!fs.existsSync(dataFilePath)) {
     return { exists: false, path: dataFilePath, state: null };
   }
@@ -724,6 +836,7 @@ function loadDesktopData() {
   return {
     exists: true,
     path: dataFilePath,
+    storage: "json",
     state: text.trim() ? JSON.parse(text) : null,
   };
 }
@@ -732,11 +845,114 @@ function saveDesktopData(state) {
   if (!state || typeof state !== "object" || Array.isArray(state)) {
     throw new Error("invalid state");
   }
+  if (!DatabaseSync) {
+    return saveDesktopJsonData(state);
+  }
+  const db = openDesktopDatabase();
+  try {
+    db.exec("BEGIN IMMEDIATE");
+    db.prepare("DELETE FROM records").run();
+    const insert = db.prepare(`
+      INSERT INTO records (
+        id, type, sort_order, title, updated_at, android_record_id, android_order_id, content_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    ["notes", "todos", "research", "projects"].forEach((type) => {
+      const list = Array.isArray(state[type]) ? state[type] : [];
+      list.forEach((item, index) => {
+        if (!item || typeof item !== "object") return;
+        const record = { ...item, type };
+        const id = String(record.id || `${type}-${index}`);
+        insert.run(
+          id,
+          type,
+          index,
+          String(record.title || ""),
+          String(record.updatedAt || record.androidCreateDate || ""),
+          String(record.androidRecordId || ""),
+          record.androidOrderId === undefined || record.androidOrderId === null ? "" : String(record.androidOrderId),
+          JSON.stringify(record),
+        );
+      });
+    });
+    db.prepare(`
+      INSERT INTO app_meta (key, value) VALUES ('schemaVersion', '1')
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `).run();
+    db.prepare(`
+      INSERT INTO app_meta (key, value) VALUES ('updatedAt', ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `).run(new Date().toISOString());
+    db.exec("COMMIT");
+    return sqliteFilePath;
+  } catch (error) {
+    try {
+      db.exec("ROLLBACK");
+    } catch (rollbackError) {
+      // Ignore rollback errors after a failed transaction.
+    }
+    throw error;
+  } finally {
+    db.close();
+  }
+}
+
+function saveDesktopJsonData(state) {
   fs.mkdirSync(dataDir, { recursive: true });
   const tempPath = path.join(dataDir, `clipboard-data-${process.pid}-${Date.now()}.tmp`);
   fs.writeFileSync(tempPath, JSON.stringify(state, null, 2), "utf8");
   fs.renameSync(tempPath, dataFilePath);
   return dataFilePath;
+}
+
+function openDesktopDatabase() {
+  fs.mkdirSync(dataDir, { recursive: true });
+  const db = new DatabaseSync(sqliteFilePath);
+  db.exec(`
+    PRAGMA journal_mode = WAL;
+    PRAGMA synchronous = NORMAL;
+    CREATE TABLE IF NOT EXISTS records (
+      id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      title TEXT NOT NULL DEFAULT '',
+      updated_at TEXT NOT NULL DEFAULT '',
+      android_record_id TEXT NOT NULL DEFAULT '',
+      android_order_id TEXT NOT NULL DEFAULT '',
+      content_json TEXT NOT NULL,
+      PRIMARY KEY (type, id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_records_type_order ON records(type, sort_order);
+    CREATE INDEX IF NOT EXISTS idx_records_updated_at ON records(updated_at);
+    CREATE TABLE IF NOT EXISTS app_meta (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+  `);
+  return db;
+}
+
+function readStateFromDatabase(db) {
+  const state = { notes: [], todos: [], research: [], projects: [] };
+  const rows = db.prepare(`
+    SELECT id, type, title, updated_at, content_json
+    FROM records
+    ORDER BY type, sort_order, rowid
+  `).all();
+  rows.forEach((row) => {
+    if (!state[row.type]) return;
+    try {
+      const record = JSON.parse(row.content_json);
+      if (!record.id) record.id = row.id;
+      record.type = row.type;
+      if (!record.title && row.title) record.title = row.title;
+      if (!record.updatedAt && row.updated_at) record.updatedAt = row.updated_at;
+      state[row.type].push(record);
+    } catch (error) {
+      pushEvent("data_record_parse_error", { id: row.id, type: row.type, message: error.message });
+    }
+  });
+  return state;
 }
 
 function availableFilePath(dir, fileName) {
@@ -841,6 +1057,7 @@ function startHttpServer() {
         device: linkedDevice,
         ports: { http: HTTP_PORT, tcp: TCP_PORT, udp: UDP_PORT },
         serverStatus,
+        storage: currentStorageInfo(),
         nextSeq: eventSeq,
       });
       return;
@@ -867,6 +1084,7 @@ function startHttpServer() {
         peers: Array.from(discoveredDesktopPeers.values()),
         ports: { http: HTTP_PORT, tcp: TCP_PORT, udp: UDP_PORT, desktopTcp: DESKTOP_TCP_PORT },
         serverStatus,
+        storage: currentStorageInfo(),
         nextSeq: eventSeq,
       });
       return;
@@ -1130,6 +1348,27 @@ function startHttpServer() {
       });
       return;
     }
+    if (url.pathname === "/api/projects/import-file-chunk" && request.method === "POST") {
+      readJson(request, (body) => {
+        try {
+          const phase = body.phase || "chunk";
+          if (phase === "start") {
+            sendJson(response, { ok: true, ...startProjectFileImport(body) });
+            return;
+          }
+          if (phase === "end") {
+            finishProjectFileImport(body, (result) => {
+              sendJson(response, { ok: true, ...result });
+            });
+            return;
+          }
+          sendJson(response, { ok: true, ...appendProjectFileImport(body) });
+        } catch (error) {
+          sendJson(response, { ok: false, message: error.message }, 400);
+        }
+      });
+      return;
+    }
     if (url.pathname === "/api/data/load" && request.method === "GET") {
       try {
         const loaded = loadDesktopData();
@@ -1143,7 +1382,7 @@ function startHttpServer() {
       readJson(request, (body) => {
         try {
           const filePath = saveDesktopData(body.state);
-          sendJson(response, { ok: true, path: filePath });
+          sendJson(response, { ok: true, path: filePath, storage: DatabaseSync ? "sqlite" : "json" });
         } catch (error) {
           sendJson(response, { ok: false, message: error.message }, 400);
         }
@@ -1266,6 +1505,9 @@ function createPairCode() {
 }
 
 function startAll() {
+  if (storageWarning) {
+    pushEvent("storage_warning", currentStorageInfo());
+  }
   startDiscoveryServer();
   startPhoneTcpServer();
   startDesktopPeerServer();

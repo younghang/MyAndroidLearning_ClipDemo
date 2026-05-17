@@ -52,6 +52,7 @@ import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.ConnectToPC.PcLinkManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.JsonData.ProjectData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
@@ -771,6 +772,9 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         if (!containsCatalogue(catalogueList, ResearchTopicData.CATALOGUE_NAME)) {
             catalogueList.add(new CatalogueInfos(ResearchTopicData.CATALOGUE_NAME, "课题路线图、研究资料、问题和任务的结构化整理"));
         }
+        if (!containsCatalogue(catalogueList, ProjectData.CATALOGUE_NAME)) {
+            catalogueList.add(new CatalogueInfos(ProjectData.CATALOGUE_NAME, "项目阶段、时间计划、甘特图和交付物索引"));
+        }
         return catalogueList;
     }
 
@@ -861,7 +865,13 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 int orderid = dbListInfoManager.getDataCount();
 //                Log.v(TAG, "新建 orderid=" + orderid);
                 final Intent intent = new Intent(MainFormActivity.this, ActivityEditInfo.class);
-                intent.putExtra(LIST_DATA, new ListData("", "", orderid, currentCatalogue));
+                ListData newData = new ListData("", "", orderid, currentCatalogue);
+//                if (currentCatalogue.equals(ProjectData.CATALOGUE_NAME)) {
+//                    ProjectData sample = ProjectData.createSample();
+//                    newData.setRemarks(sample.getTitle());
+//                    newData.setContent(JSON.toJSONString(sample));
+//                }
+                intent.putExtra(LIST_DATA, newData);
                 intent.putExtra(LIST_DATA_POS, -1);
                 if (currentCatalogue.equals("待办事项")) {
                     //创建弹出式菜单对象（最低版本11）

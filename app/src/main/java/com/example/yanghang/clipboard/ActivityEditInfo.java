@@ -24,8 +24,10 @@ import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.FragmentDiary;
 import com.example.yanghang.clipboard.Fragment.FragmentEditAbstract;
 import com.example.yanghang.clipboard.Fragment.FragmentEditInfo;
+import com.example.yanghang.clipboard.Fragment.FragmentProjectManagement;
 import com.example.yanghang.clipboard.Fragment.FragmentResearchTopic;
 import com.example.yanghang.clipboard.Fragment.FragmentToDo;
+import com.example.yanghang.clipboard.Fragment.JsonData.ProjectData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueInfos;
@@ -120,6 +122,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         specialCatalogueNames.add("待办事项");
         specialCatalogueNames.add("番剧");
         specialCatalogueNames.add("记账");
+        specialCatalogueNames.add(ProjectData.CATALOGUE_NAME);
         specialCatalogueNames.add(ResearchTopicData.CATALOGUE_NAME);
         specialCatalogueNames.add("dailyMission");
         specialCatalogueNames.add("日子");
@@ -165,6 +168,9 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
                 break;
             case ResearchTopicData.CATALOGUE_NAME:
                 fragment = FragmentResearchTopic.newInstance(listData.getContent(), isEdit);
+                break;
+            case ProjectData.CATALOGUE_NAME:
+                fragment = FragmentProjectManagement.newInstance(listData.getContent(), isEdit);
                 break;
             case "番剧":
             case "日子":
@@ -216,7 +222,7 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         }
         switch (item.getItemId()) {
             case R.id.menu_checked:
-                if (fragment instanceof FragmentToDo || fragment instanceof FragmentResearchTopic) {
+                if (fragment instanceof FragmentToDo || fragment instanceof FragmentResearchTopic || fragment instanceof FragmentProjectManagement) {
                     saveAndPreviewInPlace();
                 } else {
                     saveCurrentContentToResult();
@@ -260,6 +266,8 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
             ((FragmentToDo) fragment).disableEdit();
         } else if (fragment instanceof FragmentResearchTopic) {
             ((FragmentResearchTopic) fragment).disableEdit();
+        } else if (fragment instanceof FragmentProjectManagement) {
+            ((FragmentProjectManagement) fragment).disableEdit();
         }
         spinner.setVisibility(View.GONE);
         invalidateOptionsMenu();
@@ -323,6 +331,9 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
             }
             if (fragment instanceof FragmentResearchTopic) {
                 return ResearchTopicData.parse(content).getUpdatedAt();
+            }
+            if (fragment instanceof FragmentProjectManagement) {
+                return ProjectData.parse(content).getUpdatedAt();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -422,7 +433,8 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
     public boolean onPrepareOptionsMenu(Menu menu) {
         boolean isToDoFragment = fragment instanceof FragmentToDo;
         boolean isResearchTopicFragment = fragment instanceof FragmentResearchTopic;
-        boolean showEditHistoryControls = isEdit && !isToDoFragment && !isResearchTopicFragment;
+        boolean isProjectFragment = fragment instanceof FragmentProjectManagement;
+        boolean showEditHistoryControls = isEdit && !isToDoFragment && !isResearchTopicFragment && !isProjectFragment;
         menu.findItem(R.id.menu_redo).setVisible(showEditHistoryControls);
         menu.findItem(R.id.menu_undo).setVisible(showEditHistoryControls);
         menu.findItem(R.id.menu_checked).setVisible(isEdit);

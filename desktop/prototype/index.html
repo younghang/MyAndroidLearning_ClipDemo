@@ -280,12 +280,17 @@
     }
 
     .list-item {
+      position: relative;
       border: 1px solid transparent;
       border-radius: var(--radius);
       padding: 9px 10px;
       margin-bottom: 6px;
-      cursor: pointer;
+      cursor: grab;
       background: rgba(255, 255, 255, 0.68);
+    }
+
+    .list-item:active {
+      cursor: grabbing;
     }
 
     .list-item:hover {
@@ -296,6 +301,20 @@
       border-color: var(--primary);
       background: linear-gradient(135deg, #f4f9ff, #ffffff);
       box-shadow: 0 8px 22px rgba(47, 128, 237, 0.1);
+    }
+
+    .list-item.dragging {
+      opacity: 0.45;
+    }
+
+    .list-item.drag-over {
+      border-color: #9bbcf7;
+      background: #eef5ff;
+      box-shadow: inset 0 2px 0 var(--primary);
+    }
+
+    .list-item.drag-over-after {
+      box-shadow: inset 0 -2px 0 var(--primary);
     }
 
     .list-title {
@@ -783,14 +802,20 @@
     }
 
     .content {
-      overflow: auto;
+      overflow-x: hidden;
+      overflow-y: auto;
       padding: 18px;
       flex: 1;
+      min-width: 0;
     }
 
     .content.content-research {
       overflow: hidden;
       padding: 12px;
+    }
+
+    .content.content-projects {
+      padding: 14px;
     }
 
     .form-grid {
@@ -842,6 +867,7 @@
       top: 0;
       z-index: 2;
       display: flex;
+      align-items: center;
       flex-wrap: wrap;
       gap: 6px;
       padding: 8px 10px;
@@ -864,6 +890,83 @@
     .rich-toolbar button:hover {
       background: #eef3ff;
       border-color: #dce4fb;
+    }
+
+    .operation-guide {
+      position: relative;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .operation-guide summary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 0 9px;
+      border: 1px solid rgba(218, 224, 236, 0.86);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .operation-guide summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .operation-guide[open] summary {
+      color: var(--primary);
+      border-color: #c9d8ff;
+      background: #f4f7ff;
+    }
+
+    .info-dot {
+      width: 17px;
+      height: 17px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 850;
+      font-style: normal;
+    }
+
+    .operation-guide-panel {
+      display: grid;
+      gap: 6px;
+      min-width: 300px;
+      max-width: 380px;
+      padding: 10px 12px;
+      border: 1px solid rgba(217, 224, 236, 0.9);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+      color: var(--muted);
+    }
+
+    .operation-guide-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .rich-guide {
+      margin-left: auto;
+      z-index: 4;
+    }
+
+    .rich-guide .operation-guide-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
     }
 
     .rich-editor {
@@ -894,6 +997,573 @@
       border-left: 3px solid var(--primary);
       background: #f7f8ff;
       color: #3b4252;
+    }
+
+    .project-shell {
+      display: grid;
+      gap: 14px;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      min-width: 0;
+    }
+
+    .project-hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, clamp(320px, 24vw, 420px));
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .content.content-projects .project-shell {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+    }
+
+    .project-shell .card,
+    .project-hero > .card {
+      min-width: 0;
+    }
+
+    .project-title-input {
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      border-radius: 0;
+      padding: 8px 0;
+      font-size: 26px;
+      font-weight: 780;
+      background: transparent;
+    }
+
+    .project-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .project-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .project-kpi {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcff;
+    }
+
+    .project-kpi-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .project-kpi-label {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .project-progress {
+      height: 8px;
+      margin-top: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e9edf5;
+    }
+
+    .project-progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+    }
+
+    .project-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+
+    .project-gantt-scroll {
+      width: 100%;
+      max-width: 100%;
+      overflow: auto;
+      border: 1px solid #edf0f6;
+      border-radius: 9px;
+      background: #fff;
+    }
+
+    .project-gantt {
+      position: relative;
+      min-width: 960px;
+      min-height: 260px;
+      padding: 42px 22px 24px 160px;
+      background-image:
+        linear-gradient(to right, rgba(226, 232, 240, 0.78) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(226, 232, 240, 0.66) 1px, transparent 1px);
+      background-size: 160px 100%, 100% 54px;
+      background-position: 160px 0, 0 42px;
+    }
+
+    .project-gantt-axis {
+      position: absolute;
+      top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .project-gantt-label {
+      position: absolute;
+      left: 14px;
+      width: 128px;
+      color: var(--text);
+      font-weight: 720;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .project-gantt-label small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .project-gantt-bar {
+      position: absolute;
+      height: 22px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #dbe4fb;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+    }
+
+    .project-gantt-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--primary);
+    }
+
+    .project-gantt-date {
+      position: absolute;
+      top: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .project-gantt-dependency {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .project-gantt-milestone {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      background: var(--purple);
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .project-gantt-milestone-label {
+      position: absolute;
+      color: var(--purple);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .project-table-wrap {
+      width: 100%;
+      max-width: 100%;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+    }
+
+    .project-table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    .project-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      padding: 10px;
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .project-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #eef1f7;
+      vertical-align: top;
+    }
+
+    .project-table input,
+    .project-table select,
+    .project-table textarea {
+      padding: 7px 8px;
+      font-size: 13px;
+    }
+
+    .project-table textarea {
+      min-height: 42px;
+      resize: vertical;
+    }
+
+    .project-table select[multiple] {
+      min-height: 62px;
+    }
+
+    .project-stage-deps-button {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+      white-space: normal;
+      line-height: 1.35;
+    }
+
+    .project-dependency-summary {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .project-dialog-body {
+      max-height: min(56vh, 520px);
+      overflow: auto;
+      padding: 8px 18px 18px;
+    }
+
+    .project-small-dialog {
+      width: min(430px, 100%);
+    }
+
+    .project-deliverable-dialog {
+      width: min(760px, 100%);
+    }
+
+    .project-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .project-form label {
+      margin: 0;
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .project-form label.full {
+      grid-column: 1 / -1;
+    }
+
+    .project-form textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .project-file-box {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 8px;
+      background: #fbfcff;
+    }
+
+    .project-file-name {
+      min-width: 0;
+      flex: 1;
+      color: var(--text);
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    .project-dependency-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .project-dependency-list label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.35;
+      text-align: left;
+    }
+
+    .project-dependency-list input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .project-dependency-list span {
+      min-width: 0;
+      flex: 1;
+      text-align: left;
+      word-break: break-word;
+    }
+
+    .project-deliverable-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .project-view-tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .project-view-tabs button {
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .project-view-tabs button.active {
+      background: #fff;
+      border-color: #dde4ef;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .project-deliverable-filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .project-deliverable-filter select {
+      min-width: 150px;
+      max-width: 220px;
+    }
+
+    .project-deliverable-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .project-deliverable-card {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fff;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .project-deliverable-card-title {
+      font-weight: 780;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .project-deliverable-card-meta {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .project-deliverable-card-desc {
+      margin-top: 8px;
+      color: #485064;
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .project-deliverable-date-view {
+      display: grid;
+      grid-template-columns: 110px 130px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .project-date-index {
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fbfcff;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .project-date-index button {
+      justify-content: flex-start;
+      text-align: left;
+      box-shadow: none;
+    }
+
+    .project-date-index button.active {
+      background: var(--primary-soft);
+      border-color: #bfd0ff;
+      color: var(--primary);
+    }
+
+    .project-deliverable-table {
+      min-width: 780px;
+      table-layout: fixed;
+    }
+
+    .project-stage-table {
+      min-width: 820px;
+      table-layout: fixed;
+    }
+
+    .project-deliverable-table th {
+      position: sticky;
+      top: 0;
+    }
+
+    .project-deliverable-table th.sortable {
+      cursor: pointer;
+      user-select: none;
+      padding-right: 18px;
+    }
+
+    .project-sort-mark {
+      margin-left: 4px;
+      color: var(--primary);
+      font-size: 11px;
+    }
+
+    .project-column-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 7px;
+      height: 100%;
+      cursor: col-resize;
+    }
+
+    .project-column-resizer:hover {
+      background: rgba(63, 81, 181, 0.12);
+    }
+
+    .project-draggable-col {
+      cursor: grab;
+    }
+
+    .project-draggable-col:active {
+      cursor: grabbing;
+    }
+
+    .project-draggable-col.drag-over {
+      background: #eef4ff;
+      color: var(--primary);
+    }
+
+    @media (max-width: 1200px) {
+      .project-hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .project-gantt-dialog {
+      position: relative;
+      width: min(96vw, 1500px);
+      height: min(92vh, 920px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .project-gantt-dialog .format-dialog-header {
+      padding-right: 56px;
+    }
+
+    .project-gantt-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: inline-grid;
+      place-items: center;
+      border-color: transparent;
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.86);
+      color: var(--muted);
+      font-size: 22px;
+      line-height: 1;
+      box-shadow: none;
+      z-index: 2;
+    }
+
+    .project-gantt-close:hover {
+      background: #eef3ff;
+      color: var(--primary);
+    }
+
+    .project-gantt-fullscreen-body {
+      flex: 1;
+      overflow: auto;
+      padding: 0 18px 18px;
+      background: #fbfcff;
+    }
+
+    .project-gantt-fullscreen-body .project-gantt-scroll {
+      min-height: 100%;
+    }
+
+    .project-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
     }
 
     .todo-card {
@@ -1383,56 +2053,40 @@
     }
 
     .todo-table.todo-table-modern {
-      min-width: 1040px;
-      table-layout: auto;
+      min-width: 900px;
+      table-layout: fixed;
     }
 
-    .todo-table-modern th:nth-child(1),
-    .todo-table-modern td:nth-child(1) {
-      width: 46px;
+    .todo-table-modern th:nth-child(n),
+    .todo-table-modern td:nth-child(n) {
+      width: auto;
+      min-width: 0;
     }
 
-    .todo-table-modern th:nth-child(2),
-    .todo-table-modern td:nth-child(2) {
-      min-width: 280px;
-      width: 34%;
+    .todo-draggable-col {
+      cursor: grab;
     }
 
-    .todo-table-modern th:nth-child(3),
-    .todo-table-modern td:nth-child(3),
-    .todo-table-modern th:nth-child(4),
-    .todo-table-modern td:nth-child(4),
-    .todo-table-modern th:nth-child(5),
-    .todo-table-modern td:nth-child(5),
-    .todo-table-modern th:nth-child(6),
-    .todo-table-modern td:nth-child(6) {
-      width: 82px;
+    .todo-draggable-col:active {
+      cursor: grabbing;
     }
 
-    .todo-table-modern th:nth-child(7),
-    .todo-table-modern td:nth-child(7) {
-      width: 130px;
+    .todo-draggable-col.drag-over {
+      background: #eef4ff;
+      color: var(--primary);
     }
 
-    .todo-table-modern th:nth-child(8),
-    .todo-table-modern td:nth-child(8) {
-      width: 118px;
+    .todo-column-resizer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 7px;
+      height: 100%;
+      cursor: col-resize;
     }
 
-    .todo-table-modern th:nth-child(9),
-    .todo-table-modern td:nth-child(9) {
-      min-width: 240px;
-      width: 28%;
-    }
-
-    .todo-table-modern th:nth-child(10),
-    .todo-table-modern td:nth-child(10) {
-      width: 92px;
-    }
-
-    .todo-table-modern th:nth-child(11),
-    .todo-table-modern td:nth-child(11) {
-      width: 98px;
+    .todo-column-resizer:hover {
+      background: rgba(63, 81, 181, 0.12);
     }
 
     .todo-title-cell {
@@ -1635,19 +2289,17 @@
       box-shadow: var(--soft-shadow);
     }
 
-    .map-help {
+    .map-guide {
       position: absolute;
       left: 12px;
       bottom: 10px;
-      z-index: 1;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(217, 221, 229, 0.58);
-      border-radius: 7px;
-      padding: 7px 9px;
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-      pointer-events: none;
+      z-index: 6;
+    }
+
+    .map-guide .operation-guide-panel {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 8px);
     }
 
     .map-controls {
@@ -1968,11 +2620,12 @@
         <button data-type="notes"><span class="nav-icon">N</span><span class="nav-label">笔记</span></button>
         <button data-type="todos"><span class="nav-icon">T</span><span class="nav-label">待办事项</span></button>
         <button data-type="research"><span class="nav-icon">R</span><span class="nav-label">课题</span></button>
+        <button data-type="projects"><span class="nav-icon">P</span><span class="nav-label">项目</span></button>
       </nav>
       <div class="side-footer">
         本地原型版<br />
-        数据保存在浏览器 localStorage。<br />
-        后续迁移到 Tauri + React。
+        Bridge 启动时数据保存到 SQLite。<br />
+        浏览器直开时使用 localStorage。
       </div>
     </aside>
 
@@ -2036,6 +2689,44 @@
         <button id="todoTaskModalCancel" class="ghost">取消</button>
         <button id="todoTaskModalSave" class="primary">保存</button>
       </div>
+    </div>
+  </div>
+  <div id="projectDependencyModal" class="modal-backdrop">
+    <div class="format-dialog project-small-dialog">
+      <div class="format-dialog-header">
+        <div id="projectDependencyModalTitle" class="format-dialog-title">选择前置阶段</div>
+        <div class="format-dialog-desc">前置阶段为空时，甘特图不会绘制依赖箭头。</div>
+      </div>
+      <div id="projectDependencyModalBody" class="project-dialog-body"></div>
+      <div class="format-dialog-footer">
+        <button id="projectDependencyModalClear" class="ghost">清空</button>
+        <button id="projectDependencyModalCancel" class="ghost">取消</button>
+        <button id="projectDependencyModalSave" class="primary">确定</button>
+      </div>
+    </div>
+  </div>
+  <div id="projectDeliverableModal" class="modal-backdrop">
+    <div class="format-dialog project-deliverable-dialog">
+      <div class="format-dialog-header">
+        <div id="projectDeliverableModalTitle" class="format-dialog-title">添加交付物</div>
+        <div class="format-dialog-desc">选择文件后会复制进桌面端的项目文件夹，并在记录里保存相对路径。</div>
+      </div>
+      <div id="projectDeliverableModalBody" class="project-dialog-body"></div>
+      <div class="format-dialog-footer">
+        <button id="projectDeliverableModalDelete" class="ghost">删除</button>
+        <button id="projectDeliverableModalCancel" class="ghost">取消</button>
+        <button id="projectDeliverableModalSave" class="primary">确定</button>
+      </div>
+    </div>
+  </div>
+  <div id="projectGanttModal" class="modal-backdrop">
+    <div class="format-dialog project-gantt-dialog">
+      <button id="projectGanttModalClose" class="project-gantt-close" title="关闭">×</button>
+      <div class="format-dialog-header">
+        <div class="format-dialog-title">甘特图</div>
+        <div class="format-dialog-desc">横向滚动查看完整时间线。</div>
+      </div>
+      <div id="projectGanttModalBody" class="project-gantt-fullscreen-body"></div>
     </div>
   </div>
   <div id="phonePanel" class="phone-panel">
@@ -2126,6 +2817,7 @@
     const PHONE_LINK_SEQ_KEY = STORAGE_KEY + "-phone-link-seq";
     const BRIDGE_BASE = "http://127.0.0.1:20312";
     const RESEARCH_DATA_TYPE = "researchTopic";
+    const PROJECT_DATA_TYPE = "project";
     const ROOT_NODE_WIDTH = 210;
     const ROOT_NODE_HEIGHT = 86;
     const ROOT_NODE_X = 80;
@@ -2138,6 +2830,7 @@
       notes: "笔记",
       todos: "待办事项",
       research: "课题",
+      projects: "项目",
     };
 
     const nodeTypeLabels = {
@@ -2174,8 +2867,21 @@
     const inspectorHiddenKey = STORAGE_KEY + "-research-inspector-hidden";
     const listPaneWidthKey = STORAGE_KEY + "-list-pane-width";
     const listPaneCollapsedKey = STORAGE_KEY + "-list-pane-collapsed";
+    const todoTableColumnWidthsKey = STORAGE_KEY + "-todo-table-column-widths";
+    const todoTableColumnOrdersKey = STORAGE_KEY + "-todo-table-column-orders";
+    const projectTableColumnWidthsKey = STORAGE_KEY + "-project-table-column-widths";
+    const projectTableColumnOrdersKey = STORAGE_KEY + "-project-table-column-orders";
     let researchInspectorHidden = localStorage.getItem(inspectorHiddenKey) === "1";
     let researchFullscreen = false;
+    const todoTableColumnWidths = loadObjectSetting(todoTableColumnWidthsKey);
+    const todoTableColumnOrders = loadObjectSetting(todoTableColumnOrdersKey);
+    const projectDeliverableViews = {};
+    const projectDeliverableStageFilters = {};
+    const projectDeliverableDateFilters = {};
+    const projectDeliverableSorts = {};
+    const projectTableColumnWidths = loadObjectSetting(projectTableColumnWidthsKey);
+    const projectTableColumnOrders = loadObjectSetting(projectTableColumnOrdersKey);
+    let projectDeliverableDraft = null;
 
     function sampleState() {
       const freecadTopic = {
@@ -2230,7 +2936,55 @@
           },
         ],
         research: [freecadTopic],
+        projects: [sampleProject()],
       };
+    }
+
+    function sampleProject() {
+      const research = projectStage("调研 OCC / FreeCAD", "2026-05-01", "2026-05-15", 100, "done", "整理几何内核、显示层、交互层分别怎么选型。");
+      const route = projectStage("确定技术路线", "2026-05-10", "2026-05-22", 60, "doing", "优先确认 STEP 加载、显示、基础交互。");
+      const viewer = projectStage("模型加载 Demo", "2026-05-20", "2026-06-08", 15, "doing", "跑通一个可以打开 STEP 文件并显示模型的原型。");
+      const interaction = projectStage("渲染与交互", "2026-06-05", "2026-06-25", 0, "planning", "旋转、缩放、选择对象、显示层控制。");
+      route.dependsOn = [research.id];
+      viewer.dependsOn = [route.id];
+      interaction.dependsOn = [viewer.id];
+      return normalizeProjectData({
+        id: createId(),
+        projectId: createId(),
+        type: "projects",
+        dataType: PROJECT_DATA_TYPE,
+        title: "开发一个轻量 CAD 软件",
+        goal: "做一个能打开和显示 CAD 模型的轻量原型，先跑通 STEP viewer，再决定是否继续进入编辑和建模。",
+        status: "doing",
+        priority: "high",
+        startDate: "2026-05-01",
+        endDate: "2026-07-30",
+        nextAction: "整理 OCC / FreeCAD / 显示层技术路线，然后做最小 Demo。",
+        stages: [research, route, viewer, interaction],
+        milestones: [{ id: createId(), title: "第一个 STEP viewer Demo 跑通", date: "2026-06-08" }],
+        deliverables: [{
+          id: createId(),
+          stageId: research.id,
+          name: "FreeCAD 架构参考.md",
+          relativePath: "projects/cad-project/deliverables/01-research/freecad-architecture.md",
+          fileType: "md",
+          description: "记录 FreeCAD 模块结构、OCC 依赖和可参考的 viewer 流程。",
+        }],
+        updatedAt: today(),
+      });
+    }
+
+    function projectStage(title, startDate, endDate, progress, status, note) {
+      return normalizeProjectStage({
+        id: createId(),
+        title,
+        startDate,
+        endDate,
+        progress,
+        status,
+        note,
+        dependsOn: [],
+      });
     }
 
     function topicNode(type, title, content, x, y) {
@@ -2282,6 +3036,85 @@
       node.mapRelativeX = Number.isFinite(Number(node.mapRelativeX)) ? Number(node.mapRelativeX) : 0;
       node.mapRelativeY = Number.isFinite(Number(node.mapRelativeY)) ? Number(node.mapRelativeY) : 0;
       return node;
+    }
+
+    function normalizeProjectData(project) {
+      if (!project || typeof project !== "object") project = {};
+      project.type = "projects";
+      project.dataType = PROJECT_DATA_TYPE;
+      if (!project.id) project.id = createId();
+      if (!project.projectId) project.projectId = project.androidProjectId || createId();
+      if (!("title" in project)) project.title = "";
+      if (!("goal" in project)) project.goal = "";
+      if (!("status" in project)) project.status = "planning";
+      if (!["planning", "doing", "paused", "done", "archived"].includes(project.status)) project.status = "planning";
+      if (!("priority" in project)) project.priority = "medium";
+      if (!["low", "medium", "high"].includes(project.priority)) project.priority = "medium";
+      if (!("startDate" in project)) project.startDate = today();
+      if (!("endDate" in project)) project.endDate = today();
+      if (!("nextAction" in project)) project.nextAction = "";
+      if (!("updatedAt" in project)) project.updatedAt = today();
+      if (!Array.isArray(project.stages)) project.stages = [];
+      if (!Array.isArray(project.milestones)) project.milestones = [];
+      if (!Array.isArray(project.deliverables)) project.deliverables = [];
+      project.stages = project.stages.filter(Boolean).map(normalizeProjectStage);
+      project.milestones = project.milestones.filter(Boolean).map(normalizeProjectMilestone);
+      project.deliverables = project.deliverables.filter(Boolean).map(normalizeProjectDeliverable);
+      cleanProjectStageDependencies(project);
+      project.progress = project.stages.length
+        ? Math.round(project.stages.reduce((sum, stage) => sum + (Number(stage.progress) || 0), 0) / project.stages.length)
+        : clamp(Number(project.progress) || 0, 0, 100);
+      return project;
+    }
+
+    function normalizeProjectStage(stage) {
+      if (!stage || typeof stage !== "object") stage = {};
+      if (!stage.id) stage.id = createId();
+      if (!("title" in stage)) stage.title = "";
+      if (!("status" in stage)) stage.status = "planning";
+      if (!["planning", "doing", "paused", "done", "archived"].includes(stage.status)) stage.status = "planning";
+      if (!("startDate" in stage)) stage.startDate = today();
+      if (!("endDate" in stage)) stage.endDate = stage.startDate || today();
+      stage.progress = clamp(Number(stage.progress) || 0, 0, 100);
+      if (!("note" in stage)) stage.note = "";
+      if (!Array.isArray(stage.dependsOn)) stage.dependsOn = [];
+      stage.dependsOn = stage.dependsOn.map((id) => String(id || "").trim()).filter((id) => id && id !== stage.id);
+      if (!Array.isArray(stage.linkedTodoIds)) stage.linkedTodoIds = [];
+      if (!Array.isArray(stage.linkedResearchIds)) stage.linkedResearchIds = [];
+      if (!Array.isArray(stage.linkedNoteIds)) stage.linkedNoteIds = [];
+      if (!Array.isArray(stage.deliverableIds)) stage.deliverableIds = [];
+      return stage;
+    }
+
+    function normalizeProjectMilestone(milestone) {
+      if (!milestone || typeof milestone !== "object") milestone = {};
+      if (!milestone.id) milestone.id = createId();
+      if (!("title" in milestone)) milestone.title = "";
+      if (!("date" in milestone)) milestone.date = today();
+      return milestone;
+    }
+
+    function normalizeProjectDeliverable(deliverable) {
+      if (!deliverable || typeof deliverable !== "object") deliverable = {};
+      if (!deliverable.id) deliverable.id = createId();
+      if (!("stageId" in deliverable)) deliverable.stageId = "";
+      if (!("name" in deliverable)) deliverable.name = "";
+      if (!("relativePath" in deliverable)) deliverable.relativePath = "";
+      if (!("fileType" in deliverable)) deliverable.fileType = "";
+      if (!("description" in deliverable)) deliverable.description = "";
+      if (!("addedAt" in deliverable)) deliverable.addedAt = nowIso();
+      if (!("size" in deliverable)) deliverable.size = 0;
+      return deliverable;
+    }
+
+    function cleanProjectStageDependencies(project) {
+      const ids = new Set((project.stages || []).map((stage) => stage.id));
+      (project.stages || []).forEach((stage) => {
+        stage.dependsOn = (stage.dependsOn || []).filter((id) => ids.has(id) && id !== stage.id);
+      });
+      (project.deliverables || []).forEach((deliverable) => {
+        if (deliverable.stageId && !ids.has(deliverable.stageId)) deliverable.stageId = "";
+      });
     }
 
     function markDesktopAutoPosition(node, value) {
@@ -2379,8 +3212,30 @@
       return normalizeState(sampleState());
     }
 
+    function loadObjectSetting(key) {
+      try {
+        const raw = localStorage.getItem(key);
+        const value = raw ? JSON.parse(raw) : {};
+        return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function saveObjectSetting(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value || {}));
+      } catch (error) {
+        console.warn(error);
+      }
+    }
+
     function saveState() {
       touchItem(currentItem());
+      persistState();
+    }
+
+    function persistState() {
       normalizeState(state);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
       queueDesktopDatabaseSave();
@@ -2449,6 +3304,7 @@
       if (!Array.isArray(next.notes)) next.notes = [];
       if (!Array.isArray(next.todos)) next.todos = [];
       if (!Array.isArray(next.research)) next.research = [];
+      if (!Array.isArray(next.projects)) next.projects = [];
       next.notes = next.notes.filter(Boolean);
       next.notes.forEach((item) => {
         item.type = "notes";
@@ -2475,6 +3331,7 @@
         item.tasks.forEach(normalizeTaskFields);
       });
       next.research = next.research.filter(Boolean).map(normalizeResearchTopic);
+      next.projects = next.projects.filter(Boolean).map(normalizeProjectData);
       return next;
     }
 
@@ -2508,18 +3365,51 @@
         list.innerHTML = '<div class="empty">没有匹配内容</div>';
         return;
       }
+      let draggingRecordId = "";
       items.forEach((item) => {
         const div = document.createElement("div");
         const summary = summaryOf(item);
         div.className = "list-item" + (item.id === selectedId ? " active" : "");
+        div.draggable = true;
+        div.dataset.recordId = item.id;
         div.innerHTML = `
           <div class="list-title">${escapeHtml(item.title || "未命名")}</div>
           <div class="list-meta"><span class="list-time" title="${escapeAttr(exactUpdatedTime(item))}">${escapeHtml(relativeUpdatedTime(item))}</span>${summary ? ` · ${escapeHtml(summary)}` : ""}</div>
         `;
         div.onclick = () => {
+          if (draggingRecordId) return;
           selectedId = item.id;
           selectedNodeId = null;
           render();
+        };
+        div.ondragstart = (event) => {
+          draggingRecordId = item.id;
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", item.id);
+          window.setTimeout(() => div.classList.add("dragging"), 0);
+        };
+        div.ondragend = () => {
+          draggingRecordId = "";
+          document.querySelectorAll(".list-item.dragging, .list-item.drag-over, .list-item.drag-over-after").forEach((node) => {
+            node.classList.remove("dragging", "drag-over", "drag-over-after");
+          });
+        };
+        div.ondragover = (event) => {
+          const sourceId = event.dataTransfer.getData("text/plain") || draggingRecordId;
+          if (!sourceId || sourceId === item.id) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = "move";
+          const rect = div.getBoundingClientRect();
+          div.classList.add("drag-over");
+          div.classList.toggle("drag-over-after", event.clientY > rect.top + rect.height / 2);
+        };
+        div.ondragleave = () => div.classList.remove("drag-over", "drag-over-after");
+        div.ondrop = (event) => {
+          event.preventDefault();
+          const after = div.classList.contains("drag-over-after");
+          div.classList.remove("drag-over", "drag-over-after");
+          const sourceId = event.dataTransfer.getData("text/plain") || draggingRecordId;
+          moveCurrentRecordNear(sourceId, item.id, after);
         };
         div.oncontextmenu = (event) => {
           event.preventDefault();
@@ -2531,6 +3421,22 @@
         };
         list.appendChild(div);
       });
+    }
+
+    function moveCurrentRecordNear(sourceId, targetId, after) {
+      if (!sourceId || !targetId || sourceId === targetId) return;
+      const list = currentList();
+      const from = list.findIndex((item) => item.id === sourceId);
+      const target = list.findIndex((item) => item.id === targetId);
+      if (from < 0 || target < 0) return;
+      const [moved] = list.splice(from, 1);
+      const to = list.findIndex((item) => item.id === targetId);
+      const insertAt = to < 0 ? list.length : to + (after ? 1 : 0);
+      list.splice(insertAt, 0, moved);
+      selectedId = sourceId;
+      selectedNodeId = null;
+      persistState();
+      render();
     }
 
     function relativeUpdatedTime(item) {
@@ -2567,6 +3473,9 @@
       if (item.type === "research") {
         return `${item.nodes.length} 个节点 · ${item.problem || "未写问题定义"}`;
       }
+      if (item.type === "projects") {
+        return `${projectStatusText(item.status)} · ${Number(item.progress) || 0}% · ${item.stages.length} 阶段`;
+      }
       return item.content || "空笔记";
     }
 
@@ -2581,6 +3490,7 @@
       if (currentType === "notes") renderNote(content, item);
       if (currentType === "todos") renderTodo(content, item);
       if (currentType === "research") renderResearch(content, item);
+      if (currentType === "projects") renderProject(content, item);
     }
 
     function renderNote(container, item) {
@@ -2597,6 +3507,16 @@
             <button data-block="h2" title="二级标题">H2</button>
             <button data-block="blockquote" title="引用">“</button>
             <button data-block="p" title="正文">P</button>
+            <details class="operation-guide rich-guide">
+              <summary>操作说明 <span class="info-dot">i</span></summary>
+              <div class="operation-guide-panel">
+                <div class="operation-guide-row"><span class="kbd">Ctrl</span> + <span class="kbd">Z</span> 撤销</div>
+                <div class="operation-guide-row"><span class="kbd">Ctrl</span> + <span class="kbd">Y</span> 重做</div>
+                <div class="operation-guide-row"><span class="kbd">Ctrl</span> + <span class="kbd">B</span> 加粗选中文字</div>
+                <div class="operation-guide-row"><span class="kbd">Ctrl</span> + <span class="kbd">I</span> 斜体选中文字</div>
+                <div>工具栏可切换列表、二级标题、引用块和正文样式。</div>
+              </div>
+            </details>
           </div>
           <div id="noteContent" class="rich-editor" contenteditable="true">${noteEditorHtml(item)}</div>
         </div>
@@ -2703,21 +3623,17 @@
 
     function renderTodoTableModern(container, item, visibleTasks) {
       const rows = orderedTodoTaskEntries(item, visibleTasks);
+      const columns = todoOrderedColumns(item, todoModernColumns(item));
       container.innerHTML = `
         <div class="todo-table-wrap">
           <table class="todo-table todo-table-modern">
+            <colgroup>
+              ${columns.map((column) => `<col data-todo-col="${column.key}" style="width:${todoTableColumnWidth(item, column.key, column.width)}px" />`).join("")}
+              <col style="width:104px" />
+            </colgroup>
             <thead>
               <tr>
-                ${todoSortHeader(item, "done", "完成")}
-                ${todoSortHeader(item, "title", "任务")}
-                ${todoSortHeader(item, "status", "状态")}
-                ${todoSortHeader(item, "priority", "优先级")}
-                ${todoSortHeader(item, "importance", "重要")}
-                ${todoSortHeader(item, "urgency", "紧急")}
-                ${todoSortHeader(item, "progress", "进度")}
-                ${todoSortHeader(item, "dueDate", "截止")}
-                ${todoSortHeader(item, "content", "备注")}
-                <th>提醒</th>
+                ${columns.map((column) => todoModernHeader(item, column)).join("")}
                 <th></th>
               </tr>
             </thead>
@@ -2726,8 +3642,9 @@
         </div>
       `;
       const taskList = document.getElementById("taskList");
-      document.querySelectorAll(".todo-table th.sortable").forEach((header) => {
-        header.onclick = () => {
+      document.querySelectorAll(".todo-table-modern th.sortable").forEach((header) => {
+        header.onclick = (event) => {
+          if (event.target.closest(".todo-column-resizer")) return;
           const currentSort = todoSorts[item.id] || {};
           const key = header.dataset.sort;
           const direction = currentSort.key === key && currentSort.direction === "asc" ? "desc" : "asc";
@@ -2735,8 +3652,9 @@
           render();
         };
       });
+      wireTodoTableColumnTools(item);
       if (!rows.length) {
-        taskList.innerHTML = '<tr><td colspan="11" class="list-meta">当前筛选下没有任务</td></tr>';
+        taskList.innerHTML = `<tr><td colspan="${columns.length + 1}" class="list-meta">当前筛选下没有任务</td></tr>`;
         return;
       }
       rows.forEach(({ taskItem, index, depth }) => {
@@ -2747,33 +3665,7 @@
         row.className = `todo-row priority-${taskItem.priority || "medium"}${taskItem.done ? " done" : ""}${depth > 0 ? " todo-child-row" : ""}`;
         row.style.setProperty("--todo-depth", String(Math.min(depth, 6)));
         row.innerHTML = `
-          <td><input class="todo-check" type="checkbox" ${taskItem.done ? "checked" : ""} /></td>
-          <td>
-            <div class="todo-title-cell">
-              <span class="todo-depth-mark" style="opacity:${depth ? 1 : 0}"></span>
-              <div class="todo-title-main-wrap">
-                <div class="todo-title-main">${escapeHtml(taskItem.title || "未命名任务")}</div>
-                ${parentTitle ? `<div class="todo-subtitle">上级：${escapeHtml(parentTitle)}</div>` : ""}
-              </div>
-            </div>
-          </td>
-          <td><span class="todo-pill status-${escapeAttr(taskItem.status || "todo")}">${todoStatusText(taskItem.status)}</span></td>
-          <td><span class="todo-pill priority-${escapeAttr(taskItem.priority || "medium")}">${todoPriorityText(taskItem.priority)}</span></td>
-          <td><span class="todo-pill level-${escapeAttr(taskItem.importance || "normal")}">${todoLevelText(taskItem.importance, "普通", "重要")}</span></td>
-          <td><span class="todo-pill level-${escapeAttr(taskItem.urgency || "normal")}">${todoLevelText(taskItem.urgency, "普通", "紧急")}</span></td>
-          <td>
-            <strong>${progressValue}%</strong>
-            <div class="progress-track"><div class="progress-fill" style="width:${progressValue}%"></div></div>
-          </td>
-          <td>${escapeHtml(taskItem.dueDate || "未设")}</td>
-          <td><div class="todo-note-preview ${note ? "" : "todo-empty-note"}" title="${escapeAttr(note)}">${escapeHtml(note || "无备注")}</div></td>
-          <td>
-            <div class="todo-reminder-cell">
-              ${taskItem.currentDay ? "<span>今日</span>" : ""}
-              ${taskItem.dailyTask ? "<span>每日</span>" : ""}
-              ${!taskItem.currentDay && !taskItem.dailyTask ? "<span>-</span>" : ""}
-            </div>
-          </td>
+          ${columns.map((column) => column.cell(taskItem, index, depth, { progressValue, parentTitle, note })).join("")}
           <td>
             <div class="todo-action-row">
               <button class="ghost todo-edit" title="编辑任务">编辑</button>
@@ -3558,6 +4450,7 @@
       if (key === "importance" || key === "urgency") return taskItem[key] === "high" ? 1 : 0;
       if (key === "progress") return Number(taskItem.progress) || 0;
       if (key === "parentId") return todoTaskTitleById(currentItem()?.tasks || [], taskItem.parentId || "");
+      if (key === "reminder") return (taskItem.currentDay ? 2 : 0) + (taskItem.dailyTask ? 1 : 0);
       return String(taskItem[key] || "").toLowerCase();
     }
 
@@ -3633,18 +4526,1190 @@
       });
     }
 
+    function todoModernColumns(item) {
+      return [
+        {
+          key: "done",
+          label: "完成",
+          width: 54,
+          cell: (taskItem) => `<td><input class="todo-check" type="checkbox" ${taskItem.done ? "checked" : ""} /></td>`,
+        },
+        {
+          key: "title",
+          label: "任务",
+          width: 300,
+          cell: (taskItem, index, depth, meta) => `
+            <td>
+              <div class="todo-title-cell">
+                <span class="todo-depth-mark" style="opacity:${depth ? 1 : 0}"></span>
+                <div class="todo-title-main-wrap">
+                  <div class="todo-title-main">${escapeHtml(taskItem.title || "未命名任务")}</div>
+                  ${meta.parentTitle ? `<div class="todo-subtitle">上级：${escapeHtml(meta.parentTitle)}</div>` : ""}
+                </div>
+              </div>
+            </td>
+          `,
+        },
+        {
+          key: "status",
+          label: "状态",
+          width: 86,
+          cell: (taskItem) => `<td><span class="todo-pill status-${escapeAttr(taskItem.status || "todo")}">${todoStatusText(taskItem.status)}</span></td>`,
+        },
+        {
+          key: "priority",
+          label: "优先级",
+          width: 86,
+          cell: (taskItem) => `<td><span class="todo-pill priority-${escapeAttr(taskItem.priority || "medium")}">${todoPriorityText(taskItem.priority)}</span></td>`,
+        },
+        {
+          key: "importance",
+          label: "重要",
+          width: 78,
+          cell: (taskItem) => `<td><span class="todo-pill level-${escapeAttr(taskItem.importance || "normal")}">${todoLevelText(taskItem.importance, "普通", "重要")}</span></td>`,
+        },
+        {
+          key: "urgency",
+          label: "紧急",
+          width: 78,
+          cell: (taskItem) => `<td><span class="todo-pill level-${escapeAttr(taskItem.urgency || "normal")}">${todoLevelText(taskItem.urgency, "普通", "紧急")}</span></td>`,
+        },
+        {
+          key: "progress",
+          label: "进度",
+          width: 130,
+          cell: (taskItem, index, depth, meta) => `
+            <td>
+              <strong>${meta.progressValue}%</strong>
+              <div class="progress-track"><div class="progress-fill" style="width:${meta.progressValue}%"></div></div>
+            </td>
+          `,
+        },
+        {
+          key: "dueDate",
+          label: "截止",
+          width: 118,
+          cell: (taskItem) => `<td>${escapeHtml(taskItem.dueDate || "未设")}</td>`,
+        },
+        {
+          key: "content",
+          label: "备注",
+          width: 240,
+          cell: (taskItem, index, depth, meta) => `<td><div class="todo-note-preview ${meta.note ? "" : "todo-empty-note"}" title="${escapeAttr(meta.note)}">${escapeHtml(meta.note || "无备注")}</div></td>`,
+        },
+        {
+          key: "reminder",
+          label: "提醒",
+          width: 92,
+          cell: (taskItem) => `
+            <td>
+              <div class="todo-reminder-cell">
+                ${taskItem.currentDay ? "<span>今日</span>" : ""}
+                ${taskItem.dailyTask ? "<span>每日</span>" : ""}
+                ${!taskItem.currentDay && !taskItem.dailyTask ? "<span>-</span>" : ""}
+              </div>
+            </td>
+          `,
+        },
+      ];
+    }
+
+    function todoModernHeader(item, column) {
+      const sort = todoSorts[item.id] || {};
+      const mark = sort.key === column.key ? (sort.direction === "asc" ? " ↑" : " ↓") : "";
+      return `<th class="sortable todo-draggable-col" draggable="true" data-todo-col-key="${column.key}" data-sort="${column.key}">${escapeHtml(column.label)}${mark}<span class="todo-column-resizer" data-todo-col="${column.key}"></span></th>`;
+    }
+
+    function todoOrderedColumns(item, columns) {
+      const defaults = columns.map((column) => column.key);
+      const saved = todoTableColumnOrders[item.id] || defaults;
+      const orderedKeys = [
+        ...saved.filter((key) => defaults.includes(key)),
+        ...defaults.filter((key) => !saved.includes(key)),
+      ];
+      const columnMap = new Map(columns.map((column) => [column.key, column]));
+      return orderedKeys.map((key) => columnMap.get(key)).filter(Boolean);
+    }
+
+    function todoTableColumnWidth(item, key, defaultValue) {
+      const widths = todoTableColumnWidths[item.id] || {};
+      return clamp(Number(widths[key]) || defaultValue, 54, 560);
+    }
+
+    function moveTodoColumn(item, sourceKey, targetKey) {
+      if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+      const columns = todoModernColumns(item);
+      const defaults = columns.map((column) => column.key);
+      const current = todoOrderedColumns(item, columns).map((column) => column.key);
+      const from = current.indexOf(sourceKey);
+      const to = current.indexOf(targetKey);
+      if (from < 0 || to < 0) return;
+      current.splice(to, 0, current.splice(from, 1)[0]);
+      todoTableColumnOrders[item.id] = current.filter((key) => defaults.includes(key));
+      saveObjectSetting(todoTableColumnOrdersKey, todoTableColumnOrders);
+      render();
+    }
+
+    function wireTodoTableColumnTools(item) {
+      document.querySelectorAll(".todo-column-resizer").forEach((handle) => {
+        handle.onmousedown = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const key = handle.dataset.todoCol;
+          const col = document.querySelector(`col[data-todo-col="${key}"]`);
+          const startX = event.clientX;
+          const startWidth = todoTableColumnWidth(item, key, col ? Number.parseInt(col.style.width, 10) : 120);
+          const widths = todoTableColumnWidths[item.id] || (todoTableColumnWidths[item.id] = {});
+          const onMove = (moveEvent) => {
+            const next = clamp(startWidth + moveEvent.clientX - startX, 54, 560);
+            widths[key] = next;
+            document.querySelectorAll(`col[data-todo-col="${key}"]`).forEach((colItem) => {
+              colItem.style.width = `${next}px`;
+            });
+          };
+          const onUp = () => {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            saveObjectSetting(todoTableColumnWidthsKey, todoTableColumnWidths);
+          };
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        };
+      });
+      document.querySelectorAll(".todo-draggable-col").forEach((header) => {
+        header.ondragstart = (event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", header.dataset.todoColKey || "");
+        };
+        header.ondragover = (event) => {
+          event.preventDefault();
+          header.classList.add("drag-over");
+        };
+        header.ondragleave = () => header.classList.remove("drag-over");
+        header.ondrop = (event) => {
+          event.preventDefault();
+          header.classList.remove("drag-over");
+          moveTodoColumn(item, event.dataTransfer.getData("text/plain"), header.dataset.todoColKey);
+        };
+      });
+    }
+
+    function renderProject(container, project) {
+      normalizeProjectData(project);
+      container.innerHTML = `
+        <div class="project-shell">
+          <div class="project-hero">
+            <div class="card">
+              <label>项目标题</label>
+              <input id="projectTitle" class="project-title-input" value="${escapeAttr(project.title || "")}" placeholder="未命名项目" />
+              <label>项目目标</label>
+              <textarea id="projectGoal" placeholder="这个项目要达成什么？">${escapeHtml(project.goal || "")}</textarea>
+              <label>下一步</label>
+              <textarea id="projectNextAction" placeholder="下一步要推进什么？">${escapeHtml(project.nextAction || "")}</textarea>
+            </div>
+            <div class="card">
+              <div class="project-kpi-grid">
+                <div class="project-kpi">
+                  <div class="project-kpi-value">${Number(project.progress) || 0}%</div>
+                  <div class="project-kpi-label">总进度</div>
+                  <div class="project-progress"><div class="project-progress-fill" style="width:${clamp(Number(project.progress) || 0, 0, 100)}%"></div></div>
+                </div>
+                <div class="project-kpi"><div class="project-kpi-value">${project.stages.length}</div><div class="project-kpi-label">阶段</div></div>
+                <div class="project-kpi"><div class="project-kpi-value">${project.milestones.length}</div><div class="project-kpi-label">里程碑</div></div>
+                <div class="project-kpi"><div class="project-kpi-value">${project.deliverables.length}</div><div class="project-kpi-label">交付物</div></div>
+              </div>
+              <div class="project-meta-grid" style="margin-top:12px">
+                <label>状态<select id="projectStatus">${projectStatusOptions(project.status)}</select></label>
+                <label>优先级<select id="projectPriority">${projectPriorityOptions(project.priority)}</select></label>
+                <label>开始日期<input id="projectStartDate" type="date" value="${escapeAttr(project.startDate || "")}" /></label>
+                <label>结束日期<input id="projectEndDate" type="date" value="${escapeAttr(project.endDate || "")}" /></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="project-section-title">
+              <span>甘特图</span>
+              <div class="project-actions">
+                <button id="projectFullscreenGanttButton">全屏</button>
+                <button id="projectAddStageButton" class="primary">＋ 阶段</button>
+              </div>
+            </div>
+            <div class="project-gantt-scroll">${projectGanttHtml(project)}</div>
+          </div>
+
+          <div class="card">
+            <div class="project-section-title">
+              <span>阶段表</span>
+              <button id="projectAddStageButton2">＋ 添加阶段</button>
+            </div>
+            ${projectStagesTableHtml(project)}
+          </div>
+
+          <div class="card">
+            <div class="project-section-title">
+              <span>里程碑</span>
+              <button id="projectAddMilestoneButton">＋ 里程碑</button>
+            </div>
+            ${projectMilestonesTableHtml(project)}
+          </div>
+
+          <div class="card">
+            <div class="project-section-title">
+              <span>交付物索引</span>
+              <button id="projectAddDeliverableButton">＋ 交付物</button>
+            </div>
+            ${projectDeliverablesTableHtml(project)}
+          </div>
+        </div>
+      `;
+      wireProjectEditor(project);
+    }
+
+    function wireProjectEditor(project) {
+      const saveProject = (rerender) => {
+        normalizeProjectData(project);
+        saveState();
+        renderList();
+        if (rerender) renderContent();
+      };
+      document.getElementById("projectTitle").oninput = (event) => {
+        project.title = event.target.value;
+        saveProject(false);
+      };
+      document.getElementById("projectGoal").oninput = (event) => {
+        project.goal = event.target.value;
+        saveProject(false);
+      };
+      document.getElementById("projectNextAction").oninput = (event) => {
+        project.nextAction = event.target.value;
+        saveProject(false);
+      };
+      ["projectStatus", "projectPriority", "projectStartDate", "projectEndDate"].forEach((id) => {
+        document.getElementById(id).onchange = () => {
+          project.status = document.getElementById("projectStatus").value;
+          project.priority = document.getElementById("projectPriority").value;
+          project.startDate = document.getElementById("projectStartDate").value;
+          project.endDate = document.getElementById("projectEndDate").value;
+          saveProject(true);
+        };
+      });
+      document.getElementById("projectAddStageButton").onclick = () => addProjectStage(project);
+      document.getElementById("projectAddStageButton2").onclick = () => addProjectStage(project);
+      document.getElementById("projectFullscreenGanttButton").onclick = () => openProjectGantt(project);
+      document.getElementById("projectAddMilestoneButton").onclick = () => {
+        project.milestones.push(normalizeProjectMilestone({ id: createId(), title: "新里程碑", date: today() }));
+        saveProject(true);
+      };
+      document.getElementById("projectAddDeliverableButton").onclick = () => {
+        openProjectDeliverableDialog(project, -1);
+      };
+      document.querySelectorAll("[data-stage-index]").forEach((row) => wireProjectStageRow(project, row));
+      document.querySelectorAll("[data-milestone-index]").forEach((row) => wireProjectMilestoneRow(project, row));
+      document.querySelectorAll("[data-deliverable-index]").forEach((row) => wireProjectDeliverableRow(project, row));
+      document.querySelectorAll("[data-project-deliverable-view]").forEach((button) => {
+        button.onclick = () => {
+          projectDeliverableViews[project.id] = button.dataset.projectDeliverableView;
+          renderContent();
+        };
+      });
+      const stageFilter = document.getElementById("projectDeliverableStageFilter");
+      if (stageFilter) {
+        stageFilter.onchange = () => {
+          projectDeliverableStageFilters[project.id] = stageFilter.value;
+          renderContent();
+        };
+      }
+      document.querySelectorAll("[data-project-deliverable-sort]").forEach((header) => {
+        header.onclick = (event) => {
+          if (event.target.closest(".project-column-resizer")) return;
+          const key = header.dataset.projectDeliverableSort;
+          const current = projectDeliverableSorts[project.id] || { key: "addedAt", dir: "desc" };
+          projectDeliverableSorts[project.id] = {
+            key,
+            dir: current.key === key && current.dir === "asc" ? "desc" : "asc",
+          };
+          renderContent();
+        };
+      });
+      wireProjectTableColumnTools(project);
+      document.querySelectorAll("[data-project-year-filter]").forEach((button) => {
+        button.onclick = () => {
+          projectDeliverableDateFilters[project.id] = button.dataset.projectYearFilter;
+          renderContent();
+        };
+      });
+      document.querySelectorAll("[data-project-date-filter]").forEach((button) => {
+        button.onclick = () => {
+          projectDeliverableDateFilters[project.id] = button.dataset.projectDateFilter;
+          renderContent();
+        };
+      });
+    }
+
+    function addProjectStage(project) {
+      const previous = project.stages[project.stages.length - 1];
+      const startDate = previous?.endDate || project.startDate || today();
+      const stage = normalizeProjectStage({
+        id: createId(),
+        title: "新阶段",
+        status: "planning",
+        startDate,
+        endDate: addDaysInput(startDate, 14),
+        progress: 0,
+        note: "",
+        dependsOn: previous ? [previous.id] : [],
+      });
+      project.stages.push(stage);
+      normalizeProjectData(project);
+      saveState();
+      renderContent();
+    }
+
+    function wireProjectStageRow(project, row) {
+      const index = Number(row.dataset.stageIndex);
+      const stage = project.stages[index];
+      if (!stage) return;
+      const saveStage = (rerender) => {
+        stage.title = row.querySelector(".project-stage-title").value;
+        stage.status = row.querySelector(".project-stage-status").value;
+        stage.startDate = row.querySelector(".project-stage-start").value;
+        stage.endDate = row.querySelector(".project-stage-end").value;
+        stage.progress = clamp(Number(row.querySelector(".project-stage-progress").value) || 0, 0, 100);
+        stage.note = row.querySelector(".project-stage-note").value;
+        normalizeProjectData(project);
+        saveState();
+        renderList();
+        if (rerender) renderContent();
+      };
+      row.querySelector(".project-stage-title").oninput = () => saveStage(false);
+      row.querySelector(".project-stage-note").oninput = () => saveStage(false);
+      row.querySelectorAll("select, input[type='date'], input[type='number']").forEach((input) => {
+        input.onchange = () => saveStage(true);
+      });
+      row.querySelector(".project-stage-deps-button").onclick = () => {
+        openProjectDependencyDialog(project, stage);
+      };
+      row.querySelector(".project-delete-stage").onclick = () => {
+        if (!confirm(`删除阶段「${stage.title || "未命名阶段"}」吗？`)) return;
+        const removedId = stage.id;
+        project.stages.splice(index, 1);
+        project.stages.forEach((item) => {
+          item.dependsOn = (item.dependsOn || []).filter((id) => id !== removedId);
+        });
+        project.deliverables.forEach((item) => {
+          if (item.stageId === removedId) item.stageId = "";
+        });
+        normalizeProjectData(project);
+        saveState();
+        renderContent();
+      };
+    }
+
+    function wireProjectMilestoneRow(project, row) {
+      const index = Number(row.dataset.milestoneIndex);
+      const milestone = project.milestones[index];
+      if (!milestone) return;
+      const saveMilestone = (rerender) => {
+        milestone.title = row.querySelector(".project-milestone-title").value;
+        milestone.date = row.querySelector(".project-milestone-date").value;
+        saveState();
+        renderList();
+        if (rerender) renderContent();
+      };
+      row.querySelector(".project-milestone-title").oninput = () => saveMilestone(false);
+      row.querySelector(".project-milestone-date").onchange = () => saveMilestone(true);
+      row.querySelector(".project-delete-milestone").onclick = () => {
+        project.milestones.splice(index, 1);
+        saveState();
+        renderContent();
+      };
+    }
+
+    function wireProjectDeliverableRow(project, row) {
+      const index = Number(row.dataset.deliverableIndex);
+      const deliverable = project.deliverables[index];
+      if (!deliverable) return;
+      const edit = row.querySelector(".project-edit-deliverable");
+      if (edit) edit.onclick = () => openProjectDeliverableDialog(project, index);
+      const remove = row.querySelector(".project-delete-deliverable");
+      if (remove) {
+        remove.onclick = () => {
+          if (!confirm(`删除交付物「${deliverable.name || "未命名交付物"}」吗？`)) return;
+          project.deliverables.splice(index, 1);
+          saveState();
+          renderContent();
+        };
+      }
+    }
+
+    function projectStagesTableHtml(project) {
+      if (!project.stages.length) return `<div class="empty">还没有阶段，先添加一个阶段。</div>`;
+      const columns = projectStageColumns(project);
+      const orderedColumns = projectOrderedColumns(project, "stage", columns);
+      return `
+        <div class="project-table-wrap">
+          <table class="project-table project-stage-table">
+            <colgroup>
+              ${orderedColumns.map((column) => `<col data-project-table="stage" data-project-col="${column.key}" style="width:${projectTableColumnWidth(project, "stage", column.key, column.width)}px" />`).join("")}
+              <col style="width:72px" />
+            </colgroup>
+            <thead><tr>
+              ${orderedColumns.map((column) => projectTableHeader(project, "stage", column)).join("")}
+              <th></th>
+            </tr></thead>
+            <tbody>
+              ${project.stages.map((stage, index) => `
+                <tr data-stage-index="${index}">
+                  ${orderedColumns.map((column) => column.cell(stage, index)).join("")}
+                  <td><button class="ghost project-delete-stage">删除</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function projectMilestonesTableHtml(project) {
+      if (!project.milestones.length) return `<div class="empty">还没有里程碑。</div>`;
+      return `
+        <div class="project-table-wrap">
+          <table class="project-table">
+            <thead><tr><th>标题</th><th>日期</th><th></th></tr></thead>
+            <tbody>
+              ${project.milestones.map((milestone, index) => `
+                <tr data-milestone-index="${index}">
+                  <td><input class="project-milestone-title" value="${escapeAttr(milestone.title || "")}" /></td>
+                  <td><input class="project-milestone-date" type="date" value="${escapeAttr(milestone.date || "")}" /></td>
+                  <td><button class="ghost project-delete-milestone">删除</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function projectStageColumns(project) {
+      return [
+        {
+          key: "title",
+          label: "阶段",
+          width: 180,
+          cell: (stage) => `<td><input class="project-stage-title" value="${escapeAttr(stage.title || "")}" /></td>`,
+        },
+        {
+          key: "status",
+          label: "状态",
+          width: 110,
+          cell: (stage) => `<td><select class="project-stage-status">${projectStatusOptions(stage.status)}</select></td>`,
+        },
+        {
+          key: "start",
+          label: "开始",
+          width: 132,
+          cell: (stage) => `<td><input class="project-stage-start" type="date" value="${escapeAttr(stage.startDate || "")}" /></td>`,
+        },
+        {
+          key: "end",
+          label: "结束",
+          width: 132,
+          cell: (stage) => `<td><input class="project-stage-end" type="date" value="${escapeAttr(stage.endDate || "")}" /></td>`,
+        },
+        {
+          key: "progress",
+          label: "进度",
+          width: 92,
+          cell: (stage) => `<td><input class="project-stage-progress" type="number" min="0" max="100" value="${clamp(Number(stage.progress) || 0, 0, 100)}" /></td>`,
+        },
+        {
+          key: "deps",
+          label: "前置阶段",
+          width: 160,
+          cell: (stage) => `
+            <td>
+              <button class="ghost project-stage-deps-button" type="button">${escapeHtml(projectStageDependencyButtonText(project, stage))}</button>
+              <div class="project-dependency-summary">${escapeHtml(projectStageDependencySummary(project, stage))}</div>
+            </td>
+          `,
+        },
+        {
+          key: "note",
+          label: "备注",
+          width: 190,
+          cell: (stage) => `<td><textarea class="project-stage-note">${escapeHtml(stage.note || "")}</textarea></td>`,
+        },
+      ];
+    }
+
+    function projectDeliverablesTableHtml(project) {
+      const view = projectDeliverableViews[project.id] || "stage";
+      const selectedStage = projectDeliverableStageFilters[project.id] || "";
+      const entries = projectDeliverableEntries(project)
+        .filter((entry) => !selectedStage || entry.deliverable.stageId === selectedStage);
+      const toolbar = `
+        <div class="project-deliverable-toolbar">
+          <div class="project-view-tabs">
+            ${[["stage", "按阶段"], ["date", "按日期"], ["list", "列表"]].map(([value, label]) => `
+              <button type="button" data-project-deliverable-view="${value}" class="${view === value ? "active" : ""}">${label}</button>
+            `).join("")}
+          </div>
+          <label class="project-deliverable-filter">
+            筛选
+            <select id="projectDeliverableStageFilter">${projectDeliverableStageFilterOptions(project, selectedStage)}</select>
+          </label>
+        </div>
+      `;
+      if (!project.deliverables.length) return `${toolbar}<div class="empty">还没有交付物。点击“交付物”选择文件后，会复制到桌面端管理的项目文件夹里。</div>`;
+      if (!entries.length) return `${toolbar}<div class="empty">这个筛选条件下没有交付物。</div>`;
+      if (view === "date") return toolbar + projectDeliverablesDateHtml(project, entries);
+      if (view === "list") return toolbar + projectDeliverablesListHtml(project, entries);
+      return toolbar + projectDeliverablesStageHtml(project, entries);
+    }
+
+    function projectDeliverablesStageHtml(project, entries) {
+      const stageOrder = new Map(project.stages.map((stage, index) => [stage.id, index]));
+      const grouped = new Map();
+      projectSortedDeliverableEntries(project, entries).forEach((entry) => {
+        const key = entry.deliverable.stageId || "";
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(entry);
+      });
+      const groups = Array.from(grouped.entries()).sort((a, b) => {
+        const ai = stageOrder.has(a[0]) ? stageOrder.get(a[0]) : 9999;
+        const bi = stageOrder.has(b[0]) ? stageOrder.get(b[0]) : 9999;
+        return ai - bi;
+      });
+      return groups.map(([stageId, group]) => `
+        <div style="margin-bottom:14px">
+          <div class="project-section-title" style="margin:0 0 8px">
+            <span>${escapeHtml(stageId ? projectStageName(project, stageId) : "未关联阶段")}</span>
+            <span class="list-meta">${group.length} 个交付物</span>
+          </div>
+          <div class="project-deliverable-grid">${group.map((entry) => projectDeliverableCardHtml(project, entry)).join("")}</div>
+        </div>
+      `).join("");
+    }
+
+    function projectDeliverablesDateHtml(project, entries) {
+      const sorted = projectSortedDeliverableEntries(project, entries);
+      const keys = Array.from(new Set(sorted.map((entry) => projectDeliverableMonthKey(entry.deliverable)))).sort().reverse();
+      const years = Array.from(new Set(keys.map((key) => key.slice(0, 4)))).sort().reverse();
+      let selected = projectDeliverableDateFilters[project.id] || keys[0];
+      if (/^\d{4}$/.test(selected)) {
+        selected = keys.find((key) => key.startsWith(`${selected}-`)) || keys[0];
+      }
+      if (!keys.includes(selected)) selected = keys[0];
+      const selectedYear = selected ? selected.slice(0, 4) : "";
+      const monthKeys = keys.filter((key) => key.startsWith(`${selectedYear}-`));
+      projectDeliverableDateFilters[project.id] = selected;
+      const shown = sorted.filter((entry) => projectDeliverableMonthKey(entry.deliverable) === selected);
+      return `
+        <div class="project-deliverable-date-view">
+          <div class="project-date-index">
+            ${years.map((year) => `<button type="button" data-project-year-filter="${escapeAttr(year)}" class="${year === selectedYear ? "active" : ""}">${escapeHtml(year)} 年</button>`).join("")}
+          </div>
+          <div class="project-date-index">
+            ${monthKeys.map((key) => `<button type="button" data-project-date-filter="${escapeAttr(key)}" class="${key === selected ? "active" : ""}">${escapeHtml(projectDeliverableMonthLabel(key))}</button>`).join("")}
+          </div>
+          <div>${projectDeliverablesListHtml(project, shown)}</div>
+        </div>
+      `;
+    }
+
+    function projectDeliverablesListHtml(project, entries) {
+      const sorted = projectSortedDeliverableEntries(project, entries);
+      const columns = projectDeliverableColumns(project);
+      const orderedColumns = projectOrderedColumns(project, "deliverable", columns);
+      return `
+        <div class="project-table-wrap">
+          <table class="project-table project-deliverable-table">
+            <colgroup>
+              ${orderedColumns.map((column) => `<col data-project-table="deliverable" data-project-col="${column.key}" style="width:${projectTableColumnWidth(project, "deliverable", column.key, column.width)}px" />`).join("")}
+              <col style="width:118px" />
+            </colgroup>
+            <thead><tr>
+              ${orderedColumns.map((column) => projectDeliverableSortHeader(project, column.key, column.label)).join("")}
+              <th></th>
+            </tr></thead>
+            <tbody>
+              ${sorted.map(({ deliverable, index }) => `
+                <tr data-deliverable-index="${index}">
+                  ${orderedColumns.map((column) => column.cell(deliverable, index)).join("")}
+                  <td>
+                    <div class="project-actions">
+                      <button class="ghost project-edit-deliverable">编辑</button>
+                      <button class="ghost project-delete-deliverable">删除</button>
+                    </div>
+                  </td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function projectDeliverableCardHtml(project, entry) {
+      const deliverable = entry.deliverable;
+      return `
+        <div class="project-deliverable-card" data-deliverable-index="${entry.index}">
+          <div class="project-deliverable-card-title">${escapeHtml(deliverable.name || "未命名交付物")}</div>
+          <div class="project-deliverable-card-meta">
+            ${escapeHtml(projectStageName(project, deliverable.stageId))} · ${escapeHtml(formatProjectDateTime(deliverable.addedAt))}<br />
+            ${escapeHtml(deliverable.relativePath || "尚未选择文件")}
+          </div>
+          ${deliverable.description ? `<div class="project-deliverable-card-desc">${escapeHtml(deliverable.description)}</div>` : ""}
+          <div class="project-actions" style="margin-top:10px">
+            <button class="ghost project-edit-deliverable">编辑</button>
+            <button class="ghost project-delete-deliverable">删除</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function projectDeliverableColumns(project) {
+      return [
+        {
+          key: "name",
+          label: "文件名",
+          width: 210,
+          cell: (deliverable) => `<td><strong>${escapeHtml(deliverable.name || "未命名交付物")}</strong><div class="list-meta">${escapeHtml(deliverable.fileType || "文件")} · ${formatBytes(Number(deliverable.size) || 0)}</div></td>`,
+        },
+        {
+          key: "stage",
+          label: "阶段",
+          width: 130,
+          cell: (deliverable) => `<td>${escapeHtml(projectStageName(project, deliverable.stageId))}</td>`,
+        },
+        {
+          key: "addedAt",
+          label: "添加时间",
+          width: 150,
+          cell: (deliverable) => `<td>${escapeHtml(formatProjectDateTime(deliverable.addedAt))}</td>`,
+        },
+        {
+          key: "path",
+          label: "相对路径",
+          width: 230,
+          cell: (deliverable) => `<td>${escapeHtml(deliverable.relativePath || "")}</td>`,
+        },
+        {
+          key: "description",
+          label: "说明",
+          width: 190,
+          cell: (deliverable) => `<td>${escapeHtml(deliverable.description || "")}</td>`,
+        },
+      ];
+    }
+
+    function projectGanttHtml(project) {
+      const range = projectDateRange(project);
+      const totalDays = Math.max(1, daysBetweenInput(range.start, range.end) + 1);
+      const timelineLeft = 160;
+      const timelineWidth = Math.max(760, totalDays * 16);
+      const width = timelineLeft + timelineWidth + 60;
+      const rowHeight = 54;
+      const top = 58;
+      const height = top + Math.max(1, project.stages.length) * rowHeight + 42;
+      const xForDate = (date) => timelineLeft + timelineWidth * clamp(daysBetweenInput(range.start, date), 0, totalDays) / totalDays;
+      const axis = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+        const date = addDaysInput(range.start, Math.round(totalDays * ratio));
+        return `<div class="project-gantt-axis" style="left:${xForDate(date)}px">${escapeHtml(date.slice(5))}</div>`;
+      }).join("");
+      const barInfo = new Map();
+      const rows = project.stages.map((stage, index) => {
+        const y = top + index * rowHeight;
+        const x = xForDate(stage.startDate || range.start);
+        const endX = xForDate(stage.endDate || stage.startDate || range.start);
+        const w = Math.max(28, endX - x + 18);
+        const color = projectStatusColor(stage.status);
+        barInfo.set(stage.id, { x, y: y + 18, right: x + w, centerY: y + 29 });
+        return `
+          <div class="project-gantt-label" style="top:${y + 4}px">${escapeHtml(stage.title || "未命名阶段")}<small style="color:${color}">${projectStatusText(stage.status)} ${clamp(Number(stage.progress) || 0, 0, 100)}%</small></div>
+          <div class="project-gantt-bar" style="left:${x}px;top:${y + 18}px;width:${w}px;background:${projectStatusSoftColor(stage.status)}"><div class="project-gantt-bar-fill" style="width:${clamp(Number(stage.progress) || 0, 0, 100)}%;background:${color}"></div></div>
+          <div class="project-gantt-date" style="left:${x}px;top:${y + 44}px">${escapeHtml(stage.startDate || "")} - ${escapeHtml(stage.endDate || "")}</div>
+        `;
+      }).join("");
+      const dependencyPaths = project.stages.flatMap((stage) => {
+        const to = barInfo.get(stage.id);
+        if (!to) return [];
+        return (stage.dependsOn || []).map((dependencyId) => {
+          const from = barInfo.get(dependencyId);
+          if (!from) return "";
+          const midX = Math.max(from.right + 18, (from.right + to.x) / 2);
+          return `<path d="M ${from.right} ${from.centerY} L ${midX} ${from.centerY} L ${midX} ${to.centerY} L ${to.x} ${to.centerY}" />`;
+        }).filter(Boolean);
+      }).join("");
+      const milestones = project.milestones.map((milestone, index) => {
+        if (!milestone.date) return "";
+        const x = xForDate(milestone.date);
+        const y = top - 18 + (index % 2) * 16;
+        return `<div class="project-gantt-milestone" style="left:${x}px;top:${y}px"></div><div class="project-gantt-milestone-label" style="left:${x + 10}px;top:${y - 8}px">${escapeHtml(milestone.title || "里程碑")}</div>`;
+      }).join("");
+      return `
+        <div class="project-gantt" style="width:${width}px;height:${height}px">
+          ${axis}
+          <svg class="project-gantt-dependency" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+            <defs><marker id="projectArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M 0 0 L 8 4 L 0 8 z" fill="#687083"></path></marker></defs>
+            <g fill="none" stroke="#687083" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.72" marker-end="url(#projectArrow)">${dependencyPaths}</g>
+          </svg>
+          ${milestones}
+          ${rows}
+        </div>
+      `;
+    }
+
+    function projectStatusOptions(current) {
+      return [["planning", "规划中"], ["doing", "进行中"], ["paused", "暂停"], ["done", "完成"], ["archived", "归档"]]
+        .map(([value, label]) => `<option value="${value}" ${current === value ? "selected" : ""}>${label}</option>`).join("");
+    }
+
+    function projectPriorityOptions(current) {
+      return [["low", "低"], ["medium", "中"], ["high", "高"]]
+        .map(([value, label]) => `<option value="${value}" ${current === value ? "selected" : ""}>${label}</option>`).join("");
+    }
+
+    function projectStageDependencyOptions(project, currentStage) {
+      return project.stages
+        .filter((stage) => stage.id !== currentStage.id)
+        .map((stage) => `<option value="${escapeAttr(stage.id)}" ${(currentStage.dependsOn || []).includes(stage.id) ? "selected" : ""}>${escapeHtml(stage.title || "未命名阶段")}</option>`)
+        .join("");
+    }
+
+    function projectDeliverableStageOptions(project, selectedId) {
+      return `<option value="">未关联</option>` + project.stages
+        .map((stage) => `<option value="${escapeAttr(stage.id)}" ${selectedId === stage.id ? "selected" : ""}>${escapeHtml(stage.title || "未命名阶段")}</option>`)
+        .join("");
+    }
+
+    function projectDeliverableStageFilterOptions(project, selectedId) {
+      return `<option value="">全部阶段</option>` + project.stages
+        .map((stage) => `<option value="${escapeAttr(stage.id)}" ${selectedId === stage.id ? "selected" : ""}>${escapeHtml(stage.title || "未命名阶段")}</option>`)
+        .join("");
+    }
+
+    function projectStageName(project, stageId) {
+      if (!stageId) return "未关联阶段";
+      const stage = project.stages.find((item) => item.id === stageId);
+      return stage ? (stage.title || "未命名阶段") : "已删除阶段";
+    }
+
+    function projectStageDependencyButtonText(project, stage) {
+      const names = (stage.dependsOn || []).map((id) => projectStageName(project, id)).filter(Boolean);
+      return names.length ? names.join("、") : "选择前置阶段";
+    }
+
+    function projectStageDependencySummary(project, stage) {
+      const count = (stage.dependsOn || []).length;
+      return count ? `${count} 个前置` : "无前置";
+    }
+
+    function projectDeliverableEntries(project) {
+      return (project.deliverables || []).map((deliverable, index) => ({ deliverable, index }));
+    }
+
+    function projectDeliverableMonthKey(deliverable) {
+      const date = new Date(deliverable.addedAt || Date.now());
+      const safe = Number.isFinite(date.getTime()) ? date : new Date();
+      return `${safe.getFullYear()}-${String(safe.getMonth() + 1).padStart(2, "0")}`;
+    }
+
+    function projectDeliverableMonthLabel(key) {
+      const [year, month] = String(key || "").split("-");
+      return year && month ? `${Number(month)} 月` : "未知月份";
+    }
+
+    function formatProjectDateTime(value) {
+      const date = new Date(value || Date.now());
+      if (!Number.isFinite(date.getTime())) return "";
+      const pad = (number) => String(number).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function projectSortedDeliverableEntries(project, entries) {
+      const sort = projectDeliverableSorts[project.id] || { key: "addedAt", dir: "desc" };
+      const direction = sort.dir === "desc" ? -1 : 1;
+      return entries.slice().sort((a, b) => direction * compareProjectDeliverable(project, a.deliverable, b.deliverable, sort.key));
+    }
+
+    function compareProjectDeliverable(project, a, b, key) {
+      const valueOf = (deliverable) => {
+        if (key === "stage") return projectStageName(project, deliverable.stageId);
+        if (key === "addedAt") return Date.parse(deliverable.addedAt || "") || 0;
+        if (key === "path") return deliverable.relativePath || "";
+        if (key === "description") return deliverable.description || "";
+        return deliverable.name || "";
+      };
+      const av = valueOf(a);
+      const bv = valueOf(b);
+      if (typeof av === "number" || typeof bv === "number") return (Number(av) || 0) - (Number(bv) || 0);
+      return String(av).localeCompare(String(bv), "zh-Hans-CN", { numeric: true, sensitivity: "base" });
+    }
+
+    function projectDeliverableSortHeader(project, key, label) {
+      const sort = projectDeliverableSorts[project.id] || { key: "addedAt", dir: "desc" };
+      const mark = sort.key === key ? `<span class="project-sort-mark">${sort.dir === "asc" ? "▲" : "▼"}</span>` : "";
+      return `<th class="sortable project-draggable-col" draggable="true" data-project-table="deliverable" data-project-col-key="${key}" data-project-deliverable-sort="${key}">${label}${mark}<span class="project-column-resizer" data-project-table="deliverable" data-project-col="${key}"></span></th>`;
+    }
+
+    function projectTableHeader(project, table, column) {
+      return `<th class="project-draggable-col" draggable="true" data-project-table="${table}" data-project-col-key="${column.key}">${escapeHtml(column.label)}<span class="project-column-resizer" data-project-table="${table}" data-project-col="${column.key}"></span></th>`;
+    }
+
+    function projectTableColumnWidth(project, table, key, defaultValue) {
+      const widths = projectTableColumnWidths[project.id]?.[table] || {};
+      return clamp(Number(widths[key]) || defaultValue, 72, 520);
+    }
+
+    function projectOrderedColumns(project, table, columns) {
+      const defaults = columns.map((column) => column.key);
+      const saved = projectTableColumnOrders[project.id]?.[table] || defaults;
+      const orderedKeys = [
+        ...saved.filter((key) => defaults.includes(key)),
+        ...defaults.filter((key) => !saved.includes(key)),
+      ];
+      const columnMap = new Map(columns.map((column) => [column.key, column]));
+      return orderedKeys.map((key) => columnMap.get(key)).filter(Boolean);
+    }
+
+    function moveProjectColumn(project, table, sourceKey, targetKey) {
+      if (!sourceKey || !targetKey || sourceKey === targetKey) return;
+      const currentColumns = table === "stage" ? projectStageColumns(project) : projectDeliverableColumns(project);
+      const defaults = currentColumns.map((column) => column.key);
+      const current = projectOrderedColumns(project, table, currentColumns).map((column) => column.key);
+      const from = current.indexOf(sourceKey);
+      const to = current.indexOf(targetKey);
+      if (from < 0 || to < 0) return;
+      current.splice(to, 0, current.splice(from, 1)[0]);
+      const clean = current.filter((key) => defaults.includes(key));
+      if (!projectTableColumnOrders[project.id]) projectTableColumnOrders[project.id] = {};
+      projectTableColumnOrders[project.id][table] = clean;
+      saveObjectSetting(projectTableColumnOrdersKey, projectTableColumnOrders);
+      renderContent();
+    }
+
+    function wireProjectTableColumnTools(project) {
+      document.querySelectorAll(".project-column-resizer").forEach((handle) => {
+        handle.onmousedown = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const table = handle.dataset.projectTable;
+          const key = handle.dataset.projectCol;
+          const col = document.querySelector(`col[data-project-table="${table}"][data-project-col="${key}"]`);
+          const startX = event.clientX;
+          const startWidth = projectTableColumnWidth(project, table, key, col ? Number.parseInt(col.style.width, 10) : 160);
+          const projectWidths = projectTableColumnWidths[project.id] || (projectTableColumnWidths[project.id] = {});
+          const widths = projectWidths[table] || (projectWidths[table] = {});
+          const onMove = (moveEvent) => {
+            const next = clamp(startWidth + moveEvent.clientX - startX, 88, 520);
+            widths[key] = next;
+            document.querySelectorAll(`col[data-project-table="${table}"][data-project-col="${key}"]`).forEach((item) => {
+              item.style.width = `${next}px`;
+            });
+          };
+          const onUp = () => {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            saveObjectSetting(projectTableColumnWidthsKey, projectTableColumnWidths);
+          };
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        };
+      });
+      document.querySelectorAll(".project-draggable-col").forEach((header) => {
+        header.ondragstart = (event) => {
+          event.dataTransfer.effectAllowed = "move";
+          event.dataTransfer.setData("text/plain", JSON.stringify({
+            table: header.dataset.projectTable,
+            key: header.dataset.projectColKey,
+          }));
+        };
+        header.ondragover = (event) => {
+          event.preventDefault();
+          header.classList.add("drag-over");
+        };
+        header.ondragleave = () => header.classList.remove("drag-over");
+        header.ondrop = (event) => {
+          event.preventDefault();
+          header.classList.remove("drag-over");
+          let data = {};
+          try {
+            data = JSON.parse(event.dataTransfer.getData("text/plain") || "{}");
+          } catch (error) {
+            data = {};
+          }
+          if (data.table !== header.dataset.projectTable) return;
+          moveProjectColumn(project, data.table, data.key, header.dataset.projectColKey);
+        };
+      });
+    }
+
+    function openProjectDependencyDialog(project, stage) {
+      const modal = document.getElementById("projectDependencyModal");
+      const body = document.getElementById("projectDependencyModalBody");
+      document.getElementById("projectDependencyModalTitle").textContent = `前置阶段：${stage.title || "未命名阶段"}`;
+      const candidates = project.stages.filter((item) => item.id !== stage.id);
+      body.innerHTML = candidates.length ? `
+        <div class="project-dependency-list">
+          ${candidates.map((item) => `
+            <label>
+              <input type="checkbox" value="${escapeAttr(item.id)}" ${(stage.dependsOn || []).includes(item.id) ? "checked" : ""} />
+              <span>${escapeHtml(item.title || "未命名阶段")}</span>
+            </label>
+          `).join("")}
+        </div>
+      ` : `<div class="empty">还没有其他阶段可以作为前置。</div>`;
+      modal.classList.add("open");
+      document.getElementById("projectDependencyModalCancel").onclick = () => modal.classList.remove("open");
+      document.getElementById("projectDependencyModalClear").onclick = () => {
+        stage.dependsOn = [];
+        normalizeProjectData(project);
+        saveState();
+        modal.classList.remove("open");
+        renderContent();
+      };
+      document.getElementById("projectDependencyModalSave").onclick = () => {
+        stage.dependsOn = Array.from(body.querySelectorAll("input[type='checkbox']:checked")).map((input) => input.value);
+        normalizeProjectData(project);
+        saveState();
+        modal.classList.remove("open");
+        renderContent();
+      };
+    }
+
+    function openProjectGantt(project) {
+      const modal = document.getElementById("projectGanttModal");
+      document.getElementById("projectGanttModalBody").innerHTML = `<div class="project-gantt-scroll">${projectGanttHtml(project)}</div>`;
+      document.getElementById("projectGanttModalClose").onclick = () => modal.classList.remove("open");
+      modal.classList.add("open");
+    }
+
+    function openProjectDeliverableDialog(project, index) {
+      const modal = document.getElementById("projectDeliverableModal");
+      const body = document.getElementById("projectDeliverableModalBody");
+      const isNew = index < 0;
+      const deliverable = normalizeProjectDeliverable(isNew
+        ? { id: createId(), stageId: project.stages[0]?.id || "", name: "", addedAt: nowIso() }
+        : JSON.parse(JSON.stringify(project.deliverables[index] || {})));
+      projectDeliverableDraft = { project, index, deliverable, file: null };
+      document.getElementById("projectDeliverableModalTitle").textContent = isNew ? "添加交付物" : "编辑交付物";
+      body.innerHTML = `
+        <div class="project-form">
+          <label>名称<input id="projectDeliverableName" value="${escapeAttr(deliverable.name || "")}" placeholder="例如 Demo 视频 / 论文草稿 / 截图" /></label>
+          <label>所属阶段<select id="projectDeliverableStage">${projectDeliverableStageOptions(project, deliverable.stageId)}</select></label>
+          <label>类型<input id="projectDeliverableType" value="${escapeAttr(deliverable.fileType || "")}" placeholder="pdf / docx / png / zip" /></label>
+          <label>添加时间<input id="projectDeliverableAddedAt" type="datetime-local" value="${escapeAttr(toDateTimeLocalValue(deliverable.addedAt))}" /></label>
+          <div class="project-file-box">
+            <button id="projectDeliverableChooseFileButton" type="button">选择文件</button>
+            <div id="projectDeliverableFileName" class="project-file-name">${escapeHtml(deliverable.relativePath || "还没有选择文件")}</div>
+            <input id="projectDeliverableFileInput" type="file" hidden />
+          </div>
+          <label class="full">相对路径<input id="projectDeliverablePath" value="${escapeAttr(deliverable.relativePath || "")}" readonly /></label>
+          <label class="full">说明<textarea id="projectDeliverableDescription" placeholder="这个文件解决了什么、属于哪次产出？">${escapeHtml(deliverable.description || "")}</textarea></label>
+        </div>
+      `;
+      document.getElementById("projectDeliverableModalDelete").style.display = isNew ? "none" : "";
+      document.getElementById("projectDeliverableModalCancel").onclick = () => modal.classList.remove("open");
+      document.getElementById("projectDeliverableModalDelete").onclick = () => {
+        if (!confirm(`删除交付物「${deliverable.name || "未命名交付物"}」吗？`)) return;
+        project.deliverables.splice(index, 1);
+        normalizeProjectData(project);
+        saveState();
+        modal.classList.remove("open");
+        renderContent();
+      };
+      const fileInput = document.getElementById("projectDeliverableFileInput");
+      document.getElementById("projectDeliverableChooseFileButton").onclick = () => fileInput.click();
+      fileInput.onchange = () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        projectDeliverableDraft.file = file;
+        if (!document.getElementById("projectDeliverableName").value.trim()) {
+          document.getElementById("projectDeliverableName").value = file.name;
+        }
+        if (!document.getElementById("projectDeliverableType").value.trim()) {
+          document.getElementById("projectDeliverableType").value = file.name.includes(".") ? file.name.split(".").pop() : (file.type || "file");
+        }
+        document.getElementById("projectDeliverableFileName").textContent = `${file.name} · ${formatBytes(file.size)}`;
+      };
+      document.getElementById("projectDeliverableModalSave").onclick = async () => {
+        const saveButton = document.getElementById("projectDeliverableModalSave");
+        saveButton.disabled = true;
+        saveButton.textContent = "保存中...";
+        try {
+          deliverable.name = document.getElementById("projectDeliverableName").value.trim() || projectDeliverableDraft.file?.name || "未命名交付物";
+          deliverable.stageId = document.getElementById("projectDeliverableStage").value;
+          deliverable.fileType = document.getElementById("projectDeliverableType").value.trim();
+          deliverable.addedAt = fromDateTimeLocalValue(document.getElementById("projectDeliverableAddedAt").value);
+          deliverable.description = document.getElementById("projectDeliverableDescription").value;
+          if (projectDeliverableDraft.file) {
+            const result = await importProjectDeliverableFile(project, deliverable, projectDeliverableDraft.file);
+            deliverable.relativePath = result.relativePath || deliverable.relativePath;
+            deliverable.name = deliverable.name || result.fileName || projectDeliverableDraft.file.name;
+            deliverable.size = Number(result.size) || projectDeliverableDraft.file.size || 0;
+          } else {
+            deliverable.relativePath = document.getElementById("projectDeliverablePath").value.trim();
+          }
+          if (isNew) project.deliverables.push(deliverable);
+          else project.deliverables[index] = deliverable;
+          normalizeProjectData(project);
+          saveState();
+          modal.classList.remove("open");
+          renderContent();
+          showToast("交付物已保存");
+        } catch (error) {
+          console.warn(error);
+          showToast("交付物保存失败，请确认桌面桥接服务已启动");
+        } finally {
+          saveButton.disabled = false;
+          saveButton.textContent = "确定";
+        }
+      };
+      modal.classList.add("open");
+    }
+
+    async function importProjectDeliverableFile(project, deliverable, file) {
+      const transferId = createId();
+      const start = await fetchBridge("/api/projects/import-file-chunk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phase: "start",
+          transferId,
+          projectId: project.projectId || project.id,
+          fileName: file.name,
+          mimeType: file.type || "application/octet-stream",
+          size: file.size,
+          addedAt: deliverable.addedAt || nowIso(),
+        }),
+      });
+      const chunkSize = 512 * 1024;
+      let offset = 0;
+      while (offset < file.size) {
+        const slice = file.slice(offset, Math.min(offset + chunkSize, file.size));
+        const base64 = await readBlobAsBase64(slice);
+        await fetchBridge("/api/projects/import-file-chunk", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phase: "chunk",
+            transferId,
+            base64,
+            offset,
+            size: file.size,
+          }),
+        });
+        offset += slice.size;
+      }
+      return fetchBridge("/api/projects/import-file-chunk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phase: "end",
+          transferId,
+          size: file.size,
+          relativePath: start.relativePath,
+        }),
+      });
+    }
+
+    function readBlobAsBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
+        reader.onerror = () => reject(reader.error || new Error("read file failed"));
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    function toDateTimeLocalValue(value) {
+      const date = new Date(value || Date.now());
+      if (!Number.isFinite(date.getTime())) return "";
+      const pad = (number) => String(number).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function fromDateTimeLocalValue(value) {
+      if (!value) return nowIso();
+      const date = new Date(value);
+      return Number.isFinite(date.getTime()) ? date.toISOString() : nowIso();
+    }
+
+    function projectStatusText(status) {
+      if (status === "doing") return "进行中";
+      if (status === "paused") return "暂停";
+      if (status === "done") return "完成";
+      if (status === "archived") return "归档";
+      return "规划中";
+    }
+
+    function projectStatusColor(status) {
+      if (status === "doing") return "#c98618";
+      if (status === "done") return "#0f8f66";
+      if (status === "paused") return "#8a8f99";
+      if (status === "archived") return "#626b7a";
+      return "#3f51b5";
+    }
+
+    function projectStatusSoftColor(status) {
+      if (status === "doing") return "#fbf1d9";
+      if (status === "done") return "#eaf7f1";
+      if (status === "paused") return "#eef0f4";
+      if (status === "archived") return "#e8ebef";
+      return "#e8edff";
+    }
+
+    function projectFolderPath(project) {
+      const safeTitle = String(project.title || "project").trim().replace(/[\\/:*?"<>|]+/g, "-").slice(0, 48) || "project";
+      return `desktop/projects/${project.projectId || project.id}-${safeTitle}`;
+    }
+
+    function projectDateRange(project) {
+      const dates = [];
+      (project.stages || []).forEach((stage) => {
+        if (stage.startDate) dates.push(stage.startDate);
+        if (stage.endDate) dates.push(stage.endDate);
+      });
+      (project.milestones || []).forEach((milestone) => {
+        if (milestone.date) dates.push(milestone.date);
+      });
+      if (!dates.length) dates.push(today(), addDaysInput(today(), 7));
+      dates.sort();
+      return { start: dates[0], end: dates[dates.length - 1] };
+    }
+
+    function daysBetweenInput(start, end) {
+      const startTime = Date.parse(`${start}T00:00:00`);
+      const endTime = Date.parse(`${end}T00:00:00`);
+      if (!Number.isFinite(startTime) || !Number.isFinite(endTime)) return 0;
+      return Math.round((endTime - startTime) / (24 * 60 * 60 * 1000));
+    }
+
+    function addDaysInput(value, days) {
+      const time = Date.parse(`${value || today()}T00:00:00`);
+      const date = new Date(Number.isFinite(time) ? time : Date.now());
+      date.setDate(date.getDate() + days);
+      return formatDateInput(date);
+    }
+
     function renderResearch(container, topic) {
       container.innerHTML = `
         <div class="topic-layout ${researchInspectorHidden ? "inspector-hidden" : ""} ${researchFullscreen ? "fullscreen" : ""}">
           <div class="map-shell" id="mapShell">
-            <div class="map-help">
-              空白拖动移动画布，滚轮缩放。<br />
-              右键打开快捷菜单，点连线可删除，拖节点圆点可连接。<br />
-              <span class="kbd">Space</span> 改标题，<span class="kbd">F</span> 适配。
-            </div>
-            <div class="map-help" style="left:auto; right:12px; bottom:52px;">
-              <span class="kbd">Shift</span>/<span class="kbd">Ctrl</span> 拖框多选，拖动选中节点可一起移动
-            </div>
+            <details class="operation-guide map-guide">
+              <summary>操作说明 <span class="info-dot">i</span></summary>
+              <div class="operation-guide-panel">
+                <div>空白拖动移动画布，滚轮缩放，双击空白处缩放。</div>
+                <div>右键打开快捷菜单；连线右键可删除；拖节点圆点可连接。</div>
+                <div class="operation-guide-row"><span class="kbd">Space</span> 改标题 <span class="kbd">Esc</span> 回到图谱</div>
+                <div class="operation-guide-row"><span class="kbd">Tab</span> 子节点 <span class="kbd">Enter</span> 并行节点</div>
+                <div class="operation-guide-row"><span class="kbd">↑</span><span class="kbd">↓</span><span class="kbd">←</span><span class="kbd">→</span> 切换节点</div>
+                <div class="operation-guide-row"><span class="kbd">F</span> 适配 <span class="kbd">0</span> 重置 <span class="kbd">Del</span> 删除节点</div>
+                <div class="operation-guide-row"><span class="kbd">Shift</span>/<span class="kbd">Ctrl</span> 拖框多选，拖动选中节点可一起移动</div>
+              </div>
+            </details>
             <div class="map-controls">
               <button id="zoomOutButton" title="缩小">-</button>
               <button id="zoomInButton" title="放大">+</button>
@@ -4387,7 +6452,7 @@
       };
 
       shell.onpointerdown = (event) => {
-        if (event.target.closest(".node") || event.target.closest(".map-controls")) return;
+        if (event.target.closest(".node") || event.target.closest(".map-controls") || event.target.closest(".operation-guide")) return;
         hideContextMenu();
         if (event.shiftKey || event.ctrlKey || event.metaKey) {
           selecting = true;
@@ -4441,11 +6506,12 @@
         panning = false;
       };
       shell.onwheel = (event) => {
+        if (event.target.closest(".operation-guide")) return;
         event.preventDefault();
         zoomMapAt(topic, event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 0.88);
       };
       shell.oncontextmenu = (event) => {
-        if (event.target.closest(".node") || event.target.closest(".map-controls")) return;
+        if (event.target.closest(".node") || event.target.closest(".map-controls") || event.target.closest(".operation-guide")) return;
         event.preventDefault();
         showBlankContextMenu(event, topic, clientToWorld(topic, event.clientX, event.clientY));
       };
@@ -4872,6 +6938,16 @@
         item.conclusion = document.getElementById("topicConclusion")?.value || "";
         normalizeResearchTopic(item);
       }
+      if (currentType === "projects") {
+        item.title = document.getElementById("projectTitle")?.value || item.title;
+        item.goal = document.getElementById("projectGoal")?.value || "";
+        item.nextAction = document.getElementById("projectNextAction")?.value || "";
+        item.status = document.getElementById("projectStatus")?.value || item.status;
+        item.priority = document.getElementById("projectPriority")?.value || item.priority;
+        item.startDate = document.getElementById("projectStartDate")?.value || item.startDate;
+        item.endDate = document.getElementById("projectEndDate")?.value || item.endDate;
+        normalizeProjectData(item);
+      }
       touchItem(item);
       saveState();
     }
@@ -4883,8 +6959,10 @@
         item = { id: createId(), type: "notes", title: "新笔记", content: "", updatedAt: nowIso() };
       } else if (currentType === "todos") {
         item = { id: createId(), type: "todos", title: "新待办", content: "", tasks: [], updatedAt: nowIso() };
-      } else {
+      } else if (currentType === "research") {
         item = normalizeResearchTopic({ id: createId(), title: "新课题", problem: "", goal: "", conclusion: "", viewMode: "map", nodes: [], updatedAt: nowIso() });
+      } else {
+        item = normalizeProjectData({ id: createId(), projectId: createId(), title: "新项目", goal: "", status: "planning", priority: "medium", startDate: today(), endDate: oneMonthLater(), nextAction: "", stages: [], milestones: [], deliverables: [], updatedAt: nowIso() });
       }
       list.unshift(item);
       selectedId = item.id;
@@ -5011,7 +7089,7 @@
 
     function androidExportFromState() {
       const clips = [];
-      ["notes", "todos", "research"].forEach((type) => {
+      ["notes", "todos", "research", "projects"].forEach((type) => {
         (state[type] || []).forEach((item, index) => {
           const record = androidRecordFromDesktopItem(item);
           clips.push({
@@ -5032,7 +7110,7 @@
       if (!Array.isArray(androidJson.clips)) {
         throw new Error("invalid android export");
       }
-      const imported = { notes: [], todos: [], research: [] };
+      const imported = { notes: [], todos: [], research: [], projects: [] };
       androidJson.clips.forEach((clip) => {
         const catalogue = clip.catalogue || "";
         const rawRemark = clip.remark || "";
@@ -5056,6 +7134,19 @@
               updatedAt: clip.datetime || today(),
             });
           }
+        } else if (catalogue === "项目") {
+          const project = safeParseJson(clip.content);
+          imported.projects.push(normalizeProjectData({
+            ...(project || {}),
+            id: createId(),
+            projectId: project?.id || project?.projectId || createId(),
+            type: "projects",
+            dataType: PROJECT_DATA_TYPE,
+            title: project?.title || title,
+            androidOrderId: clip.orderid,
+            androidCreateDate: clip.datetime || "",
+            updatedAt: project?.updatedAt || clip.datetime || today(),
+          }));
         } else if (catalogue === "待办事项") {
           const board = safeParseJson(clip.content);
           imported.todos.push({
@@ -5106,6 +7197,7 @@
         notes: [...imported.notes, ...current.notes],
         todos: [...imported.todos, ...current.todos],
         research: [...imported.research, ...current.research],
+        projects: [...imported.projects, ...(current.projects || [])],
       });
     }
 
@@ -5140,6 +7232,19 @@
             nodes: (topic.nodes || []).map(normalizeResearchNode),
           });
         }
+      }
+      if (catalogue === "项目") {
+        const project = safeParseJson(record.content);
+        return normalizeProjectData({
+          ...baseFields,
+          ...(project || {}),
+          updatedAt: project?.updatedAt || baseFields.updatedAt,
+          id: createId(),
+          projectId: project?.id || project?.projectId || createId(),
+          type: "projects",
+          dataType: PROJECT_DATA_TYPE,
+          title: project?.title || title,
+        });
       }
       if (catalogue === "待办事项") {
         const board = safeParseJson(record.content);
@@ -5260,15 +7365,18 @@
       if (!record || typeof record !== "object" || !record.type) return null;
       const clone = JSON.parse(JSON.stringify(record));
       if (clone.type === "notes") {
-        const next = normalizeState({ notes: [clone], todos: [], research: [] });
+        const next = normalizeState({ notes: [clone], todos: [], research: [], projects: [] });
         return next.notes[0] || null;
       }
       if (clone.type === "todos") {
-        const next = normalizeState({ notes: [], todos: [clone], research: [] });
+        const next = normalizeState({ notes: [], todos: [clone], research: [], projects: [] });
         return next.todos[0] || null;
       }
       if (clone.type === "research") {
         return normalizeResearchTopic(clone);
+      }
+      if (clone.type === "projects") {
+        return normalizeProjectData(clone);
       }
       return null;
     }
@@ -5342,6 +7450,8 @@
         showToast(`已接收手机文件：${fileName}`);
       } else if (event.type === "port_error") {
         showToast(event.payload?.message || "手机连接端口被占用");
+      } else if (event.type === "storage_warning") {
+        showToast(event.payload?.warning || "exe 目录不可写，已改用备用目录保存数据");
       } else if (event.type === "phone_connected") {
         refreshPhoneLinkStatus(false);
         showToast("手机已连接");
@@ -5545,6 +7655,21 @@
         });
         return lines.join("\n");
       }
+      if (item.type === "projects") {
+        const lines = [];
+        if (item.title) lines.push(item.title);
+        if (item.goal) lines.push(`目标：${item.goal}`);
+        lines.push(`状态：${projectStatusText(item.status)} / 进度 ${Number(item.progress) || 0}%`);
+        if (item.nextAction) lines.push(`下一步：${item.nextAction}`);
+        (item.stages || []).forEach((stage) => {
+          lines.push(`- ${stage.title || "未命名阶段"} ${projectStatusText(stage.status)} ${Number(stage.progress) || 0}% ${stage.startDate || ""} -> ${stage.endDate || ""}`);
+          if (stage.note) lines.push(`  ${stage.note}`);
+        });
+        (item.milestones || []).forEach((milestone) => {
+          lines.push(`◆ ${milestone.date || ""} ${milestone.title || "里程碑"}`);
+        });
+        return lines.join("\n");
+      }
       return [item.title || "", item.content || ""].filter(Boolean).join("\n\n");
     }
 
@@ -5627,6 +7752,7 @@
         ...(state.notes || []),
         ...(state.todos || []),
         ...(state.research || []),
+        ...(state.projects || []),
       ];
       await sendRecordsToDesktop(allRecords, "全部记录");
     }
@@ -6135,6 +8261,58 @@
           createDate: item.androidCreateDate || item.updatedAt || today(),
         };
       }
+      if (item.type === "projects") {
+        const project = normalizeProjectData(JSON.parse(JSON.stringify(item)));
+        return {
+          recordId: item.androidRecordId || String(item.androidOrderId || ""),
+          orderId,
+          catalogue: "项目",
+          remarks: project.title || "未命名项目",
+          content: JSON.stringify({
+            id: project.projectId || project.id,
+            dataType: PROJECT_DATA_TYPE,
+            title: project.title || "",
+            goal: project.goal || "",
+            status: project.status || "planning",
+            priority: project.priority || "medium",
+            startDate: project.startDate || "",
+            endDate: project.endDate || "",
+            progress: Number(project.progress) || 0,
+            nextAction: project.nextAction || "",
+            updatedAt: project.updatedAt || nowIso(),
+            stages: (project.stages || []).map((stage) => ({
+              id: stage.id || createId(),
+              title: stage.title || "",
+              status: stage.status || "planning",
+              startDate: stage.startDate || "",
+              endDate: stage.endDate || "",
+              progress: Number(stage.progress) || 0,
+              note: stage.note || "",
+              dependsOn: Array.isArray(stage.dependsOn) ? stage.dependsOn : [],
+              linkedTodoIds: Array.isArray(stage.linkedTodoIds) ? stage.linkedTodoIds : [],
+              linkedResearchIds: Array.isArray(stage.linkedResearchIds) ? stage.linkedResearchIds : [],
+              linkedNoteIds: Array.isArray(stage.linkedNoteIds) ? stage.linkedNoteIds : [],
+              deliverableIds: Array.isArray(stage.deliverableIds) ? stage.deliverableIds : [],
+            })),
+            milestones: (project.milestones || []).map((milestone) => ({
+              id: milestone.id || createId(),
+              title: milestone.title || "",
+              date: milestone.date || "",
+            })),
+            deliverables: (project.deliverables || []).map((deliverable) => ({
+              id: deliverable.id || createId(),
+              stageId: deliverable.stageId || "",
+              name: deliverable.name || "",
+              relativePath: deliverable.relativePath || "",
+              fileType: deliverable.fileType || "",
+              description: deliverable.description || "",
+              addedAt: deliverable.addedAt || "",
+              size: Number(deliverable.size) || 0,
+            })),
+          }),
+          createDate: item.androidCreateDate || item.updatedAt || today(),
+        };
+      }
       if (item.type === "todos") {
         return {
           recordId: item.androidRecordId || String(item.androidOrderId || ""),
@@ -6477,7 +8655,7 @@
       closeDataMenu();
       if (!confirm("确定清空桌面端所有本地数据吗？建议先导出备份。")) return;
       if (prompt("输入“清空”确认这个操作。") !== "清空") return;
-      state = normalizeState({ notes: [], todos: [], research: [] });
+      state = normalizeState({ notes: [], todos: [], research: [], projects: [] });
       selectedId = null;
       selectedNodeId = null;
       saveState();
