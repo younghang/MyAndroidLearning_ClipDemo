@@ -19,13 +19,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
+import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.ActivityCalendar;
 import com.example.yanghang.clipboard.ActivityEditInfo;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsAdapter;
+import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemEditDialog;
 import com.example.yanghang.clipboard.ListPackage.CalendarItemList.CalendarItemsData;
+import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
 import com.example.yanghang.clipboard.OthersView.DateChooseWheelViewDialog;
 import com.example.yanghang.clipboard.OthersView.calendarlistview.library.CalendarHelper;
@@ -37,8 +41,11 @@ import com.example.yanghang.clipboard.R;
 
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static android.app.Activity.RESULT_OK;
 import static com.example.yanghang.clipboard.MainFormActivity.LIST_DATA;
@@ -114,18 +121,33 @@ public class FragmentCalendar extends Fragment {
     private void showAddCalendarItemDialog() {
         View view = LayoutInflater.from(getActivity().getApplicationContext()).inflate(R.layout.calendar_add_item, null);
         RecyclerView recyclerView = view.findViewById(R.id.calendar_items_recyclerView);
+        Button addCustomItemButton = view.findViewById(R.id.calendar_add_custom_item_button);
         // 设置布局，否则无法正常使用
         final List<CalendarItemsData> lists = activityCalendar.calendarImageManager.getVisibleLists();
 
-        CalendarAddItemsAdapter calendarItemAdapter = new CalendarAddItemsAdapter(lists, getActivity());
+        final CalendarAddItemsAdapter calendarItemAdapter = new CalendarAddItemsAdapter(lists, getActivity());
         calendarItemAdapter.setOnItemClickListener(new CalendarAddItemsAdapter.OnItemClickListener() {
             @Override
             public void OnItemClick(View v, int position) {
-                String remarkName=lists.get(position).getCalendarItemPic();
-                if (!activityCalendar.calendarImageManager.englishName.contains(remarkName))
-                    remarkName=lists.get(position).getCalendarItemName();
-                addCalendarItem(remarkName);
+                addCalendarItem(lists.get(position).getCalendarItemName());
 
+            }
+        });
+        addCustomItemButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CalendarItemEditDialog.show(getActivity(), activityCalendar.calendarImageManager,
+                        new CalendarItemsData("", "star", true), "添加日历条目",
+                        new CalendarItemEditDialog.OnCalendarItemSaved() {
+                            @Override
+                            public void onSaved(CalendarItemsData item) {
+                                List<CalendarItemsData> allItems = activityCalendar.calendarImageManager.getLists();
+                                allItems.add(item);
+                                activityCalendar.calendarImageManager.setLists(allItems);
+                                activityCalendar.calendarImageManager.saveImageLists();
+                                addCalendarItem(item.getCalendarItemName());
+                            }
+                        });
             }
         });
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
@@ -136,11 +158,16 @@ public class FragmentCalendar extends Fragment {
     }
     private void addCalendarItem(String strName)
     {
+        String picName = activityCalendar.calendarImageManager.getPicForTag(strName);
+        String recordKey = getCalendarRecordKey(strName, picName);
         List<ListData> todayLists=activityCalendar.listTreeMap.get(DAY_FORMAT.format(Calendar.getInstance().getTime()));
         if (todayLists!=null){
             for(int i=0;i<todayLists.size();i++)
             {
-                if (todayLists.get(i).getRemarks().equals(strName)&&todayLists.get(i).getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
+                if ((todayLists.get(i).getRemarks().equals(strName)
+                        || todayLists.get(i).getRemarks().equals(picName)
+                        || todayLists.get(i).getRemarks().equals(recordKey))
+                        && todayLists.get(i).getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME))
                 {
                     Intent intent = new Intent(getActivity(), ActivityEditInfo.class);
                     intent.putExtra(LIST_DATA_POS, i);
@@ -155,9 +182,16 @@ public class FragmentCalendar extends Fragment {
         int orderid =dbListInfoManager.getDataCount();
         Intent intent = new Intent(getActivity(), ActivityEditInfo.class);
         intent.putExtra(LIST_DATA_POS, -1);
-        intent.putExtra(LIST_DATA, new ListData(strName, "", orderid, CALENDAR_CATALOGUE_NAME));
+        intent.putExtra(LIST_DATA, new ListData(recordKey, "", orderid, CALENDAR_CATALOGUE_NAME));
         startActivityForResult(intent, REQUEST_TEXT_EDITE_BACK);
         loadingDialog.dismiss();
+    }
+
+    private String getCalendarRecordKey(String itemName, String picName) {
+        if ("diary".equals(picName) || "diary".equals(itemName) || "日记".equals(itemName)) {
+            return "diary";
+        }
+        return itemName;
     }
 
     @Override
@@ -330,30 +364,37 @@ public class FragmentCalendar extends Fragment {
         {
             @Override
             public void run() {
+                final List<ListData> accountBooks = new DBListInfoManager(getActivity()).getDatas("记账");
+                final List<AccountData> accountDatas = collectAccountData(accountBooks);
                 handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         List<String> visibleNames = activityCalendar.calendarImageManager.getVisibleNames();
 
-                        for (String d : activityCalendar.listTreeMap.keySet()) {
+                        for (String d : calendarAdapter.getDayModelList().keySet()) {
 //                            Log.d(TAG, "FragmentCalendar loadCalendarData run: currentDatekey"+d);
                             if (date.equals(d.substring(0, 7))) {
                                 CustomCalendarItemModel itemCalendarModel = calendarAdapter.getDayModelList().get(d);
                                 if (itemCalendarModel != null) {
                                     List<ListData> currentDayLists=activityCalendar.listTreeMap.get(d);
-                                    itemCalendarModel.setNewsCount(currentDayLists.size());
+                                    itemCalendarModel.setNewsCount(currentDayLists == null ? 0 : currentDayLists.size());
+                                    itemCalendarModel.clearImages();
+                                    if (currentDayLists != null) {
                                     for (int i=0;i<currentDayLists.size();i++)
                                     {
-                                        ListData listData = currentDayLists.get(i);
+                                    ListData listData = currentDayLists.get(i);
                                         if (!listData.getCatalogue().equals(CALENDAR_CATALOGUE_NAME))
                                             continue;
-                                        String remarkName=listData.getRemarks();
+                                    String remarkName=listData.getRemarks();
+                                    String picName = activityCalendar.calendarImageManager.getPicForTag(remarkName);
 //                                        Log.d(TAG, "run: Remark="+remarkName);
 //                                        if(activityCalendar.calendarImageManager.containsTag(remarkName)&&activityCalendar.calendarImageManager.getTagVisibility(remarkName))
                                         //就这么一个优化就让程序由不能运行（就加了上面这句）到能运行
                                         if(visibleNames.contains(remarkName))
-                                        itemCalendarModel.addImage(remarkName);
+                                        itemCalendarModel.addImage(picName);
                                     }
+                                    }
+                                    addAccountImagesForDay(d, itemCalendarModel, visibleNames, accountDatas);
 
                                 }
 
@@ -366,6 +407,73 @@ public class FragmentCalendar extends Fragment {
             }
         }.start();
 
+    }
+
+    private void addAccountImagesForDay(String day, CustomCalendarItemModel itemCalendarModel, List<String> visibleNames, List<AccountData> accounts) {
+        boolean hasIncome = false;
+        boolean hasExpense = false;
+        for (AccountData accountData : accounts) {
+            if (accountData.getAccountTime() == null || accountData.getAccountTime().length() < 10) {
+                continue;
+            }
+            if (!day.equals(accountData.getAccountTime().substring(0, 10))) {
+                continue;
+            }
+            if (accountData.getMoney() > 0) {
+                hasIncome = true;
+            } else if (accountData.getMoney() < 0) {
+                hasExpense = true;
+            }
+        }
+        if (hasIncome && (visibleNames.contains("收入") || visibleNames.contains("income"))) {
+            itemCalendarModel.addImage("income");
+        }
+        if (hasExpense && (visibleNames.contains("支出") || visibleNames.contains("cost"))) {
+            itemCalendarModel.addImage("cost");
+        }
+    }
+
+    private List<AccountData> collectAccountData(List<ListData> accountBooks) {
+        List<AccountData> result = new ArrayList<>();
+        Set<String> seenKeys = new HashSet<>();
+        if (accountBooks == null) {
+            return result;
+        }
+        for (ListData listData : accountBooks) {
+            if (listData == null || !"记账".equals(listData.getCatalogue())) {
+                continue;
+            }
+            try {
+                List<AccountData> accounts = JSONArray.parseArray(listData.getContent(), AccountData.class);
+                if (accounts == null) {
+                    continue;
+                }
+                for (AccountData accountData : accounts) {
+                    String key = buildAccountUniqueKey(accountData);
+                    if (seenKeys.add(key)) {
+                        result.add(accountData);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    private String buildAccountUniqueKey(AccountData accountData) {
+        if (accountData == null) {
+            return "";
+        }
+        return safeString(accountData.getAccountTime()) + "|"
+                + accountData.getMoney() + "|"
+                + safeString(accountData.getType()) + "|"
+                + safeString(accountData.getContent()) + "|"
+                + safeString(accountData.getRemark());
+    }
+
+    private String safeString(String value) {
+        return value == null ? "" : value;
     }
 
     //date:yyyy-MM-dd

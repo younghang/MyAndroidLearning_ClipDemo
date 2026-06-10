@@ -18,7 +18,7 @@ public class MyApplication extends Application {
         super.onCreate();
         instance = this;//存储引用
         appContext = getApplicationContext();  // 初始化全局 Context
-//        CrashHandler.getInstance().init(this);
+        CrashHandler.getInstance().init(this);
 //     no use    ActivitySwitcher.getInstance().init(this);
     }
     public static MyApplication getInstance(){

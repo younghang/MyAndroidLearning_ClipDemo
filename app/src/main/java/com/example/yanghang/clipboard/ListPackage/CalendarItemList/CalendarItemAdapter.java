@@ -16,6 +16,7 @@ import com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarAddItemsA
 import com.example.yanghang.clipboard.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.example.yanghang.clipboard.ListPackage.CalendarList.CalendarImageManager.setImageSource;
@@ -85,6 +86,21 @@ public class CalendarItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     {
         lists.remove(pos);
         notifyItemRemoved(pos);
+    }
+
+    public boolean moveItem(int fromPosition, int toPosition) {
+        if (fromPosition < 0 || toPosition < 0) {
+            return false;
+        }
+        if (fromPosition >= lists.size() - 1 || toPosition >= lists.size() - 1) {
+            return false;
+        }
+        if (fromPosition == toPosition) {
+            return false;
+        }
+        Collections.swap(lists, fromPosition, toPosition);
+        notifyItemMoved(fromPosition, toPosition);
+        return true;
     }
 
 

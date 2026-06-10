@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="56dp"
     android:id="@+id/calendar_item_footer_ll"
-    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:layout_marginBottom="8dp"
+    android:background="@drawable/bg_calendar_chip"
     android:clickable="true"
-
-    android:orientation="vertical">
+    android:foreground="?android:attr/selectableItemBackground"
+    android:gravity="center"
+    android:orientation="horizontal">
 
     <ImageView
-        app:srcCompat="@drawable/add_gray"
-        android:layout_margin="15dp"
-        android:layout_gravity="center"
         android:id="@+id/calendar_item_footer_image"
-        android:layout_width="30dp"
-        android:layout_height="30dp" />
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:src="@drawable/add_gray" />
 
-
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:text="添加条目"
+        android:textColor="#717B8C"
+        android:textSize="14sp"
+        android:textStyle="bold" />
 </LinearLayout>

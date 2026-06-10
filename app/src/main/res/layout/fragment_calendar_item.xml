@@ -1,64 +1,123 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="com.example.yanghang.clipboard.Fragment.FragmentCalendarItem">
 
-    <!-- TODO: Update blank fragment layout -->
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="#F6F8FB"
+        android:orientation="vertical"
+        android:padding="12dp">
+
         <androidx.cardview.widget.CardView
             android:id="@+id/timer_CardView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="10dp"
-            android:layout_margin="8dp"
             android:clickable="true"
             android:foreground="?android:attr/selectableItemBackground"
-            android:minHeight="80dp"
-            app:cardElevation="8dp">
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-        <Chronometer
-        android:layout_margin="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:format="00:00:00"
-        android:textSize="20dp"
-        android:gravity="center"
-        android:id="@+id/timer"/>
-        </androidx.cardview.widget.CardView>
-        <Button
-            android:layout_width="match_parent"
-            style="@null"
-            android:id="@+id/start_timer"
-            android:background="@drawable/button_background_green"
-            android:text="开始"
-            android:textSize="20dp"
-            android:textColor="@color/white"
-            android:layout_margin="20dp"
-            android:layout_height="wrap_content" />
-        <Button
-            android:text="结束"
-            android:textSize="20dp"
-            android:textColor="@color/white"
-            android:layout_width="match_parent"
-            style="@null"
-            android:layout_marginTop="0dp"
-            android:id="@+id/end_timer"
-            android:background="@drawable/button_background_green"
-            android:layout_marginRight="20dp"
-            android:layout_marginLeft="20dp"
-            android:layout_height="wrap_content" />
-        <androidx.recyclerview.widget.RecyclerView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/fragment_calendar_item_recycleView"
-            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="14dp">
 
-        </androidx.recyclerview.widget.RecyclerView>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="快捷计时"
+                    android:textColor="#717B8C"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <Chronometer
+                    android:id="@+id/timer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:format="00:00:00"
+                    android:gravity="center"
+                    android:textColor="#222A38"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/start_timer"
+                        style="@null"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_marginRight="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_background_green"
+                        android:text="开始"
+                        android:textColor="@color/white"
+                        android:textSize="15sp" />
+
+                    <Button
+                        android:id="@+id/end_timer"
+                        style="@null"
+                        android:layout_width="0dp"
+                        android:layout_height="42dp"
+                        android:layout_marginLeft="6dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/button_background_green"
+                        android:text="结束"
+                        android:textColor="@color/white"
+                        android:textSize="15sp" />
+                </LinearLayout>
             </LinearLayout>
-    
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="14dp"
+            android:text="快速记录"
+            android:textColor="#222A38"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/calendar_quick_items_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginTop="16dp"
+            android:text="条目管理"
+            android:textColor="#222A38"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/fragment_calendar_item_recycleView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1" />
+    </LinearLayout>
+
 </FrameLayout>

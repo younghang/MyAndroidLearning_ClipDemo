@@ -55,6 +55,48 @@
         android:src="@mipmap/ic_like_normal"
         android:visibility="gone" />
 
+    <ImageView
+        android:id="@+id/calendar_item_image8"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="2dp"
+        android:layout_marginTop="18dp"
+        android:src="@mipmap/ic_like_normal"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/calendar_item_image9"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="2dp"
+        android:layout_marginTop="18dp"
+        android:src="@mipmap/ic_like_normal"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/calendar_item_image10"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="18dp"
+        android:layout_marginBottom="2dp"
+        android:src="@mipmap/ic_like_normal"
+        android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/calendar_item_image11"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="18dp"
+        android:layout_marginBottom="2dp"
+        android:src="@mipmap/ic_like_normal"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tv_day_num"
         android:layout_width="wrap_content"

@@ -1,5 +1,6 @@
 package com.example.yanghang.clipboard.Log;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -30,6 +31,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     private static CrashHandler instance = new CrashHandler();
     private Context mContext;
+    private static final Object LOG_LOCK = new Object();
 
     // 用来存储设备信息和异常信息
     private Map<String, String> infos = new HashMap<String, String>();
@@ -187,17 +189,65 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     }
     public static String FileName="crash.log";
 
+    public static File getLogFile(Context context) {
+        return new File(context.getCacheDir(), FileName);
+    }
+
+    public static void appendLog(Context context, String title, String message, Throwable throwable) {
+        if (context == null) {
+            return;
+        }
+        Context appContext = context.getApplicationContext();
+        if (appContext != null) {
+            context = appContext;
+        }
+        StringBuffer sb = new StringBuffer();
+        try {
+            SimpleDateFormat sDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String date = sDateFormat.format(new java.util.Date());
+            sb.append("\r\n").append(date).append("\n");
+            if (title != null && title.length() > 0) {
+                sb.append(title).append("\n");
+            }
+            if (message != null && message.length() > 0) {
+                sb.append(message).append("\n");
+            }
+            if (throwable != null) {
+                Writer writer = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(writer);
+                throwable.printStackTrace(printWriter);
+                Throwable cause = throwable.getCause();
+                while (cause != null) {
+                    cause.printStackTrace(printWriter);
+                    cause = cause.getCause();
+                }
+                printWriter.flush();
+                printWriter.close();
+                sb.append(writer.toString());
+            }
+            writeTextToFile(context, sb.toString());
+        } catch (Exception e) {
+            Log.e(TAG, "an error occured while appending log...", e);
+        }
+    }
+
     private String writeFile(String sb) throws Exception {
+        writeTextToFile(mContext, sb);
+        return FileName;
+    }
 
-
-            String path =mContext.getCacheDir().getAbsolutePath();
-
-            FileOutputStream fos = new FileOutputStream(path + FileName, true);
-            fos.write(sb.getBytes());
+    private static void writeTextToFile(Context context, String text) throws Exception {
+        synchronized (LOG_LOCK) {
+            File file = getLogFile(context);
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            FileOutputStream fos = new FileOutputStream(file, true);
+            fos.write(text.getBytes("UTF-8"));
             fos.flush();
             fos.close();
-
-        return FileName;
+        }
     }
 
 

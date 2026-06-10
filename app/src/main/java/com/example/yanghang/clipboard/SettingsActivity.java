@@ -5,6 +5,8 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -329,7 +331,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             addPreferencesFromResource(R.xml.pref_about);
-            file = new File(getActivity().getCacheDir().getAbsolutePath() + CrashHandler.FileName);
+            file = CrashHandler.getLogFile(getActivity());
             deleteFilePreference = findPreference("setting_about_delete_data_file");
             logFilePreference = findPreference("setting_about_log_file");
             specialCataloguePreference = findPreference("setting_about_special_catalogue");
@@ -480,14 +482,16 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             dismissDialog(loadingDialog);
                         }
-                    }) .create();
+                    })
+                    .setNeutralButton("复制", null)
+                    .create();
             StringBuffer sb = new StringBuffer();
             try {
 
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String line = "";
                 while ((line = br.readLine()) != null) {
-                    sb.append(line);
+                    sb.append(line).append("\n");
                 }
                 br.close();
             } catch (Exception e) {
@@ -505,6 +509,17 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             editText.setTextSize(15);
             progress.setVisibility(View.INVISIBLE);
             loadingDialog.show();
+            loadingDialog.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ClipboardManager clipboardManager = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboardManager != null) {
+                        ClipData clipData = ClipData.newPlainText("错误日志", editText.getText().toString());
+                        clipboardManager.setPrimaryClip(clipData);
+                        Toast.makeText(getActivity().getApplicationContext(), "日志已复制", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
 
         private void showFileDeleteDialog() {

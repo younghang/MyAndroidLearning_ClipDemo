@@ -49,6 +49,7 @@ public class CalendarAddItemsAdapter extends RecyclerView.Adapter<CalendarAddIte
 
     @Override
     public void onBindViewHolder(CalendarItemHolder holder, int position) {
+        holder.itemView.setVisibility(View.VISIBLE);
         if (!lists.get(position).getShowImage())
         {
             holder.itemView.setVisibility(View.GONE);

@@ -41,6 +41,11 @@ public class CustomCalendarItemModel  extends BaseCalendarItemModel{
 
     }
 
+    public void clearImages() {
+        pics.clear();
+        imageCount = 0;
+    }
+
 
     public int getNewsCount() {
         return newsCount;

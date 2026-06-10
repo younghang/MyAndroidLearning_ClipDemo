@@ -22,12 +22,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alibaba.fastjson.JSONArray;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
@@ -37,6 +39,7 @@ import com.example.yanghang.clipboard.ListPackage.AccountList.AccountData;
 import com.example.yanghang.clipboard.ListPackage.AccountList.AccountDataAdapter;
 import com.example.yanghang.clipboard.ListPackage.CatalogueList.CatalogueAdapter;
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListData;
+import com.example.yanghang.clipboard.Log.CrashHandler;
 import com.example.yanghang.clipboard.OthersView.AutoFixText.AutofitTextView;
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.SwipeBackLayout;
 import com.example.yanghang.clipboard.OthersView.swipebacklayout.lib.app.SwipeBackActivity;
@@ -104,11 +107,28 @@ public class ActivityAccountBook extends SwipeBackActivity {
 
 
     private void initialData() {
-        Bundle bundle = getIntent().getExtras();
-        listData = (ListData) bundle.get(MainFormActivity.LIST_DATA);
-        posInListData = (int) bundle.get(MainFormActivity.LIST_DATA_POS);
-        catalogueNameEdit.setText(listData.getRemarks());
-        new AnalyseContentTask().execute(listData.getContent());
+        try {
+            Bundle bundle = getIntent().getExtras();
+            if (bundle == null) {
+                throw new IllegalStateException("ActivityAccountBook extras is null");
+            }
+            listData = (ListData) bundle.get(MainFormActivity.LIST_DATA);
+            posInListData = bundle.getInt(MainFormActivity.LIST_DATA_POS, -1);
+            if (listData == null) {
+                throw new IllegalStateException("ActivityAccountBook LIST_DATA is null");
+            }
+            ListData latestData = new DBListInfoManager(ActivityAccountBook.this).getDataByOrderId(listData.getOrderID());
+            if (latestData != null) {
+                listData = latestData;
+            }
+            catalogueNameEdit.setText(listData.getRemarks());
+            new AnalyseContentTask().execute(getSafeAccountContent());
+        } catch (Exception e) {
+            Log.e(TAG, "记账初始化失败", e);
+            CrashHandler.appendLog(ActivityAccountBook.this, "记账初始化失败", "", e);
+            Toast.makeText(ActivityAccountBook.this, "记账数据读取失败，已返回主界面", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
 
@@ -189,10 +209,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ActivityAccountBook.this, MainFormActivity.class);
-                intent.putExtra(MainFormActivity.LIST_DATA, listData);
-                intent.putExtra(MainFormActivity.LIST_DATA_POS, posInListData);
-                setResult(RESULT_BANGUMI_ACTIVITY, intent);
+                setLatestResultAndFinish();
                 finish();
             }
         });
@@ -248,13 +265,7 @@ public class ActivityAccountBook extends SwipeBackActivity {
                 refreshLayout.postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                new AnalyseContentTask().execute(listData.getContent());
-                            }
-                        }).start();
-
+                        reloadLatestAccountData();
                     }
                 }, 200);
             }
@@ -461,12 +472,71 @@ public class ActivityAccountBook extends SwipeBackActivity {
 
     }
     private void saveToDataBase() {
-        DBListInfoManager dbListInfoManager = new DBListInfoManager(ActivityAccountBook.this);
-        String content = JSONArray.toJSONString(allAccountData);
-        listData.setContent(content);
+        try {
+            if (listData == null) {
+                throw new IllegalStateException("listData is null when saving account book");
+            }
+            DBListInfoManager dbListInfoManager = new DBListInfoManager(ActivityAccountBook.this);
+            String content = JSONArray.toJSONString(allAccountData);
+            String remark = catalogueNameEdit.getText().toString();
+            listData.setContent(content);
+            listData.setRemarks(remark);
 //        Log.d(TAG, "saveToDataBase: content=" + content);
-        dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), catalogueNameEdit.getText().toString(), content, listData.getCreateDate());
-        //顺便同时回传数据
+            boolean updated = dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), remark, content, listData.getCreateDate());
+            if (!updated) {
+                Log.e(TAG, "记账保存失败，orderID=" + listData.getOrderID());
+                CrashHandler.appendLog(ActivityAccountBook.this, "记账保存失败", "orderID=" + listData.getOrderID(), null);
+                Toast.makeText(ActivityAccountBook.this, "记账保存失败，请返回后刷新", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            setLatestResult();
+        } catch (Exception e) {
+            Log.e(TAG, "记账保存异常", e);
+            CrashHandler.appendLog(ActivityAccountBook.this, "记账保存异常", "", e);
+            Toast.makeText(ActivityAccountBook.this, "记账保存异常：" + e.getClass().getSimpleName(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String getSafeAccountContent() {
+        String content = listData == null ? null : listData.getContent();
+        return content == null || content.trim().equals("") ? "[]" : content;
+    }
+
+    private void reloadLatestAccountData() {
+        try {
+            if (listData == null) {
+                return;
+            }
+            ListData latestData = new DBListInfoManager(ActivityAccountBook.this).getDataByOrderId(listData.getOrderID());
+            if (latestData != null) {
+                listData = latestData;
+            }
+            new AnalyseContentTask().execute(getSafeAccountContent());
+        } catch (Exception e) {
+            Log.e(TAG, "记账刷新异常", e);
+            CrashHandler.appendLog(ActivityAccountBook.this, "记账刷新异常", "", e);
+            Toast.makeText(ActivityAccountBook.this, "记账刷新失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setLatestResultAndFinish() {
+        setLatestResult();
+    }
+
+    private void setLatestResult() {
+        if (listData == null) {
+            return;
+        }
+        ListData latestData = null;
+        try {
+            latestData = new DBListInfoManager(ActivityAccountBook.this).getDataByOrderId(listData.getOrderID());
+        } catch (Exception e) {
+            Log.e(TAG, "读取最新记账返回数据失败", e);
+            CrashHandler.appendLog(ActivityAccountBook.this, "读取最新记账返回数据失败", "", e);
+        }
+        if (latestData != null) {
+            listData = latestData;
+        }
         Intent intent = new Intent(ActivityAccountBook.this, MainFormActivity.class);
         intent.putExtra(MainFormActivity.LIST_DATA, listData);
         intent.putExtra(MainFormActivity.LIST_DATA_POS, posInListData);
@@ -591,9 +661,16 @@ public class ActivityAccountBook extends SwipeBackActivity {
 
         @Override
         protected List<AccountData> doInBackground(String... strings) {
-            list = JSONArray.parseArray(strings[0], AccountData.class);
-            if (list==null)
-            {
+            try {
+                String content = strings == null || strings.length == 0 || strings[0] == null ? "[]" : strings[0];
+                list = JSONArray.parseArray(content, AccountData.class);
+                if (list==null)
+                {
+                    return new ArrayList<>();
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "记账 JSON 解析失败", e);
+                CrashHandler.appendLog(ActivityAccountBook.this, "记账 JSON 解析失败", "", e);
                 return new ArrayList<>();
             }
 //            List<AccountData> Alist = new ArrayList<>();

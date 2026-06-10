@@ -93,6 +93,22 @@ public class CalendarItemAdapter extends BaseCalendarItemAdapter<CustomCalendarI
                     ImageView imageView7 = view.findViewById(R.id.calendar_item_image7);
                     setImage(imageView7,model.pics.get(i));
                     break;
+                case 7:
+                    ImageView imageView8 = view.findViewById(R.id.calendar_item_image8);
+                    setImage(imageView8,model.pics.get(i));
+                    break;
+                case 8:
+                    ImageView imageView9 = view.findViewById(R.id.calendar_item_image9);
+                    setImage(imageView9,model.pics.get(i));
+                    break;
+                case 9:
+                    ImageView imageView10 = view.findViewById(R.id.calendar_item_image10);
+                    setImage(imageView10,model.pics.get(i));
+                    break;
+                case 10:
+                    ImageView imageView11 = view.findViewById(R.id.calendar_item_image11);
+                    setImage(imageView11,model.pics.get(i));
+                    break;
             }
         }
 

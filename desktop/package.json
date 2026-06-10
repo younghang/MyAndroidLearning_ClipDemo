@@ -8,8 +8,9 @@
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder --win portable",
-    "dist:win": "electron-builder --win portable",
+    "dist": "electron-builder --dir",
+    "dist:win": "electron-builder --dir",
+    "dist:win:installer": "electron-builder --win nsis",
     "dist:mac": "electron-builder --mac dmg zip",
     "pack:mac": "electron-builder --mac dir"
   },
@@ -30,7 +31,7 @@
     "win": {
       "signAndEditExecutable": false,
       "target": [
-        "portable"
+        "nsis"
       ]
     },
     "mac": {

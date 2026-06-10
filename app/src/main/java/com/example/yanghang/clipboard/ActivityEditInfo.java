@@ -151,14 +151,13 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         {
             case FragmentCalendar.CALENDAR_CATALOGUE_NAME:
                 editRemark.setFocusable(false);
-                switch (listData.getRemarks())
-                {
-                    case "diary":
-                        fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
+                if (isDiaryCalendarItem(listData.getRemarks())) {
+                    listData.setRemarks("diary");
+                    editRemark.setText("diary");
+                    fragment = FragmentDiary.newInstance(listData.getContent(), isEdit);
 //                notShowSpinner=true;//不仅修改的时候不能出现，而且新建的时候也不能出现
-                        break;
-                    default:
-                        fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
+                } else {
+                    fragment = FragmentEditInfo.newInstance(listData.getContent(), isEdit);
                 }
                 break;
 
@@ -277,6 +276,10 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         saveCurrentContentToResult();
     }
 
+    private boolean isDiaryCalendarItem(String remarks) {
+        return "diary".equals(remarks) || "日记".equals(remarks);
+    }
+
     private void saveCurrentContentToResult() {
         if (listData.getCatalogue().equals("番剧") || listData.getCatalogue().equals("记账")) {
             //对于新番，新建的时候只能设置Remake 不能通过ActivityEditInfo来设置content ，有单独的Activity来设置
@@ -284,7 +287,12 @@ public class ActivityEditInfo extends SwipeBackActivity implements FragmentDiary
         } else {
             listData.setContent(fragment.getString());
         }
-        listData.setRemarks(editRemark.getText().toString());
+        if (listData.getCatalogue().equals(FragmentCalendar.CALENDAR_CATALOGUE_NAME)
+                && isDiaryCalendarItem(listData.getRemarks())) {
+            listData.setRemarks("diary");
+        } else {
+            listData.setRemarks(editRemark.getText().toString());
+        }
         //只有calendar 这样在目录里面找不到的，才不需要手动设置,还有dailyMission，为了能够更换目录
         if (!specialCatalogueNames.contains(listData.getCatalogue())) {
             listData.setCatalogue(spinner.getSelectedItem().toString());

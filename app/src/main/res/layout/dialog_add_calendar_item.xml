@@ -1,22 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="8dp">
 
-    <EditText
-        android:padding="10dp"
-        android:background="@null"
-        android:drawableBottom="@drawable/shape_et_bottom_line"
-        android:id="@+id/dialogue_add_calendar_item_name"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginTop="20dp"
-        android:hint=""
-        android:textColor="@color/colorPrimary"
-        />
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="22dp"
+        android:paddingRight="22dp"
+        android:paddingTop="16dp">
 
+        <ImageView
+            android:id="@+id/dialogue_calendar_icon_preview"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/bg_calendar_chip"
+            android:padding="9dp"
+            android:src="@drawable/ic_star" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/dialogue_calendar_icon_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="标记"
+                android:textColor="#717B8C"
+                android:textSize="12sp" />
+
+            <EditText
+                android:id="@+id/dialogue_add_calendar_item_name"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:background="@null"
+                android:drawableBottom="@drawable/shape_et_bottom_line"
+                android:hint="条目名称"
+                android:padding="6dp"
+                android:textColor="#222A38"
+                android:textSize="16sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="14dp"
+        android:text="图标候选"
+        android:textColor="#717B8C"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dialogue_calendar_icon_recyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="132dp"
+        android:layout_marginTop="6dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp" />
 
 </LinearLayout>

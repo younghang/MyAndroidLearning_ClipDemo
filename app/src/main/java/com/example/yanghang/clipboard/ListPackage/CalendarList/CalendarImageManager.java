@@ -50,7 +50,8 @@ public class CalendarImageManager {
 
         //为了兼容之前的数据
         englishName = Arrays.asList("diary","weight","luser","jp","code","paint"
-                ,"rest","cost","income","fire","like","check","star");
+                ,"rest","cost","income","fire","like","check","star","study"
+                ,"work","sport","sleep","mood","book","coffee","health");
 
         fileAbsolutePath=context.getFilesDir()+"/"+FileName;
         File file=new File(fileAbsolutePath);
@@ -75,14 +76,19 @@ public class CalendarImageManager {
     }
     public List<CalendarItemsData> getLists()
     {
-        loadItemDatas();
-        return lists;
+        List<CalendarItemsData> loadedLists = loadItemDatas();
+        if (loadedLists != null) {
+            lists = loadedLists;
+        }
+        if (lists == null) {
+            lists = new ArrayList<>();
+        }
+        return new ArrayList<>(lists);
     }
     public List<CalendarItemsData> getVisibleLists()
     {
-        loadItemDatas();
         List<CalendarItemsData> list=new ArrayList<CalendarItemsData>();
-        for (CalendarItemsData item : lists) {
+        for (CalendarItemsData item : getLists()) {
             if (item == null) {
                 continue;
             }
@@ -104,6 +110,50 @@ public class CalendarImageManager {
                 names.add(shortName);
         }
         return names;
+    }
+
+    public List<CalendarItemsData> getIconCandidates() {
+        List<CalendarItemsData> candidates = new ArrayList<>();
+        candidates.add(new CalendarItemsData("日记", "diary", true));
+        candidates.add(new CalendarItemsData("体重", "weight", true));
+        candidates.add(new CalendarItemsData("学习", "study", true));
+        candidates.add(new CalendarItemsData("工作", "work", true));
+        candidates.add(new CalendarItemsData("运动", "sport", true));
+        candidates.add(new CalendarItemsData("睡眠", "sleep", true));
+        candidates.add(new CalendarItemsData("心情", "mood", true));
+        candidates.add(new CalendarItemsData("读书", "book", true));
+        candidates.add(new CalendarItemsData("编程", "code", true));
+        candidates.add(new CalendarItemsData("画画", "paint", true));
+        candidates.add(new CalendarItemsData("支出", "cost", true));
+        candidates.add(new CalendarItemsData("收入", "income", true));
+        candidates.add(new CalendarItemsData("休息", "rest", true));
+        candidates.add(new CalendarItemsData("日语", "jp", true));
+        candidates.add(new CalendarItemsData("完成", "check", true));
+        candidates.add(new CalendarItemsData("火焰", "fire", true));
+        candidates.add(new CalendarItemsData("爱心", "like", true));
+        candidates.add(new CalendarItemsData("标记", "star", true));
+        candidates.add(new CalendarItemsData("咖啡", "coffee", true));
+        candidates.add(new CalendarItemsData("健康", "health", true));
+        return candidates;
+    }
+
+    public String getPicForTag(String tag) {
+        if (tag == null || tag.length() == 0) {
+            return "star";
+        }
+        if (englishName.contains(tag)) {
+            return tag;
+        }
+        for (CalendarItemsData item : getLists()) {
+            if (item == null) {
+                continue;
+            }
+            if (tag.equals(item.getCalendarItemName()) || tag.equals(item.getCalendarItemPic())) {
+                String pic = item.getCalendarItemPic();
+                return pic == null || pic.length() == 0 ? "star" : pic;
+            }
+        }
+        return tag;
     }
 
     public void saveImageLists() {
@@ -201,6 +251,9 @@ public class CalendarImageManager {
 
 
     public static void setImageSource(ImageView imageView, String pic) {
+        if (pic == null || pic.length() == 0) {
+            pic = "star";
+        }
         if (!pic.startsWith("/")) {
 
             switch (pic) {
@@ -221,26 +274,43 @@ public class CalendarImageManager {
                     break;
                 case "fire":
                 case "火焰":
+                case "coffee":
+                case "咖啡":
                     imageView.setImageResource(R.drawable.ic_fire);
                     break;
                 case "check":
                 case "完成":
+                case "sport":
+                case "运动":
+                case "health":
+                case "健康":
                     imageView.setImageResource(R.drawable.ic_check_circle_green_500_24dp);
                     break;
                 case "jp":
                 case "日语":
+                case "study":
+                case "学习":
+                case "book":
+                case "读书":
                     imageView.setImageResource(R.drawable.jp_learn);
                     break;
                 case "like":
                 case "爱心":
+                case "mood":
+                case "心情":
                     imageView.setImageResource(R.mipmap.ic_like_normal);
                     break;
                 case "rest":
                 case "懒惰":
+                case "休息":
+                case "sleep":
+                case "睡眠":
                     imageView.setImageResource(R.drawable.rest);
                     break;
                 case "code":
                 case "编程":
+                case "work":
+                case "工作":
                     imageView.setImageResource(R.drawable.code);
                     break;
                 case "paint":

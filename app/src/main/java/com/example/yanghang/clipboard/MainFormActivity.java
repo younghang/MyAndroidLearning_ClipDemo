@@ -33,6 +33,7 @@ import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.ItemTouchHelper;
 
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -52,6 +53,7 @@ import com.alibaba.fastjson.JSON;
 import com.example.yanghang.clipboard.DBClipInfos.DBListInfoManager;
 import com.example.yanghang.clipboard.ConnectToPC.PcLinkManager;
 import com.example.yanghang.clipboard.FileUtils.FileUtils;
+import com.example.yanghang.clipboard.Fragment.FragmentCalendar;
 import com.example.yanghang.clipboard.Fragment.JsonData.ProjectData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ResearchTopicData;
 import com.example.yanghang.clipboard.Fragment.JsonData.ToDoData;
@@ -63,6 +65,7 @@ import com.example.yanghang.clipboard.ListPackage.ClipInfosList.ListClipInfoAdap
 import com.example.yanghang.clipboard.ListPackage.ClipInfosList.MyItemTouchHelperCallBack;
 import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskAdapter;
 import com.example.yanghang.clipboard.ListPackage.DailyTaskList.DailyTaskData;
+import com.example.yanghang.clipboard.Log.CrashHandler;
 import com.example.yanghang.clipboard.Task.TaskAutoSave;
 import com.example.yanghang.clipboard.Task.TaskShowToDoList;
 
@@ -172,7 +175,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                                 @Override
                                 public void onClick(DialogInterface dialogInterface, int i) {
                                     TaskShowToDoList.updateDailyMissionList(dbListInfoManager, TaskShowToDoList.getTodayString(), dailyTaskAdapter.getLists());
-                                    listClipInfoAdapter.setDatas(dbListInfoManager.getDatas(""));
+                                    listClipInfoAdapter.setDatas(getDisplayDatas(""));
 
                                 }
                             }).setNegativeButton("取消", null)
@@ -190,7 +193,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    listDatas = dbListInfoManager.searchData(query);
+                    listDatas = filterMainListDatas("", dbListInfoManager.searchData(query));
                     Message msg = new Message();
                     Bundle data = new Bundle();
                     data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
@@ -223,6 +226,39 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
     private String currentCatalogue = "";
     private String currentCatalogueDetail = "";
     private PopupWindow popupWindow;
+
+    private List<ListData> getDisplayDatas(String catalogue) {
+        return filterMainListDatas(catalogue, dbListInfoManager.getDatas(catalogue));
+    }
+
+    private List<ListData> filterMainListDatas(String catalogue, List<ListData> sourceDatas) {
+        if (!"".equals(catalogue)) {
+            return sourceDatas;
+        }
+        List<ListData> result = new ArrayList<>();
+        for (ListData data : sourceDatas) {
+            if (!isCalendarInternalRecord(data)) {
+                result.add(data);
+            }
+        }
+        return result;
+    }
+
+    private boolean isCalendarInternalRecord(ListData data) {
+        if (data == null) {
+            return false;
+        }
+        String catalogue = data.getCatalogue();
+        if (!FragmentCalendar.CALENDAR_CATALOGUE_NAME.equals(catalogue)) {
+            return false;
+        }
+        String remarks = data.getRemarks();
+        return !("diary".equals(remarks)
+                || "日记".equals(remarks)
+                || "luser".equals(remarks)
+                || "weight".equals(remarks)
+                || "体重".equals(remarks));
+    }
 
     //    private DaoSession session;
 //    private DaoMaster.DevOpenHelper helper;
@@ -324,7 +360,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         if (pcLinkManager != null) {
                             pcLinkManager.sendRecordUpdateAck(data.getOrderID(), updated);
                         }
-                        final List<ListData> nextDatas = dbListInfoManager.getDatas(currentCatalogue);
+                        final List<ListData> nextDatas = getDisplayDatas(currentCatalogue);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -357,7 +393,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         if (pcLinkManager != null) {
                             pcLinkManager.sendRecordInsertAck(orderId, inserted);
                         }
-                        final List<ListData> nextDatas = dbListInfoManager.getDatas(currentCatalogue);
+                        final List<ListData> nextDatas = getDisplayDatas(currentCatalogue);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -537,7 +573,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                listDatas = dbListInfoManager.getDatas(currentCatalogue);
+                                listDatas = getDisplayDatas(currentCatalogue);
                                 TotalDataCount = listDatas.size();
                                 Message msg = new Message();
                                 Bundle data = new Bundle();
@@ -558,7 +594,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
         new Thread(new Runnable() {
             @Override
             public void run() {
-                listDatas = dbListInfoManager.getDatas("");
+                listDatas = getDisplayDatas("");
                 TotalDataCount = listDatas.size();
                 Message msg = new Message();
                 Bundle data = new Bundle();
@@ -719,7 +755,7 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                listDatas = dbListInfoManager.getDatas(catalogue);
+                                listDatas = getDisplayDatas(catalogue);
                                 Message msg = new Message();
                                 Bundle data = new Bundle();
                                 data.putInt(MSG_SEARCH_DATA, MSG_FINISH_SORTING_DATA);
@@ -815,17 +851,15 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                 return;
             case REQUEST_TEXT_EDITE_BACK:
                 if (resultCode == RESULT_OK) {
-                    ListData listData = (ListData) data.getExtras().get(LIST_DATA);
-                    int pos = data.getIntExtra(LIST_DATA_POS, 0);
-//
-//                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
-                    listClipInfoAdapter.editItem(pos, listData);
-                    dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
+                    handleReturnedListData(data, true);
                     return;
                 }
                 if (resultCode == ActivityEditInfo.RESULT_ADD_NEW) {
-                    ListData listData = (ListData) data.getExtras().get(LIST_DATA);
-                    int pos = 0;
+                    ListData listData = getReturnedListData(data);
+                    if (listData == null) {
+                        Toast.makeText(MainFormActivity.this, "新增数据为空，已忽略", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 //                    Log.v("TEM", pos + listData.getContent());
                     long result = dbListInfoManager.insertData(listData.getRemarks(), listData.getContent(), listData.getCreateDate(), listData.getOrderID(), listData.getCatalogue());
 
@@ -840,19 +874,99 @@ public class MainFormActivity extends AppCompatActivity implements ListClipInfoA
                     return;
                 }
                 if (resultCode == ActivityBangumi.RESULT_BANGUMI_ACTIVITY) {
-
-                    ListData listData = (ListData) data.getExtras().get(LIST_DATA);
-                    int pos = data.getIntExtra(LIST_DATA_POS, 0);
-//                    Log.d(TAG, "onActivityResult: content=" + JSON.toJSONString(listData.getContent()));
-
-//                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
-                    listClipInfoAdapter.editItem(pos, listData);
+                    handleReturnedListData(data, false);
                     return;
                 }
                 break;
 
         }
 
+    }
+
+    private ListData getReturnedListData(Intent data) {
+        if (data == null || data.getExtras() == null) {
+            return null;
+        }
+        Object value = data.getExtras().get(LIST_DATA);
+        return value instanceof ListData ? (ListData) value : null;
+    }
+
+    private void handleReturnedListData(Intent data, boolean updateDatabase) {
+        try {
+            ListData listData = getReturnedListData(data);
+            if (listData == null) {
+                throw new IllegalStateException("returned LIST_DATA is null");
+            }
+            int pos = data.getIntExtra(LIST_DATA_POS, -1);
+//                    Log.v(TAG, "返回后 current pos=" + pos + " 数据为：  order=" + listData.getOrderID() + "  catalogue=" + listData.getCatalogue());
+            if (updateDatabase) {
+                boolean updated = dbListInfoManager.updateDataByOrderId(listData.getOrderID(), listData.getCatalogue(), listData.getRemarks(), listData.getContent(), listData.getCreateDate());
+                if (!updated) {
+                    Log.e(TAG, "返回数据保存失败，orderID=" + listData.getOrderID());
+                    CrashHandler.appendLog(MainFormActivity.this, "返回数据保存失败", "orderID=" + listData.getOrderID(), null);
+                    Toast.makeText(MainFormActivity.this, "返回数据保存失败，已刷新列表", Toast.LENGTH_SHORT).show();
+                    refreshCurrentListFromDatabase();
+                    return;
+                }
+            }
+            updateReturnedItemInAdapter(listData, pos);
+        } catch (Exception e) {
+            Log.e(TAG, "处理返回数据异常", e);
+            CrashHandler.appendLog(MainFormActivity.this, "处理返回数据异常", "", e);
+            Toast.makeText(MainFormActivity.this, "返回数据处理异常，已刷新列表：" + e.getClass().getSimpleName(), Toast.LENGTH_SHORT).show();
+            refreshCurrentListFromDatabase();
+        }
+    }
+
+    private void updateReturnedItemInAdapter(ListData listData, int fallbackPos) {
+        if (listClipInfoAdapter == null || listData == null) {
+            refreshCurrentListFromDatabase();
+            return;
+        }
+        int adapterPos = findAdapterPositionByOrderId(listData.getOrderID());
+        if (adapterPos < 0 && fallbackPos >= 0 && fallbackPos < listClipInfoAdapter.getItemCount()) {
+            ListData currentData = listClipInfoAdapter.getItemData(fallbackPos);
+            if (currentData != null && currentData.getOrderID() == listData.getOrderID()) {
+                adapterPos = fallbackPos;
+            }
+        }
+        if (adapterPos >= 0) {
+            listClipInfoAdapter.editItem(adapterPos, listData);
+        } else {
+            Log.e(TAG, "返回数据在当前列表中找不到，orderID=" + listData.getOrderID());
+            CrashHandler.appendLog(MainFormActivity.this, "返回数据在当前列表中找不到", "orderID=" + listData.getOrderID(), null);
+            refreshCurrentListFromDatabase();
+        }
+    }
+
+    private int findAdapterPositionByOrderId(int orderID) {
+        if (listClipInfoAdapter == null) {
+            return -1;
+        }
+        for (int i = 0; i < listClipInfoAdapter.getItemCount(); i++) {
+            ListData currentData = listClipInfoAdapter.getItemData(i);
+            if (currentData != null && currentData.getOrderID() == orderID) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void refreshCurrentListFromDatabase() {
+        try {
+            listDatas = getDisplayDatas(currentCatalogue);
+            TotalDataCount = listDatas.size();
+            if (listClipInfoAdapter != null) {
+                listClipInfoAdapter.setDatas(listDatas);
+            }
+            if (refreshLayout != null) {
+                refreshLayout.setRefreshing(false);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "刷新当前列表失败", e);
+            CrashHandler.appendLog(MainFormActivity.this, "刷新当前列表失败", "", e);
+            Toast.makeText(MainFormActivity.this, "刷新列表失败：" + e.getClass().getSimpleName(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     public static boolean isDailyTask = false;

@@ -134,6 +134,28 @@ public class DBListInfoManager {
         return mDatas;
     }
 
+    public ListData getDataByOrderId(int orderID) {
+        open();
+        Cursor cursor = mSQLiteDatabase.query(DB_TABLE, null, KEY_ORDERID + "=" + orderID, null, null, null, null);
+        ListData listData = null;
+        if (cursor.moveToFirst()) {
+            int remarkIndex = cursor.getColumnIndex(DBListInfoManager.KEY_REMARK);
+            int contentIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CONTENT);
+            int datetimeIndex = cursor.getColumnIndex(DBListInfoManager.KEY_DATETIME);
+            int orderIdIndex = cursor.getColumnIndex(DBListInfoManager.KEY_ORDERID);
+            int catalogueIndex = cursor.getColumnIndex(DBListInfoManager.KEY_CATALOGUE);
+            String remark = cursor.getString(remarkIndex);
+            String content = cursor.getString(contentIndex);
+            String datetime = cursor.getString(datetimeIndex);
+            String catalogue = cursor.getString(catalogueIndex);
+            int currentOrderID = cursor.getInt(orderIdIndex);
+            listData = new ListData(remark, content, datetime, currentOrderID, catalogue);
+        }
+        cursor.close();
+        close();
+        return listData;
+    }
+
     //no use
     public int getCatalogueCount(String catalogue) {
         int count = 0;
